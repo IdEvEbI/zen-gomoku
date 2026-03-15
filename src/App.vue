@@ -1,8 +1,12 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import GameBoard from './components/game/GameBoard.vue'
+</script>
 
 <template>
   <div class="app">
-    <!-- 五子棋游戏主容器，后续接入棋盘等组件 -->
+    <div class="app__board-wrap">
+      <GameBoard />
+    </div>
   </div>
 </template>
 
@@ -12,5 +16,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #f5f5f5;
+}
+.app__board-wrap {
+  width: min(90vmin, 420px);
+  height: min(90vmin, 420px);
+  background: #dcb35c;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 </style>

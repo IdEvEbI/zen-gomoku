@@ -16,9 +16,13 @@ docs/
 ├── README.md           # 本索引与约定说明
 ├── development/        # 开发相关
 │   └── branch-strategy.md
-└── project/            # 项目相关（需求、设计等）
-    ├── requirements.md # 需求说明（可拆分多文件）
-    └── design.md       # 设计文档（可拆分多文件）
+├── project/            # 项目相关（需求、设计等）
+│   ├── issue-backlog.md
+│   └── doc-review.md   # 文档评审与补充建议
+├── requirements/       # 需求规格
+│   └── functional-spec.md
+└── design/             # 设计与架构
+    └── technical-architecture.md
 ```
 
 ## 开发文档 (development/)
@@ -31,7 +35,19 @@ docs/
 
 | 文档 | 说明 |
 | --- | --- |
-| [requirements.md](project/requirements.md) | 需求说明（待补充） |
-| [design.md](project/design.md) | 设计与技术方案（待补充） |
+| [issue-backlog.md](project/issue-backlog.md) | Issue 清单与开发路线（示例标题与描述） |
+| [doc-review.md](project/doc-review.md) | 文档评审与补充建议（2026-03-02） |
+
+## 需求规格 (requirements/)
+
+| 文档 | 说明 |
+| --- | --- |
+| [functional-spec.md](requirements/functional-spec.md) | 功能规格说明书 |
+
+## 设计与架构 (design/)
+
+| 文档 | 说明 |
+| --- | --- |
+| [technical-architecture.md](design/technical-architecture.md) | 技术架构设计 |
 
 新文档请按上述目录放入对应子目录，并保持 kebab-case 命名；新增后可在本 README 的表格中加一行链接。

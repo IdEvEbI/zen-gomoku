@@ -26,9 +26,14 @@ export function createBoardRenderer(
   const scale =
     Math.min(containerWidth, containerHeight) / BOARD_SIZE
   const size = BOARD_SIZE * scale
+  /** 半格偏移，使棋盘居中、四周留白不贴边 */
+  const offset = scale / 2
+  /** 格线仅在此矩形内绘制，不贴画布边缘 */
+  const gridMin = offset
+  const gridMax = offset + (BOARD_SIZE - 1) * scale
 
   return {
-    /** 绘制 15×15 格线（16×16 条线） */
+    /** 绘制 15×15 格线（横竖各 15 根线，线仅在 offset 内收，不贴边） */
     drawBoard(): void {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
@@ -39,15 +44,15 @@ export function createBoardRenderer(
       ctx.strokeStyle = GRID_COLOR
       ctx.lineWidth = LINE_WIDTH
 
-      for (let i = 0; i <= BOARD_SIZE; i++) {
-        const p = i * scale
+      for (let i = 0; i < BOARD_SIZE; i++) {
+        const p = offset + i * scale
         ctx.beginPath()
-        ctx.moveTo(p, 0)
-        ctx.lineTo(p, size)
+        ctx.moveTo(p, gridMin)
+        ctx.lineTo(p, gridMax)
         ctx.stroke()
         ctx.beginPath()
-        ctx.moveTo(0, p)
-        ctx.lineTo(size, p)
+        ctx.moveTo(gridMin, p)
+        ctx.lineTo(gridMax, p)
         ctx.stroke()
       }
     },

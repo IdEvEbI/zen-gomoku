@@ -16,6 +16,7 @@
 2. 从下表复制 **标题** 和 **描述** 到新 Issue；描述中可注明对应 F-REQ 或模块。
 3. 可选：设置 **Labels**（如 `enhancement`、`game-logic`、`ui`、`documentation`）、**Milestone**（见文末）。
 4. 开发时从对应 Issue 建分支（如 `feature/board-renderer`），PR 合并时在描述中写 `Closes #<Issue 编号>`。
+5. **Issue 编号**：Backlog 表格中的 #1、#2… 为文档内序号；GitHub 上的 Issue 编号由仓库全局递增（如 #17、#18），不会与之一一对应。PR 中请使用**实际创建的 GitHub Issue 编号**（如 `Closes #17`）。创建 Issue 时可在描述中注明「Backlog §1.1 项 1」便于对照。
 
 ---
 

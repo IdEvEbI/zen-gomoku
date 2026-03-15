@@ -4,8 +4,14 @@ import { createBoardRenderer, createCoordMapper } from '../../renderer'
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-/** 测试用：最后一次有效点击的 (row, col)，便于界面与控制台验证 */
+/** 测试用：最后一次有效点击的 (row, col) */
 const lastClick = ref<{ row: number; col: number } | null>(null)
+/** 本地棋盘状态，0 空 1 黑 2 白，用于手动测试棋子绘制（Issue 4 后将由 Pinia 替代） */
+const board = ref<number[][]>(
+  Array.from({ length: 15 }, () => Array(15).fill(0))
+)
+/** 当前落子方，1 黑 2 白 */
+const currentPlayer = ref<1 | 2>(1)
 let resizeObserver: ResizeObserver | null = null
 
 const BOARD_SIZE = 15
@@ -31,6 +37,7 @@ function draw() {
     containerHeight: h,
   })
   renderer.drawBoard()
+  renderer.drawPieces(board.value)
 }
 
 function handlePointerDown(e: PointerEvent) {
@@ -46,8 +53,15 @@ function handlePointerDown(e: PointerEvent) {
   const bitmapY = displayY * (canvas.height / rect.height)
   const logical = mapper.pixelToLogical(bitmapX, bitmapY)
   if (!logical) return
+  const { row, col } = logical
   lastClick.value = logical
-  console.log('[coord-mapper] click →', logical)
+  if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return
+  const rowData = board.value[row]
+  if (!rowData || rowData[col] !== 0) return
+  rowData[col] = currentPlayer.value
+  currentPlayer.value = currentPlayer.value === 1 ? 2 : 1
+  draw()
+  console.log('[piece]', logical, rowData[col] === 1 ? '黑' : '白')
 }
 
 onMounted(() => {
@@ -70,8 +84,9 @@ onUnmounted(() => {
       class="game-board__canvas"
       @pointerdown="handlePointerDown"
     />
-    <div v-if="lastClick !== null" class="game-board__hint" aria-live="polite">
-      测试：上次点击 ({{ lastClick.row }}, {{ lastClick.col }})
+    <div class="game-board__hint" aria-live="polite">
+      <span>当前：{{ currentPlayer === 1 ? '黑' : '白' }}方</span>
+      <span v-if="lastClick !== null"> · 上次 ({{ lastClick.row }}, {{ lastClick.col }})</span>
     </div>
   </div>
 </template>

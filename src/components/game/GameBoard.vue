@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import { createBoardRenderer, createCoordMapper } from '../../renderer'
+import { useGameStore } from '../../stores'
+
+const gameStore = useGameStore()
+const { board, currentPlayer } = storeToRefs(gameStore)
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
-/** 测试用：最后一次有效点击的 (row, col) */
+/** 最后一次有效点击的 (row, col)；非法落子时的提示信息 */
 const lastClick = ref<{ row: number; col: number } | null>(null)
-/** 本地棋盘状态，0 空 1 黑 2 白，用于手动测试棋子绘制（Issue 4 后将由 Pinia 替代） */
-const board = ref<number[][]>(
-  Array.from({ length: 15 }, () => Array(15).fill(0))
-)
-/** 当前落子方，1 黑 2 白 */
-const currentPlayer = ref<1 | 2>(1)
+const lastMessage = ref<string | null>(null)
 let resizeObserver: ResizeObserver | null = null
 
-const BOARD_SIZE = 15
+const BOARD_SIZE = gameStore.boardSize
 
 function getScale(): number {
   const container = containerRef.value
@@ -54,14 +54,14 @@ function handlePointerDown(e: PointerEvent) {
   const logical = mapper.pixelToLogical(bitmapX, bitmapY)
   if (!logical) return
   const { row, col } = logical
-  lastClick.value = logical
-  if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return
-  const rowData = board.value[row]
-  if (!rowData || rowData[col] !== 0) return
-  rowData[col] = currentPlayer.value
-  currentPlayer.value = currentPlayer.value === 1 ? 2 : 1
-  draw()
-  console.log('[piece]', logical, rowData[col] === 1 ? '黑' : '白')
+  lastMessage.value = null
+  const result = gameStore.placeStone(row, col)
+  if (result.success) {
+    lastClick.value = logical
+    draw()
+  } else {
+    lastMessage.value = result.message
+  }
 }
 
 onMounted(() => {
@@ -87,6 +87,7 @@ onUnmounted(() => {
     <div class="game-board__hint" aria-live="polite">
       <span>当前：{{ currentPlayer === 1 ? '黑' : '白' }}方</span>
       <span v-if="lastClick !== null"> · 上次 ({{ lastClick.row }}, {{ lastClick.col }})</span>
+      <span v-if="lastMessage" class="game-board__hint--error">{{ lastMessage }}</span>
     </div>
   </div>
 </template>
@@ -118,5 +119,9 @@ onUnmounted(() => {
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
   pointer-events: none;
+}
+.game-board__hint--error {
+  color: #c00;
+  margin-left: 0.25rem;
 }
 </style>

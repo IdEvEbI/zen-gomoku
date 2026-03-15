@@ -2,10 +2,12 @@
  * 对局状态与落子逻辑（Pinia）
  * 状态：board、currentPlayer、history、status
  * 落子前校验空位与当前玩家；非法落子不写 history，返回提示
+ * 落子后调用胜负判定，若五连则更新 status
  */
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { checkWinner } from '../core'
 
 const BOARD_SIZE = 15
 
@@ -48,7 +50,12 @@ export const useGameStore = defineStore('game', () => {
     const player = currentPlayer.value
     rowData[col] = player
     history.value.push({ row, col, player })
-    currentPlayer.value = (player === 1 ? 2 : 1) as Player
+    const winner = checkWinner(board.value, row, col)
+    if (winner !== null) {
+      status.value = winner === 1 ? 'black_win' : 'white_win'
+    } else {
+      currentPlayer.value = (player === 1 ? 2 : 1) as Player
+    }
     return { success: true }
   }
 

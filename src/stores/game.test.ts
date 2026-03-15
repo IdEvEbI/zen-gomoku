@@ -50,6 +50,21 @@ describe('useGameStore', () => {
     expect(store.history).toHaveLength(0)
   })
 
+  it('placeStone: after five in a row updates status to black_win', () => {
+    const store = useGameStore()
+    store.placeStone(7, 0)
+    store.placeStone(0, 0) // white
+    store.placeStone(7, 1)
+    store.placeStone(0, 1)
+    store.placeStone(7, 2)
+    store.placeStone(0, 2)
+    store.placeStone(7, 3)
+    store.placeStone(0, 3)
+    store.placeStone(7, 4) // black fifth in a row
+    expect(store.status).toBe('black_win')
+    expect(store.canPlay).toBe(false)
+  })
+
   it('resetGame: clears board, history, black first', () => {
     const store = useGameStore()
     store.placeStone(0, 0)

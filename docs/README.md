@@ -30,6 +30,7 @@ docs/
 | 文档 | 说明 |
 | --- | --- |
 | [branch-strategy.md](development/branch-strategy.md) | 分支策略与 Git 工作流 |
+| [feature-workflow.md](development/feature-workflow.md) | PR 合并后与开始新 Issue 的标准步骤 |
 
 ## 项目文档 (project/)
 

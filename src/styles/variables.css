@@ -1,6 +1,0 @@
-/**
- * 全局样式变量：主题色、棋盘尺寸、间距等，供组件与 style.css 引用
- */
-:root {
-  /* 示例：--color-board-line: #333; --size-cell: 40px; */
-}

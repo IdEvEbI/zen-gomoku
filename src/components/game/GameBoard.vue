@@ -1,15 +1,55 @@
 <script setup lang="ts">
-// 棋盘组件：Canvas 或 DOM 渲染，接收行列数、落子回调等
+import { ref, onMounted, onUnmounted } from 'vue'
+import { createBoardRenderer } from '../../renderer'
+
+const containerRef = ref<HTMLDivElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+let resizeObserver: ResizeObserver | null = null
+
+function draw() {
+  const container = containerRef.value
+  const canvas = canvasRef.value
+  if (!container || !canvas) return
+  const w = container.clientWidth
+  const h = container.clientHeight
+  if (w <= 0 || h <= 0) return
+  const renderer = createBoardRenderer(canvas, {
+    containerWidth: w,
+    containerHeight: h,
+  })
+  renderer.drawBoard()
+}
+
+onMounted(() => {
+  draw()
+  const container = containerRef.value
+  if (!container) return
+  resizeObserver = new ResizeObserver(() => draw())
+  resizeObserver.observe(container)
+})
+
+onUnmounted(() => {
+  resizeObserver?.disconnect()
+})
 </script>
 
 <template>
-  <div class="game-board">
-    <!-- 棋盘容器，后续接入 Canvas 或格线 -->
+  <div ref="containerRef" class="game-board">
+    <canvas ref="canvasRef" class="game-board__canvas" />
   </div>
 </template>
 
 <style scoped>
 .game-board {
-  /* 棋盘样式 */
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.game-board__canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
 }
 </style>

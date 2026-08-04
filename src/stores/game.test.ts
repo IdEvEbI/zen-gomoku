@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useGameStore } from './game'
 
@@ -142,5 +142,25 @@ describe('useGameStore', () => {
     store.tickReplay()
     expect(store.displayHistoryIndex).toBe(2)
     expect(store.isReplayPlaying).toBe(false)
+  })
+
+  it('vsAi: after black move AI places white', async () => {
+    vi.useFakeTimers()
+    const store = useGameStore()
+    store.setAgent({
+      name: 'test',
+      async getNextMove() {
+        return { row: 1, col: 1 }
+      },
+    })
+    store.setVsAi(true)
+    expect(store.placeStone(0, 0).success).toBe(true)
+    expect(store.aiThinking).toBe(true)
+    await vi.advanceTimersByTimeAsync(300)
+    await Promise.resolve()
+    expect(store.board[1]![1]).toBe(2)
+    expect(store.currentPlayer).toBe(1)
+    expect(store.aiThinking).toBe(false)
+    vi.useRealTimers()
   })
 })

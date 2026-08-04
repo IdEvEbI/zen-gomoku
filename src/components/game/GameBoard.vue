@@ -13,6 +13,8 @@ const {
   history,
   displayHistoryIndex,
   isAtLiveEdge,
+  vsAi,
+  aiThinking,
 } = storeToRefs(gameStore)
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -128,8 +130,14 @@ onUnmounted(() => {
     />
     <div class="game-board__hint" aria-live="polite">
       <template v-if="status === 'playing' && isAtLiveEdge">
-        <span>当前：{{ currentPlayer === 1 ? '黑' : '白' }}方</span>
-        <span v-if="lastClick !== null"> · 上次 ({{ lastClick.row }}, {{ lastClick.col }})</span>
+        <span v-if="aiThinking">AI 落子中…</span>
+        <template v-else>
+          <span>
+            当前：{{ currentPlayer === 1 ? '黑' : '白' }}方
+            <template v-if="vsAi">（{{ currentPlayer === 1 ? '你' : 'AI' }}）</template>
+          </span>
+          <span v-if="lastClick !== null"> · 上次 ({{ lastClick.row }}, {{ lastClick.col }})</span>
+        </template>
       </template>
       <template v-else-if="!isAtLiveEdge">
         <span>复盘第 {{ displayHistoryIndex }} 手</span>

@@ -1,0 +1,5 @@
+export type { IAgent, AiMove, AiPlayer } from './types'
+export { nextPlayerFromBoard, listEmptyCells } from './types'
+export { buildWinsTable, buildWinsCounts } from './winsTable'
+export { RandomAgent } from './RandomAgent'
+export { HeuristicAgent } from './HeuristicAgent'

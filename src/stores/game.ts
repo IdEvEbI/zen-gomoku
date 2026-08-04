@@ -19,13 +19,19 @@ import {
   DEFAULT_RECORD_STORAGE_KEY,
   type KeyValueStorage,
 } from '../storage'
+import { HeuristicAgent, type IAgent } from '../ai'
 
 const BOARD_SIZE = 15
 /** 自动回放间隔（ms） */
 export const REPLAY_INTERVAL_MS = 600
+/** AI 落子前短延迟，便于看清人下完的一手 */
+export const AI_MOVE_DELAY_MS = 280
 
 export type Player = 1 | 2
 export type GameStatus = 'playing' | 'black_win' | 'white_win' | 'draw'
+
+/** 人机模式下 AI 执白 */
+export const AI_PLAYER: Player = 2
 
 export interface HistoryEntry {
   row: number
@@ -50,14 +56,23 @@ export const useGameStore = defineStore('game', () => {
   const displayHistoryIndex = ref(0)
   /** 是否正在自动播放复盘 */
   const isReplayPlaying = ref(false)
+  /** 人机对战（人黑 AI 白） */
+  const vsAi = ref(false)
+  const aiThinking = ref(false)
+  let agent: IAgent = new HeuristicAgent(BOARD_SIZE)
+  let aiToken = 0
 
   const isAtLiveEdge = computed(
     () => displayHistoryIndex.value >= history.value.length
   )
 
-  /** 仅在对局进行中且视图停在最新一手时可落子 */
+  /** 仅在对局进行中、最新局面、非 AI 思考、且轮到人类时可落子 */
   const canPlay = computed(
-    () => status.value === 'playing' && isAtLiveEdge.value
+    () =>
+      status.value === 'playing' &&
+      isAtLiveEdge.value &&
+      !aiThinking.value &&
+      !(vsAi.value && currentPlayer.value === AI_PLAYER)
   )
 
   const canReplay = computed(() => history.value.length > 0)
@@ -139,6 +154,9 @@ export const useGameStore = defineStore('game', () => {
     if (!isAtLiveEdge.value) {
       return { success: false, message: '请先回到最新局面再落子' }
     }
+    if (vsAi.value && currentPlayer.value === AI_PLAYER && !aiThinking.value) {
+      return { success: false, message: '现在是 AI 回合' }
+    }
     if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
       return { success: false, message: '落子超出棋盘' }
     }
@@ -156,11 +174,56 @@ export const useGameStore = defineStore('game', () => {
     } else {
       currentPlayer.value = (player === 1 ? 2 : 1) as Player
     }
+    scheduleAiMove()
     return { success: true }
+  }
+
+  function scheduleAiMove(): void {
+    if (!vsAi.value) return
+    if (status.value !== 'playing') return
+    if (!isAtLiveEdge.value) return
+    if (currentPlayer.value !== AI_PLAYER) return
+    if (aiThinking.value) return
+    const token = ++aiToken
+    void runAiMove(token)
+  }
+
+  async function runAiMove(token: number): Promise<void> {
+    aiThinking.value = true
+    try {
+      await new Promise((r) => setTimeout(r, AI_MOVE_DELAY_MS))
+      if (token !== aiToken) return
+      if (!vsAi.value || status.value !== 'playing') return
+      if (currentPlayer.value !== AI_PLAYER) return
+      const snapshot = board.value.map((row) => row.slice())
+      const move = await agent.getNextMove(snapshot)
+      if (token !== aiToken) return
+      if (!move) return
+      placeStone(move.row, move.col)
+    } finally {
+      if (token === aiToken) {
+        aiThinking.value = false
+      }
+    }
+  }
+
+  function setVsAi(enabled: boolean): void {
+    vsAi.value = enabled
+    aiToken++
+    aiThinking.value = false
+    if (enabled) {
+      scheduleAiMove()
+    }
+  }
+
+  function setAgent(next: IAgent): void {
+    agent = next
   }
 
   function resetGame(): void {
     pauseReplay()
+    aiToken++
+    aiThinking.value = false
     board.value = createEmptyBoard()
     currentPlayer.value = 1
     history.value = []
@@ -192,11 +255,14 @@ export const useGameStore = defineStore('game', () => {
       return { success: false, message: rebuilt.error }
     }
     pauseReplay()
+    aiToken++
+    aiThinking.value = false
     board.value = rebuilt.board
     history.value = rebuilt.history
     currentPlayer.value = rebuilt.currentPlayer
     status.value = rebuilt.status
     displayHistoryIndex.value = history.value.length
+    scheduleAiMove()
     return { success: true }
   }
 
@@ -234,8 +300,12 @@ export const useGameStore = defineStore('game', () => {
     isAtLiveEdge,
     canPlay,
     canReplay,
+    vsAi,
+    aiThinking,
     placeStone,
     resetGame,
+    setVsAi,
+    setAgent,
     exportRecord,
     exportRecordJson,
     loadRecord,

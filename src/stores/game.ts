@@ -19,7 +19,12 @@ import {
   DEFAULT_RECORD_STORAGE_KEY,
   type KeyValueStorage,
 } from '../storage'
-import { HeuristicAgent, type IAgent } from '../ai'
+import {
+  createAgentForDifficulty,
+  DEFAULT_AI_DIFFICULTY,
+  type AiDifficulty,
+  type IAgent,
+} from '../ai'
 
 const BOARD_SIZE = 15
 /** 自动回放间隔（ms） */
@@ -59,7 +64,9 @@ export const useGameStore = defineStore('game', () => {
   /** 人机对战（人黑 AI 白） */
   const vsAi = ref(false)
   const aiThinking = ref(false)
-  let agent: IAgent = new HeuristicAgent(BOARD_SIZE)
+  /** 对手等级：沙和尚～唐僧 */
+  const aiDifficulty = ref<AiDifficulty>(DEFAULT_AI_DIFFICULTY)
+  let agent: IAgent = createAgentForDifficulty(DEFAULT_AI_DIFFICULTY, BOARD_SIZE)
   let aiToken = 0
 
   const isAtLiveEdge = computed(
@@ -216,6 +223,16 @@ export const useGameStore = defineStore('game', () => {
     }
   }
 
+  function setAiDifficulty(next: AiDifficulty): void {
+    aiDifficulty.value = next
+    agent = createAgentForDifficulty(next, BOARD_SIZE)
+    aiToken++
+    aiThinking.value = false
+    if (vsAi.value) {
+      scheduleAiMove()
+    }
+  }
+
   function setAgent(next: IAgent): void {
     agent = next
   }
@@ -302,9 +319,11 @@ export const useGameStore = defineStore('game', () => {
     canReplay,
     vsAi,
     aiThinking,
+    aiDifficulty,
     placeStone,
     resetGame,
     setVsAi,
+    setAiDifficulty,
     setAgent,
     exportRecord,
     exportRecordJson,

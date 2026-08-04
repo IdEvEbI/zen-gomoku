@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { createBoardRenderer } from '../../renderer'
 import { useGameStore } from '../../stores'
 import { useBoardPointer } from '../../hooks'
 
 const gameStore = useGameStore()
-const { board, currentPlayer, status } = storeToRefs(gameStore)
+const { board, currentPlayer, status, history } = storeToRefs(gameStore)
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -81,6 +81,15 @@ function handleRestart() {
   lastMessage.value = null
   draw()
 }
+
+/** 棋谱加载等外部状态变更时重绘 */
+watch(
+  [board, history, status],
+  () => {
+    scheduleDraw()
+  },
+  { deep: true }
+)
 
 onMounted(() => {
   draw()

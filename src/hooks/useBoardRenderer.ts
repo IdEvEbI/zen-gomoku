@@ -1,7 +1,8 @@
 /**
- * 棋盘渲染 Hook：Canvas 绘制、坐标换算、鼠标/触摸落点等
+ * 棋盘渲染 Hook：Canvas 绘制、坐标换算等
+ * 落子交互见 useBoardPointer（pointerdown 统一 Mouse/Touch）
  */
 export function useBoardRenderer() {
-  // TODO: canvas ref、绘制棋盘与棋子、像素/格子坐标转换
+  // TODO: 可将 GameBoard 中的 draw / ResizeObserver 下沉至此
   return {}
 }

@@ -4,6 +4,7 @@ import {
   parseGameRecord,
   rebuildFromRecord,
   stringifyGameRecord,
+  boardFromHistory,
   GAME_RECORD_VERSION,
 } from './gameRecord'
 
@@ -87,5 +88,19 @@ describe('gameRecord', () => {
     expect(parsed.ok).toBe(true)
     if (!parsed.ok) return
     expect(parsed.record.moves).toEqual(record.moves)
+  })
+
+  it('boardFromHistory builds partial board', () => {
+    const history = [
+      { row: 0, col: 0, player: 1 },
+      { row: 1, col: 1, player: 2 },
+    ]
+    const b0 = boardFromHistory(history, 0)
+    expect(b0[0]![0]).toBe(0)
+    const b1 = boardFromHistory(history, 1)
+    expect(b1[0]![0]).toBe(1)
+    expect(b1[1]![1]).toBe(0)
+    const b2 = boardFromHistory(history, 2)
+    expect(b2[1]![1]).toBe(2)
   })
 })

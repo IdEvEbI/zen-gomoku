@@ -4,6 +4,7 @@ export {
   parseGameRecord,
   rebuildFromRecord,
   stringifyGameRecord,
+  boardFromHistory,
   GAME_RECORD_VERSION,
   DEFAULT_BOARD_SIZE,
 } from './gameRecord'

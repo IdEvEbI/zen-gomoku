@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import GameBoard from './components/game/GameBoard.vue'
 import GameRecordBar from './components/game/GameRecordBar.vue'
+import GameReplayBar from './components/game/GameReplayBar.vue'
 </script>
 
 <template>
@@ -9,6 +10,7 @@ import GameRecordBar from './components/game/GameRecordBar.vue'
     <div class="app__board-wrap">
       <GameBoard />
     </div>
+    <GameReplayBar />
   </div>
 </template>
 
@@ -22,7 +24,7 @@ import GameRecordBar from './components/game/GameRecordBar.vue'
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.5rem;
   background: #f5f5f5;
   padding:
     max(0.75rem, env(safe-area-inset-top, 0px))
@@ -32,8 +34,8 @@ import GameRecordBar from './components/game/GameRecordBar.vue'
 }
 
 .app__board-wrap {
-  /* 预留工具条高度，避免棋盘 + 按钮总高度超出视口 */
-  --toolbar-reserve: 2.75rem;
+  /* 预留上下工具条高度 */
+  --toolbar-reserve: 5.5rem;
   --board-size: min(
     560px,
     calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 1.5rem),

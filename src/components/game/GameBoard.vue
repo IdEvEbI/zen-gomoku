@@ -6,7 +6,14 @@ import { useGameStore } from '../../stores'
 import { useBoardPointer } from '../../hooks'
 
 const gameStore = useGameStore()
-const { board, currentPlayer, status, history } = storeToRefs(gameStore)
+const {
+  displayBoard,
+  currentPlayer,
+  status,
+  history,
+  displayHistoryIndex,
+  isAtLiveEdge,
+} = storeToRefs(gameStore)
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -18,7 +25,6 @@ let rafId = 0
 
 const BOARD_SIZE = gameStore.boardSize
 
-/** 容器可能因亚像素略非正方，取短边保证格子为正方形 */
 function getBoardSide(): number {
   const container = containerRef.value
   if (!container) return 0
@@ -44,10 +50,9 @@ function draw() {
     containerHeight: side,
   })
   renderer.drawBoard()
-  renderer.drawPieces(board.value)
+  renderer.drawPieces(displayBoard.value)
 }
 
-/** 合并同帧多次 resize / 横竖屏切换，避免频繁重绘 */
 function scheduleDraw() {
   if (rafId) cancelAnimationFrame(rafId)
   rafId = requestAnimationFrame(() => {
@@ -67,7 +72,6 @@ function placeAt(row: number, col: number) {
   }
 }
 
-/** Mouse / Touch / Pen 统一走 pointerdown → (row,col) → store */
 const { handlePointerDown } = useBoardPointer({
   canvasRef,
   getScale,
@@ -82,9 +86,14 @@ function handleRestart() {
   draw()
 }
 
-/** 棋谱加载等外部状态变更时重绘 */
+function handleStartReplay() {
+  gameStore.goToStart()
+  lastMessage.value = null
+}
+
+/** 棋谱 / 复盘索引变化时重绘 */
 watch(
-  [board, history, status],
+  [displayBoard, history, status, displayHistoryIndex],
   () => {
     scheduleDraw()
   },
@@ -98,7 +107,6 @@ onMounted(() => {
     resizeObserver = new ResizeObserver(() => scheduleDraw())
     resizeObserver.observe(container)
   }
-  // 部分移动端横竖屏切换时容器尺寸更新略滞后，补一层兜底
   window.addEventListener('orientationchange', scheduleDraw)
   window.visualViewport?.addEventListener('resize', scheduleDraw)
 })
@@ -119,19 +127,31 @@ onUnmounted(() => {
       @pointerdown="handlePointerDown"
     />
     <div class="game-board__hint" aria-live="polite">
-      <template v-if="status === 'playing'">
+      <template v-if="status === 'playing' && isAtLiveEdge">
         <span>当前：{{ currentPlayer === 1 ? '黑' : '白' }}方</span>
         <span v-if="lastClick !== null"> · 上次 ({{ lastClick.row }}, {{ lastClick.col }})</span>
+      </template>
+      <template v-else-if="!isAtLiveEdge">
+        <span>复盘第 {{ displayHistoryIndex }} 手</span>
       </template>
       <span v-else-if="status === 'black_win'">黑方胜</span>
       <span v-else-if="status === 'white_win'">白方胜</span>
       <span v-if="lastMessage" class="game-board__hint--error">{{ lastMessage }}</span>
     </div>
-    <div v-if="status !== 'playing'" class="game-board__overlay" role="dialog" aria-label="对局结束">
+    <!-- 终局遮罩：复盘浏览中隐藏，便于看棋 -->
+    <div
+      v-if="status !== 'playing' && isAtLiveEdge"
+      class="game-board__overlay"
+      role="dialog"
+      aria-label="对局结束"
+    >
       <p class="game-board__result">
         {{ status === 'black_win' ? '黑方胜' : status === 'white_win' ? '白方胜' : '和棋' }}
       </p>
-      <button type="button" class="game-board__restart" @click="handleRestart">重新开始</button>
+      <div class="game-board__overlay-actions">
+        <button type="button" class="game-board__restart" @click="handleStartReplay">复盘</button>
+        <button type="button" class="game-board__restart" @click="handleRestart">重新开始</button>
+      </div>
     </div>
   </div>
 </template>
@@ -145,7 +165,6 @@ onUnmounted(() => {
   overflow: hidden;
 }
 .game-board__canvas {
-  /* 铺满正方形容器；禁止只压单边导致格线被拉成长方形 */
   display: block;
   width: 100%;
   height: 100%;
@@ -186,6 +205,12 @@ onUnmounted(() => {
   background: rgba(0, 0, 0, 0.5);
   border-radius: 8px;
   padding: 0.75rem;
+}
+.game-board__overlay-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
 }
 .game-board__result {
   margin: 0;

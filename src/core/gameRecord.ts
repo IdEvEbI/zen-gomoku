@@ -41,6 +41,24 @@ function createEmptyBoard(size: number): number[][] {
   return Array.from({ length: size }, () => Array(size).fill(0))
 }
 
+/**
+ * 仅根据前 index 步着法生成棋盘（不改 history），供复盘渲染
+ */
+export function boardFromHistory(
+  history: { row: number; col: number; player: number }[],
+  index: number,
+  boardSize: number = DEFAULT_BOARD_SIZE
+): number[][] {
+  const board = createEmptyBoard(boardSize)
+  const end = Math.max(0, Math.min(index, history.length))
+  for (let i = 0; i < end; i++) {
+    const move = history[i]!
+    const row = board[move.row]
+    if (row) row[move.col] = move.player
+  }
+  return board
+}
+
 function isPlayer(v: unknown): v is RecordPlayer {
   return v === 1 || v === 2
 }

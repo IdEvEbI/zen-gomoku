@@ -15,6 +15,7 @@ const {
   isAtLiveEdge,
   vsAi,
   aiThinking,
+  aiPlayer,
 } = storeToRefs(gameStore)
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -139,7 +140,7 @@ onUnmounted(() => {
         <template v-else>
           <span>
             当前：{{ currentPlayer === 1 ? '黑' : '白' }}方
-            <template v-if="vsAi">（{{ currentPlayer === 1 ? '你' : 'AI' }}）</template>
+            <template v-if="vsAi">（{{ currentPlayer === aiPlayer ? 'AI' : '你' }}）</template>
           </span>
           <span v-if="lastClick !== null"> · 上次 ({{ lastClick.row }}, {{ lastClick.col }})</span>
         </template>

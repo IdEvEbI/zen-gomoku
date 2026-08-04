@@ -6,6 +6,15 @@ const hasCanvas =
   typeof globalThis.document.createElement === 'function'
 
 describe('createBoardRenderer', () => {
+  it.skipIf(!hasCanvas)('drawBoard draws without throw (includes star points)', () => {
+    const canvas = document.createElement('canvas')
+    const renderer = createBoardRenderer(canvas, {
+      containerWidth: 300,
+      containerHeight: 300,
+    })
+    expect(() => renderer.drawBoard()).not.toThrow()
+  })
+
   it.skipIf(!hasCanvas)('returns drawBoard, drawPiece, drawPieces, drawLastMoveMark, clear', () => {
     const canvas = document.createElement('canvas')
     const renderer = createBoardRenderer(canvas, {

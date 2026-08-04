@@ -36,8 +36,8 @@ import GameModeBar from './components/game/GameModeBar.vue'
 }
 
 .app__board-wrap {
-  /* 预留模式栏(含对手选择) + 记录栏 + 复盘栏 */
-  --toolbar-reserve: 11rem;
+  /* 预留模式栏(含先后/对手) + 记录栏 + 复盘栏 */
+  --toolbar-reserve: 11.5rem;
   --board-size: min(
     560px,
     calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 1.5rem),

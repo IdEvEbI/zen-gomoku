@@ -8,6 +8,16 @@
 const BOARD_SIZE = 15
 const GRID_COLOR = '#333'
 const LINE_WIDTH = 1
+/** 15×15 连珠盘五星（0-based）：天元 + 四角 */
+export const STAR_POINTS: ReadonlyArray<readonly [number, number]> = [
+  [3, 3],
+  [3, 11],
+  [7, 7],
+  [11, 3],
+  [11, 11],
+]
+const STAR_COLOR = '#3d2914'
+const STAR_RADIUS_RATIO = 0.09
 /** 棋子颜色：1 黑 2 白，与 store board 约定一致 */
 export type PieceColor = 1 | 2
 const PIECE_RADIUS_RATIO = 0.45
@@ -95,6 +105,17 @@ export function createBoardRenderer(
         ctx.moveTo(gridMin, p)
         ctx.lineTo(gridMax, p)
         ctx.stroke()
+      }
+
+      // 星位：格线之上、棋子之下
+      const starR = Math.max(2, scale * STAR_RADIUS_RATIO)
+      ctx.fillStyle = STAR_COLOR
+      for (const [row, col] of STAR_POINTS) {
+        const x = offset + col * scale
+        const y = offset + row * scale
+        ctx.beginPath()
+        ctx.arc(x, y, starR, 0, Math.PI * 2)
+        ctx.fill()
       }
     },
 

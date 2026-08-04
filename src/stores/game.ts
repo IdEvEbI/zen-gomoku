@@ -27,6 +27,9 @@ import {
 } from '../ai'
 
 const BOARD_SIZE = 15
+/** 天元（15×15 中心，0-based） */
+export const TENGEN_ROW = 7
+export const TENGEN_COL = 7
 /** 自动回放间隔（ms） */
 export const REPLAY_INTERVAL_MS = 600
 /** AI 落子前短延迟，便于看清人下完的一手 */
@@ -34,9 +37,6 @@ export const AI_MOVE_DELAY_MS = 280
 
 export type Player = 1 | 2
 export type GameStatus = 'playing' | 'black_win' | 'white_win' | 'draw'
-
-/** 人机模式下 AI 执白 */
-export const AI_PLAYER: Player = 2
 
 export interface HistoryEntry {
   row: number
@@ -61,13 +61,18 @@ export const useGameStore = defineStore('game', () => {
   const displayHistoryIndex = ref(0)
   /** 是否正在自动播放复盘 */
   const isReplayPlaying = ref(false)
-  /** 人机对战（人黑 AI 白） */
+  /** 人机对战 */
   const vsAi = ref(false)
   const aiThinking = ref(false)
+  /** true：人类执黑先手；false：AI 执黑先手 */
+  const humanFirst = ref(true)
   /** 对手等级：沙和尚～唐僧 */
   const aiDifficulty = ref<AiDifficulty>(DEFAULT_AI_DIFFICULTY)
   let agent: IAgent = createAgentForDifficulty(DEFAULT_AI_DIFFICULTY, BOARD_SIZE)
   let aiToken = 0
+
+  /** 人机下 AI 所执颜色 */
+  const aiPlayer = computed<Player>(() => (humanFirst.value ? 2 : 1))
 
   const isAtLiveEdge = computed(
     () => displayHistoryIndex.value >= history.value.length
@@ -79,7 +84,7 @@ export const useGameStore = defineStore('game', () => {
       status.value === 'playing' &&
       isAtLiveEdge.value &&
       !aiThinking.value &&
-      !(vsAi.value && currentPlayer.value === AI_PLAYER)
+      !(vsAi.value && currentPlayer.value === aiPlayer.value)
   )
 
   const canReplay = computed(() => history.value.length > 0)
@@ -161,11 +166,17 @@ export const useGameStore = defineStore('game', () => {
     if (!isAtLiveEdge.value) {
       return { success: false, message: '请先回到最新局面再落子' }
     }
-    if (vsAi.value && currentPlayer.value === AI_PLAYER && !aiThinking.value) {
+    if (vsAi.value && currentPlayer.value === aiPlayer.value && !aiThinking.value) {
       return { success: false, message: '现在是 AI 回合' }
     }
     if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
       return { success: false, message: '落子超出棋盘' }
+    }
+    if (
+      history.value.length === 0 &&
+      (row !== TENGEN_ROW || col !== TENGEN_COL)
+    ) {
+      return { success: false, message: '第一步请下在天元' }
     }
     const rowData = board.value[row]
     if (!rowData || rowData[col] !== 0) {
@@ -189,7 +200,7 @@ export const useGameStore = defineStore('game', () => {
     if (!vsAi.value) return
     if (status.value !== 'playing') return
     if (!isAtLiveEdge.value) return
-    if (currentPlayer.value !== AI_PLAYER) return
+    if (currentPlayer.value !== aiPlayer.value) return
     if (aiThinking.value) return
     const token = ++aiToken
     void runAiMove(token)
@@ -201,7 +212,7 @@ export const useGameStore = defineStore('game', () => {
       await new Promise((r) => setTimeout(r, AI_MOVE_DELAY_MS))
       if (token !== aiToken) return
       if (!vsAi.value || status.value !== 'playing') return
-      if (currentPlayer.value !== AI_PLAYER) return
+      if (currentPlayer.value !== aiPlayer.value) return
       const snapshot = board.value.map((row) => row.slice())
       const move = await agent.getNextMove(snapshot)
       if (token !== aiToken) return
@@ -221,6 +232,13 @@ export const useGameStore = defineStore('game', () => {
     if (enabled) {
       scheduleAiMove()
     }
+  }
+
+  /** 切换先后手会清空当前对局并按新设置开局 */
+  function setHumanFirst(next: boolean): void {
+    if (humanFirst.value === next) return
+    humanFirst.value = next
+    resetGame()
   }
 
   function setAiDifficulty(next: AiDifficulty): void {
@@ -246,6 +264,7 @@ export const useGameStore = defineStore('game', () => {
     history.value = []
     status.value = 'playing'
     displayHistoryIndex.value = 0
+    scheduleAiMove()
   }
 
   function exportRecord(): GameRecord {
@@ -320,9 +339,12 @@ export const useGameStore = defineStore('game', () => {
     vsAi,
     aiThinking,
     aiDifficulty,
+    humanFirst,
+    aiPlayer,
     placeStone,
     resetGame,
     setVsAi,
+    setHumanFirst,
     setAiDifficulty,
     setAgent,
     exportRecord,

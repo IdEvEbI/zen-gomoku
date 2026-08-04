@@ -7,7 +7,7 @@ import {
 } from '../../stores'
 
 const gameStore = useGameStore()
-const { vsAi, aiThinking, aiDifficulty } = storeToRefs(gameStore)
+const { vsAi, aiThinking, aiDifficulty, humanFirst } = storeToRefs(gameStore)
 
 function toggleVsAi() {
   gameStore.setVsAi(!vsAi.value)
@@ -16,6 +16,11 @@ function toggleVsAi() {
 function onDifficultyChange(event: Event) {
   const value = (event.target as HTMLSelectElement).value as AiDifficulty
   gameStore.setAiDifficulty(value)
+}
+
+function onFirstChange(event: Event) {
+  const value = (event.target as HTMLSelectElement).value
+  gameStore.setHumanFirst(value === 'human')
 }
 </script>
 
@@ -38,7 +43,7 @@ function onDifficultyChange(event: Event) {
           :class="{ 'mode-bar__btn--active': vsAi }"
           @click="toggleVsAi"
         >
-          人机（你执黑）
+          人机
         </button>
       </div>
       <span
@@ -49,12 +54,28 @@ function onDifficultyChange(event: Event) {
       </span>
     </div>
 
-    <div v-if="vsAi" class="mode-bar__difficulty">
+    <div
+      class="mode-bar__options"
+      :class="{ 'mode-bar__options--idle': !vsAi }"
+      :aria-hidden="!vsAi"
+    >
+      <label class="mode-bar__diff-label" for="ai-first">先后</label>
+      <select
+        id="ai-first"
+        class="mode-bar__select"
+        :value="humanFirst ? 'human' : 'ai'"
+        :disabled="!vsAi"
+        @change="onFirstChange"
+      >
+        <option value="human">你先（执黑）</option>
+        <option value="ai">AI 先（执黑）</option>
+      </select>
       <label class="mode-bar__diff-label" for="ai-difficulty">对手</label>
       <select
         id="ai-difficulty"
         class="mode-bar__select"
         :value="aiDifficulty"
+        :disabled="!vsAi"
         @change="onDifficultyChange"
       >
         <option
@@ -65,11 +86,6 @@ function onDifficultyChange(event: Event) {
           {{ opt.name }}
         </option>
       </select>
-    </div>
-    <!-- 人人模式占位，避免显隐跳动 -->
-    <div v-else class="mode-bar__difficulty mode-bar__difficulty--idle" aria-hidden="true">
-      <span class="mode-bar__diff-label">对手</span>
-      <span class="mode-bar__select-ph">猪八戒</span>
     </div>
   </div>
 </template>
@@ -124,15 +140,17 @@ function onDifficultyChange(event: Event) {
 .mode-bar__status--idle {
   visibility: hidden;
 }
-.mode-bar__difficulty {
+.mode-bar__options {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
   min-height: 1.75rem;
 }
-.mode-bar__difficulty--idle {
+.mode-bar__options--idle {
   visibility: hidden;
+  pointer-events: none;
 }
 .mode-bar__diff-label {
   font-size: 0.75rem;
@@ -147,10 +165,7 @@ function onDifficultyChange(event: Event) {
   border-radius: 6px;
   cursor: pointer;
 }
-.mode-bar__select-ph {
-  display: inline-block;
-  min-width: 5rem;
-  padding: 0.25rem 0.45rem;
-  font-size: 0.8rem;
+.mode-bar__select:disabled {
+  cursor: not-allowed;
 }
 </style>

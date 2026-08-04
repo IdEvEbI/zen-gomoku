@@ -6,7 +6,7 @@ const hasCanvas =
   typeof globalThis.document.createElement === 'function'
 
 describe('createBoardRenderer', () => {
-  it.skipIf(!hasCanvas)('returns drawBoard, drawPiece, drawPieces, clear', () => {
+  it.skipIf(!hasCanvas)('returns drawBoard, drawPiece, drawPieces, drawLastMoveMark, clear', () => {
     const canvas = document.createElement('canvas')
     const renderer = createBoardRenderer(canvas, {
       containerWidth: 300,
@@ -15,6 +15,7 @@ describe('createBoardRenderer', () => {
     expect(typeof renderer.drawBoard).toBe('function')
     expect(typeof renderer.drawPiece).toBe('function')
     expect(typeof renderer.drawPieces).toBe('function')
+    expect(typeof renderer.drawLastMoveMark).toBe('function')
     expect(typeof renderer.clear).toBe('function')
   })
 
@@ -41,6 +42,18 @@ describe('createBoardRenderer', () => {
     board[14]![14] = 2
     board[7]![7] = 1
     expect(() => renderer.drawPieces(board)).not.toThrow()
+  })
+
+  it.skipIf(!hasCanvas)('drawLastMoveMark does not throw', () => {
+    const canvas = document.createElement('canvas')
+    const renderer = createBoardRenderer(canvas, {
+      containerWidth: 300,
+      containerHeight: 300,
+    })
+    renderer.drawBoard()
+    renderer.drawPiece(7, 7, 1)
+    expect(() => renderer.drawLastMoveMark(7, 7)).not.toThrow()
+    expect(() => renderer.drawLastMoveMark(-1, 0)).not.toThrow()
   })
 
   it.skipIf(!hasCanvas)('clear does not throw', () => {

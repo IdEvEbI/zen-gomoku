@@ -2,7 +2,7 @@
  * 棋盘渲染器：15×15 格线绘制，棋子绘制，响应式尺寸
  * scale = min(containerWidth, containerHeight) / 15
  * 支持 devicePixelRatio，保证高分屏清晰
- * 暴露 drawBoard()、drawPiece()、drawPieces()、clear()
+ * 暴露 drawBoard()、drawPiece()、drawPieces()、drawLastMoveMark()、clear()
  */
 
 const BOARD_SIZE = 15
@@ -13,6 +13,13 @@ export type PieceColor = 1 | 2
 const PIECE_RADIUS_RATIO = 0.45
 /** 白子描边：浅灰，在浅色棋盘上可见且不突兀 */
 const WHITE_STROKE = '#999'
+/**
+ * 最近落子标记：常见五子棋做法为统一红色强调（空心小圆），
+ * 黑白子上都醒目，避免「反色十字」在白子上发脏
+ */
+const LAST_MOVE_MARK = '#e53935'
+const LAST_MOVE_RADIUS_RATIO = 0.15
+const LAST_MOVE_LINE_RATIO = 0.055
 
 export interface BoardRendererOptions {
   /** 容器宽度（CSS 像素） */
@@ -128,6 +135,23 @@ export function createBoardRenderer(
           }
         }
       }
+    },
+
+    /**
+     * 在最近落子交点绘制红色空心小圆（黑白子通用，行业常见做法）
+     */
+    drawLastMoveMark(row: number, col: number): void {
+      if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      const centerX = offset + col * scale
+      const centerY = offset + row * scale
+      const radius = scale * LAST_MOVE_RADIUS_RATIO
+      ctx.strokeStyle = LAST_MOVE_MARK
+      ctx.lineWidth = Math.max(1.5, scale * LAST_MOVE_LINE_RATIO)
+      ctx.beginPath()
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
+      ctx.stroke()
     },
 
     /** 清空画布 */

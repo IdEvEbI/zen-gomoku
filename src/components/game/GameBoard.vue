@@ -53,6 +53,11 @@ function draw() {
   })
   renderer.drawBoard()
   renderer.drawPieces(displayBoard.value)
+  const markIndex = displayHistoryIndex.value - 1
+  if (markIndex >= 0) {
+    const last = history.value[markIndex]
+    if (last) renderer.drawLastMoveMark(last.row, last.col)
+  }
 }
 
 function scheduleDraw() {

@@ -1,6 +1,7 @@
 {
   "files.associations": {
-    "LICENSE": "plaintext"
+    "LICENSE": "plaintext",
+    "*.css": "tailwindcss"
   },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -9,5 +10,6 @@
   },
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "tailwindCSS.experimental.configFile": "src/style.css"
 }

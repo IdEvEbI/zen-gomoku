@@ -2,6 +2,10 @@
   "recommendations": [
     "Vue.volar",
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode"
-  ]
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "vitest.explorer",
+    "EditorConfig.EditorConfig"
+  ],
+  "unwantedRecommendations": ["octref.vetur"]
 }

@@ -2,10 +2,12 @@
 import GameBoard from './components/game/GameBoard.vue'
 import GameRecordBar from './components/game/GameRecordBar.vue'
 import GameReplayBar from './components/game/GameReplayBar.vue'
+import GameModeBar from './components/game/GameModeBar.vue'
 </script>
 
 <template>
   <div class="app">
+    <GameModeBar />
     <GameRecordBar />
     <div class="app__board-wrap">
       <GameBoard />
@@ -35,7 +37,7 @@ import GameReplayBar from './components/game/GameReplayBar.vue'
 
 .app__board-wrap {
   /* 预留上下工具条高度 */
-  --toolbar-reserve: 5.5rem;
+  --toolbar-reserve: 7.25rem;
   --board-size: min(
     560px,
     calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 1.5rem),

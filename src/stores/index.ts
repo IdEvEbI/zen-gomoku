@@ -1,8 +1,9 @@
 export {
   useGameStore,
   REPLAY_INTERVAL_MS,
-  AI_PLAYER,
   AI_MOVE_DELAY_MS,
+  TENGEN_ROW,
+  TENGEN_COL,
 } from './game'
 export type { Player, GameStatus, HistoryEntry, ActionResult } from './game'
 export {

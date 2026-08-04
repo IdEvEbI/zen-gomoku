@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useGameStore } from './game'
+import { useGameStore, TENGEN_ROW, TENGEN_COL } from './game'
 
 describe('useGameStore', () => {
   beforeEach(() => {
@@ -16,13 +16,30 @@ describe('useGameStore', () => {
     expect(store.canPlay).toBe(true)
   })
 
+  it('placeStone: first move must be tengen', () => {
+    const store = useGameStore()
+    const bad = store.placeStone(0, 0)
+    expect(bad.success).toBe(false)
+    expect((bad as { message: string }).message).toBe('第一步请下在天元')
+    expect(store.history).toHaveLength(0)
+
+    const ok = store.placeStone(TENGEN_ROW, TENGEN_COL)
+    expect(ok.success).toBe(true)
+    expect(store.board[TENGEN_ROW]![TENGEN_COL]).toBe(1)
+    expect(store.currentPlayer).toBe(2)
+  })
+
   it('placeStone: success updates board, history, and switches player', () => {
     const store = useGameStore()
-    const r = store.placeStone(0, 0)
+    const r = store.placeStone(TENGEN_ROW, TENGEN_COL)
     expect(r.success).toBe(true)
-    expect(store.board[0]![0]).toBe(1)
+    expect(store.board[TENGEN_ROW]![TENGEN_COL]).toBe(1)
     expect(store.history).toHaveLength(1)
-    expect(store.history[0]).toEqual({ row: 0, col: 0, player: 1 })
+    expect(store.history[0]).toEqual({
+      row: TENGEN_ROW,
+      col: TENGEN_COL,
+      player: 1,
+    })
     expect(store.currentPlayer).toBe(2)
 
     const r2 = store.placeStone(1, 1)
@@ -34,9 +51,9 @@ describe('useGameStore', () => {
 
   it('placeStone: reject duplicate move and do not push history', () => {
     const store = useGameStore()
-    store.placeStone(0, 0)
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
     const len = store.history.length
-    const result = store.placeStone(0, 0)
+    const result = store.placeStone(TENGEN_ROW, TENGEN_COL)
     expect(result.success).toBe(false)
     expect((result as { message: string }).message).toBe('该位置已有棋子')
     expect(store.history).toHaveLength(len)
@@ -52,22 +69,23 @@ describe('useGameStore', () => {
 
   it('placeStone: after five in a row updates status to black_win', () => {
     const store = useGameStore()
-    store.placeStone(7, 0)
-    store.placeStone(0, 0) // white
-    store.placeStone(7, 1)
+    // 天元开局后，在第 7 行向左连成五子：7,3..7,7
+    store.placeStone(7, 7)
+    store.placeStone(0, 0)
+    store.placeStone(7, 6)
     store.placeStone(0, 1)
-    store.placeStone(7, 2)
+    store.placeStone(7, 5)
     store.placeStone(0, 2)
-    store.placeStone(7, 3)
+    store.placeStone(7, 4)
     store.placeStone(0, 3)
-    store.placeStone(7, 4) // black fifth in a row
+    store.placeStone(7, 3)
     expect(store.status).toBe('black_win')
     expect(store.canPlay).toBe(false)
   })
 
   it('resetGame: clears board, history, black first', () => {
     const store = useGameStore()
-    store.placeStone(0, 0)
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
     store.placeStone(1, 1)
     store.resetGame()
     expect(store.board.every((row) => row.every((c) => c === 0))).toBe(true)
@@ -95,23 +113,23 @@ describe('useGameStore', () => {
     const { createMemoryStorage } = await import('../storage')
     const storage = createMemoryStorage()
     const store = useGameStore()
-    store.placeStone(3, 3)
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
     expect(store.saveToStorage(storage).success).toBe(true)
     store.resetGame()
     expect(store.loadFromStorage(storage).success).toBe(true)
-    expect(store.board[3]![3]).toBe(1)
+    expect(store.board[TENGEN_ROW]![TENGEN_COL]).toBe(1)
     expect(store.history).toHaveLength(1)
   })
 
   it('replay: stepBack/Forward does not mutate history', () => {
     const store = useGameStore()
-    store.placeStone(0, 0)
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
     store.placeStone(1, 1)
     expect(store.displayHistoryIndex).toBe(2)
     store.stepBack()
     expect(store.displayHistoryIndex).toBe(1)
     expect(store.history).toHaveLength(2)
-    expect(store.displayBoard[0]![0]).toBe(1)
+    expect(store.displayBoard[TENGEN_ROW]![TENGEN_COL]).toBe(1)
     expect(store.displayBoard[1]![1]).toBe(0)
     expect(store.canPlay).toBe(false)
     store.stepForward()
@@ -122,7 +140,7 @@ describe('useGameStore', () => {
 
   it('replay: placeStone rejected while scrubbing', () => {
     const store = useGameStore()
-    store.placeStone(0, 0)
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
     store.placeStone(1, 1)
     store.goToStart()
     const result = store.placeStone(2, 2)
@@ -132,7 +150,7 @@ describe('useGameStore', () => {
 
   it('replay: tickReplay advances and stops at end', () => {
     const store = useGameStore()
-    store.placeStone(0, 0)
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
     store.placeStone(1, 1)
     store.goToStart()
     store.playReplay()
@@ -154,13 +172,37 @@ describe('useGameStore', () => {
       },
     })
     store.setVsAi(true)
-    expect(store.placeStone(0, 0).success).toBe(true)
+    expect(store.placeStone(TENGEN_ROW, TENGEN_COL).success).toBe(true)
     expect(store.aiThinking).toBe(true)
     await vi.advanceTimersByTimeAsync(300)
     await Promise.resolve()
     expect(store.board[1]![1]).toBe(2)
     expect(store.currentPlayer).toBe(1)
     expect(store.aiThinking).toBe(false)
+    vi.useRealTimers()
+  })
+
+  it('vsAi AI first: AI places tengen as black', async () => {
+    vi.useFakeTimers()
+    const store = useGameStore()
+    store.setAgent({
+      name: 'test',
+      async getNextMove(board) {
+        // 空盘应下天元；此处直接返回天元验证接线
+        void board
+        return { row: TENGEN_ROW, col: TENGEN_COL }
+      },
+    })
+    store.setHumanFirst(false)
+    store.setVsAi(true)
+    expect(store.aiPlayer).toBe(1)
+    expect(store.canPlay).toBe(false)
+    expect(store.aiThinking).toBe(true)
+    await vi.advanceTimersByTimeAsync(300)
+    await Promise.resolve()
+    expect(store.board[TENGEN_ROW]![TENGEN_COL]).toBe(1)
+    expect(store.currentPlayer).toBe(2)
+    expect(store.canPlay).toBe(true)
     vi.useRealTimers()
   })
 

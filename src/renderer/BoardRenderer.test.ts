@@ -52,4 +52,19 @@ describe('createBoardRenderer', () => {
     renderer.drawBoard()
     expect(() => renderer.clear()).not.toThrow()
   })
+
+  it.skipIf(!hasCanvas)('applies devicePixelRatio to bitmap and fills container via CSS %', () => {
+    const canvas = document.createElement('canvas')
+    const renderer = createBoardRenderer(canvas, {
+      containerWidth: 300,
+      containerHeight: 300,
+      devicePixelRatio: 2,
+    })
+    renderer.drawBoard()
+    expect(renderer.getSize()).toBe(300)
+    expect(canvas.width).toBe(600)
+    expect(canvas.height).toBe(600)
+    expect(canvas.style.width).toBe('100%')
+    expect(canvas.style.height).toBe('100%')
+  })
 })

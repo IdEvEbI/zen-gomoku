@@ -90,13 +90,16 @@ watch(status, (next, prev) => {
         @change="handleFileChange"
       />
     </div>
+    <!-- 固定占位，避免提示显隐导致棋盘上下跳动 -->
     <p
-      v-if="message"
       class="record-bar__msg"
-      :class="{ 'record-bar__msg--error': messageIsError }"
+      :class="{
+        'record-bar__msg--error': messageIsError,
+        'record-bar__msg--empty': !message,
+      }"
       aria-live="polite"
     >
-      {{ message }}
+      {{ message || '\u00a0' }}
     </p>
   </div>
 </template>
@@ -132,8 +135,14 @@ watch(status, (next, prev) => {
 }
 .record-bar__msg {
   margin: 0;
+  min-height: 1.15em;
   font-size: 0.75rem;
+  line-height: 1.15;
   color: #555;
+  text-align: center;
+}
+.record-bar__msg--empty {
+  visibility: hidden;
 }
 .record-bar__msg--error {
   color: #c00;

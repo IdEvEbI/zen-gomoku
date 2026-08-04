@@ -36,13 +36,19 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div v-if="canReplay" class="replay-bar" aria-label="复盘控制">
+  <!-- 始终占位，无棋谱时隐藏可见性，避免复盘条弹出导致棋盘跳动 -->
+  <div
+    class="replay-bar"
+    :class="{ 'replay-bar--idle': !canReplay }"
+    aria-label="复盘控制"
+    :aria-hidden="!canReplay"
+  >
     <div class="replay-bar__actions">
       <button
         type="button"
         class="replay-bar__btn"
         title="开头"
-        :disabled="displayHistoryIndex <= 0"
+        :disabled="!canReplay || displayHistoryIndex <= 0"
         @click="gameStore.goToStart()"
       >
         |◀
@@ -51,7 +57,7 @@ onUnmounted(() => {
         type="button"
         class="replay-bar__btn"
         title="后退一手"
-        :disabled="displayHistoryIndex <= 0"
+        :disabled="!canReplay || displayHistoryIndex <= 0"
         @click="gameStore.stepBack()"
       >
         ◀
@@ -60,6 +66,7 @@ onUnmounted(() => {
         type="button"
         class="replay-bar__btn replay-bar__btn--primary"
         :title="isReplayPlaying ? '暂停' : '播放'"
+        :disabled="!canReplay"
         @click="gameStore.toggleReplay()"
       >
         {{ isReplayPlaying ? '暂停' : '播放' }}
@@ -68,7 +75,7 @@ onUnmounted(() => {
         type="button"
         class="replay-bar__btn"
         title="前进一手"
-        :disabled="isAtLiveEdge"
+        :disabled="!canReplay || isAtLiveEdge"
         @click="gameStore.stepForward()"
       >
         ▶
@@ -77,7 +84,7 @@ onUnmounted(() => {
         type="button"
         class="replay-bar__btn"
         title="最新"
-        :disabled="isAtLiveEdge"
+        :disabled="!canReplay || isAtLiveEdge"
         @click="gameStore.goToEnd()"
       >
         ▶|
@@ -97,6 +104,11 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.25rem;
   width: min(100%, 560px);
+  min-height: 3.4rem;
+}
+.replay-bar--idle {
+  visibility: hidden;
+  pointer-events: none;
 }
 .replay-bar__actions {
   display: flex;

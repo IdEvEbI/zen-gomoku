@@ -36,8 +36,8 @@ import GameModeBar from './components/game/GameModeBar.vue'
 }
 
 .app__board-wrap {
-  /* 预留上下工具条高度 */
-  --toolbar-reserve: 7.25rem;
+  /* 预留模式栏 + 记录栏 + 复盘栏（含固定占位） */
+  --toolbar-reserve: 9.5rem;
   --board-size: min(
     560px,
     calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 1.5rem),

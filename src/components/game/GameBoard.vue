@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { createBoardRenderer } from '../../renderer'
 import { useGameStore } from '../../stores'
 import { useBoardPointer } from '../../hooks'
+import { playPlaceSound, preloadPlaceSound } from '../../audio'
 
 const gameStore = useGameStore()
 const {
@@ -25,6 +26,10 @@ const lastClick = ref<{ row: number; col: number } | null>(null)
 const lastMessage = ref<string | null>(null)
 let resizeObserver: ResizeObserver | null = null
 let rafId = 0
+let pulseRafId = 0
+/** 落子缩放动画起点（performance.now） */
+let pulseStartedAt = 0
+const PULSE_MS = 160
 
 const BOARD_SIZE = gameStore.boardSize
 
@@ -42,6 +47,13 @@ function getScale(): number {
   return side > 0 ? side / BOARD_SIZE : 0
 }
 
+function pulseRadiusScale(): number {
+  if (!pulseStartedAt) return 1
+  const t = Math.min(1, (performance.now() - pulseStartedAt) / PULSE_MS)
+  const eased = 1 - (1 - t) * (1 - t)
+  return 1.22 - 0.22 * eased
+}
+
 function draw() {
   const container = containerRef.value
   const canvas = canvasRef.value
@@ -53,12 +65,15 @@ function draw() {
     containerHeight: side,
   })
   renderer.drawBoard()
-  renderer.drawPieces(displayBoard.value)
   const markIndex = displayHistoryIndex.value - 1
-  if (markIndex >= 0) {
-    const last = history.value[markIndex]
-    if (last) renderer.drawLastMoveMark(last.row, last.col)
-  }
+  const last = markIndex >= 0 ? history.value[markIndex] : undefined
+  const scaleNow = pulseRadiusScale()
+  const pulse =
+    last && scaleNow > 1.001
+      ? { row: last.row, col: last.col, radiusScale: scaleNow }
+      : undefined
+  renderer.drawPieces(displayBoard.value, pulse)
+  if (last) renderer.drawLastMoveMark(last.row, last.col)
 }
 
 function scheduleDraw() {
@@ -67,6 +82,22 @@ function scheduleDraw() {
     rafId = 0
     draw()
   })
+}
+
+function startPlacePulse() {
+  pulseStartedAt = performance.now()
+  if (pulseRafId) cancelAnimationFrame(pulseRafId)
+  const tick = () => {
+    draw()
+    if (performance.now() - pulseStartedAt < PULSE_MS) {
+      pulseRafId = requestAnimationFrame(tick)
+    } else {
+      pulseRafId = 0
+      pulseStartedAt = 0
+      draw()
+    }
+  }
+  pulseRafId = requestAnimationFrame(tick)
 }
 
 function placeAt(row: number, col: number) {
@@ -108,7 +139,19 @@ watch(
   { deep: true }
 )
 
+/** 实际落子（含 AI）：音效 + 缩放；复盘 scrub 不触发 */
+watch(
+  () => history.value.length,
+  (len, prev) => {
+    if (len <= (prev ?? 0)) return
+    if (!isAtLiveEdge.value) return
+    playPlaceSound()
+    startPlacePulse()
+  }
+)
+
 onMounted(() => {
+  preloadPlaceSound()
   draw()
   const container = containerRef.value
   if (container) {
@@ -124,6 +167,7 @@ onUnmounted(() => {
   window.removeEventListener('orientationchange', scheduleDraw)
   window.visualViewport?.removeEventListener('resize', scheduleDraw)
   if (rafId) cancelAnimationFrame(rafId)
+  if (pulseRafId) cancelAnimationFrame(pulseRafId)
 })
 </script>
 

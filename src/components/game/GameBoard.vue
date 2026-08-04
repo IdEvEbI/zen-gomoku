@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { createBoardRenderer, createCoordMapper } from '../../renderer'
+import { createBoardRenderer } from '../../renderer'
 import { useGameStore } from '../../stores'
+import { useBoardPointer } from '../../hooks'
 
 const gameStore = useGameStore()
 const { board, currentPlayer, status } = storeToRefs(gameStore)
@@ -40,29 +41,24 @@ function draw() {
   renderer.drawPieces(board.value)
 }
 
-function handlePointerDown(e: PointerEvent) {
-  const canvas = canvasRef.value
-  if (!canvas || e.target !== canvas) return
-  const scale = getScale()
-  if (scale <= 0) return
-  const mapper = createCoordMapper(scale)
-  const rect = canvas.getBoundingClientRect()
-  const displayX = e.clientX - rect.left
-  const displayY = e.clientY - rect.top
-  const bitmapX = displayX * (canvas.width / rect.width)
-  const bitmapY = displayY * (canvas.height / rect.height)
-  const logical = mapper.pixelToLogical(bitmapX, bitmapY)
-  if (!logical) return
-  const { row, col } = logical
+function placeAt(row: number, col: number) {
   lastMessage.value = null
   const result = gameStore.placeStone(row, col)
   if (result.success) {
-    lastClick.value = logical
+    lastClick.value = { row, col }
     draw()
   } else {
     lastMessage.value = result.message
   }
 }
+
+/** Mouse / Touch / Pen 统一走 pointerdown → (row,col) → store */
+const { handlePointerDown } = useBoardPointer({
+  canvasRef,
+  getScale,
+  canPlace: () => gameStore.canPlay,
+  onPlace: placeAt,
+})
 
 function handleRestart() {
   gameStore.resetGame()
@@ -118,12 +114,19 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* 触摸时避免整页橡皮筋滚动干扰落子 */
+  touch-action: none;
 }
 .game-board__canvas {
   display: block;
   max-width: 100%;
   max-height: 100%;
   cursor: pointer;
+  /* 禁止双指缩放/滑动抢事件；微信内置浏览器同样生效 */
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .game-board__hint {
   position: absolute;

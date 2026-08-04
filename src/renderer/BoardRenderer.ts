@@ -1,6 +1,7 @@
 /**
  * 棋盘渲染器：15×15 格线绘制，棋子绘制，响应式尺寸
  * scale = min(containerWidth, containerHeight) / 15
+ * 支持 devicePixelRatio，保证高分屏清晰
  * 暴露 drawBoard()、drawPiece()、drawPieces()、clear()
  */
 
@@ -14,10 +15,23 @@ const PIECE_RADIUS_RATIO = 0.45
 const WHITE_STROKE = '#999'
 
 export interface BoardRendererOptions {
-  /** 容器宽度（像素） */
+  /** 容器宽度（CSS 像素） */
   containerWidth: number
-  /** 容器高度（像素） */
+  /** 容器高度（CSS 像素） */
   containerHeight: number
+  /**
+   * 设备像素比；默认取 window.devicePixelRatio（测试可传入 1）
+   * 位图按 size * dpr 绘制，CSS 尺寸仍为 size，绘制坐标使用 CSS 像素
+   */
+  devicePixelRatio?: number
+}
+
+function resolveDpr(explicit?: number): number {
+  if (typeof explicit === 'number' && explicit > 0) return explicit
+  if (typeof window !== 'undefined' && window.devicePixelRatio > 0) {
+    return window.devicePixelRatio
+  }
+  return 1
 }
 
 /**
@@ -28,6 +42,7 @@ export function createBoardRenderer(
   options: BoardRendererOptions
 ) {
   const { containerWidth, containerHeight } = options
+  const dpr = resolveDpr(options.devicePixelRatio)
   const scale =
     Math.min(containerWidth, containerHeight) / BOARD_SIZE
   const size = BOARD_SIZE * scale
@@ -38,13 +53,27 @@ export function createBoardRenderer(
   const gridMax = offset + (BOARD_SIZE - 1) * scale
 
   return {
+    /** 当前格宽（CSS 像素），与坐标映射一致 */
+    getScale(): number {
+      return scale
+    },
+
+    /** 棋盘边长（CSS 像素） */
+    getSize(): number {
+      return size
+    },
+
     /** 绘制 15×15 格线（横竖各 15 根线，线仅在 offset 内收，不贴边） */
     drawBoard(): void {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      canvas.width = size
-      canvas.height = size
+      canvas.width = Math.max(1, Math.round(size * dpr))
+      canvas.height = Math.max(1, Math.round(size * dpr))
+      // 由外层正方形容器用 100% 铺满，避免 inline px + max-width 只压单边造成拉伸
+      canvas.style.width = '100%'
+      canvas.style.height = '100%'
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
 
       ctx.strokeStyle = GRID_COLOR
       ctx.lineWidth = LINE_WIDTH
@@ -105,7 +134,7 @@ export function createBoardRenderer(
     clear(): void {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      ctx.clearRect(0, 0, size, size)
     },
   }
 }

@@ -1,6 +1,7 @@
 /**
  * 指针事件坐标 → 棋盘 (row, col)
- * Mouse / Touch / Pen 共用同一套 clientX/clientY → 位图 → 逻辑格点 路径
+ * Mouse / Touch / Pen 共用同一套 clientX/clientY → CSS 像素 → 逻辑格点 路径
+ * （与 BoardRenderer 的 CSS 像素绘制坐标系一致，兼容 devicePixelRatio）
  */
 
 import { createCoordMapper, type LogicalPoint } from './coordMapper.ts'
@@ -16,7 +17,6 @@ export function pointerEventToLogical(
   scale: number
 ): LogicalPoint | null {
   if (scale <= 0) return null
-  if (canvas.width <= 0 || canvas.height <= 0) return null
 
   const rect = canvas.getBoundingClientRect()
   if (rect.width <= 0 || rect.height <= 0) return null
@@ -32,7 +32,12 @@ export function pointerEventToLogical(
     return null
   }
 
-  const bitmapX = displayX * (canvas.width / rect.width)
-  const bitmapY = displayY * (canvas.height / rect.height)
-  return createCoordMapper(scale).pixelToLogical(bitmapX, bitmapY)
+  // 使用 CSS 像素坐标系（clientWidth），避免位图尺寸含 DPR 时映射偏移
+  const cssWidth = canvas.clientWidth || rect.width
+  const cssHeight = canvas.clientHeight || rect.height
+  if (cssWidth <= 0 || cssHeight <= 0) return null
+
+  const cssX = displayX * (cssWidth / rect.width)
+  const cssY = displayY * (cssHeight / rect.height)
+  return createCoordMapper(scale).pixelToLogical(cssX, cssY)
 }

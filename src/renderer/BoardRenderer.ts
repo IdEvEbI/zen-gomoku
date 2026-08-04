@@ -121,14 +121,14 @@ export function createBoardRenderer(
 
     /**
      * 在交点 (row, col) 绘制一枚棋子，color 1 黑 2 白
-     * 渲染层不持有状态，由调用方传入
+     * @param radiusScale 半径倍率，用于落子瞬间缩放反馈（默认 1）
      */
-    drawPiece(row: number, col: number, color: PieceColor): void {
+    drawPiece(row: number, col: number, color: PieceColor, radiusScale = 1): void {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
       const centerX = offset + col * scale
       const centerY = offset + row * scale
-      const radius = scale * PIECE_RADIUS_RATIO
+      const radius = scale * PIECE_RADIUS_RATIO * radiusScale
       ctx.beginPath()
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
       if (color === 1) {
@@ -145,14 +145,21 @@ export function createBoardRenderer(
 
     /**
      * 根据 board 二维数组重绘所有棋子，0 空 1 黑 2 白
-     * 不持有状态，仅根据传入的 board 绘制
+     * @param pulse 可选：对某格施加半径缩放（落子反馈）
      */
-    drawPieces(board: number[][]): void {
+    drawPieces(
+      board: number[][],
+      pulse?: { row: number; col: number; radiusScale: number }
+    ): void {
       for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
           const v = board[row]?.[col]
           if (v === 1 || v === 2) {
-            this.drawPiece(row, col, v as PieceColor)
+            const scale =
+              pulse && pulse.row === row && pulse.col === col
+                ? pulse.radiusScale
+                : 1
+            this.drawPiece(row, col, v as PieceColor, scale)
           }
         }
       }

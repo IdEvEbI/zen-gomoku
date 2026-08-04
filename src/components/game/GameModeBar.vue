@@ -1,13 +1,19 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import {
   useGameStore,
   AI_DIFFICULTY_OPTIONS,
   type AiDifficulty,
 } from '../../stores'
+import {
+  isPlaceSoundEnabled,
+  togglePlaceSoundEnabled,
+} from '../../audio'
 
 const gameStore = useGameStore()
 const { vsAi, aiThinking, aiDifficulty, humanFirst } = storeToRefs(gameStore)
+const soundOn = ref(isPlaceSoundEnabled())
 
 function toggleVsAi() {
   gameStore.setVsAi(!vsAi.value)
@@ -21,6 +27,10 @@ function onDifficultyChange(event: Event) {
 function onFirstChange(event: Event) {
   const value = (event.target as HTMLSelectElement).value
   gameStore.setHumanFirst(value === 'human')
+}
+
+function onToggleSound() {
+  soundOn.value = togglePlaceSoundEnabled()
 }
 </script>
 
@@ -44,6 +54,15 @@ function onFirstChange(event: Event) {
           @click="toggleVsAi"
         >
           人机
+        </button>
+        <button
+          type="button"
+          class="mode-bar__btn"
+          :class="{ 'mode-bar__btn--active': soundOn }"
+          :title="soundOn ? '关闭落子音效' : '开启落子音效'"
+          @click="onToggleSound"
+        >
+          {{ soundOn ? '音效开' : '音效关' }}
         </button>
       </div>
       <span

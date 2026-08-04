@@ -163,4 +163,13 @@ describe('useGameStore', () => {
     expect(store.aiThinking).toBe(false)
     vi.useRealTimers()
   })
+
+  it('setAiDifficulty updates level id', () => {
+    const store = useGameStore()
+    expect(store.aiDifficulty).toBe('zhu')
+    store.setAiDifficulty('wukong')
+    expect(store.aiDifficulty).toBe('wukong')
+    store.setAiDifficulty('tang')
+    expect(store.aiDifficulty).toBe('tang')
+  })
 })

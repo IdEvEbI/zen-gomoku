@@ -3,7 +3,7 @@
 ## 文档信息
 
 - **项目**：zen-gomoku
-- **最后更新**：2026-03-02
+- **最后更新**：2026-08-04
 
 ---
 
@@ -105,6 +105,8 @@ interface GameState {
 
 ## 4. AI 模块可扩展设计
 
+> **算法细节与四级难度**：见 [ai-agents.md](./ai-agents.md)（Heuristic 现状、Minimax / α-β 计划、沙和尚～唐僧映射）。
+
 ### 4.1 接口统一
 
 - 定义 `IAgent` 接口：`getNextMove(board: number[][]): Promise<{ row: number; col: number } | null>`（null 表示认输或无法落子）。
@@ -112,11 +114,11 @@ interface GameState {
 
 ### 4.2 分阶段实现
 
-| 阶段    | 实现类/文件                      | 说明                                                 |
-| ------- | -------------------------------- | ---------------------------------------------------- |
-| Phase 1 | `ai/RandomAgent.ts` 或规则 Agent | 随机空位或简单评分                                   |
-| Phase 2 | `ai/MinimaxAgent.ts`             | Minimax + Alpha-Beta，可配置深度/耗时                |
-| Phase 3 | `ai/AlphaZeroAgent.ts`（预留）   | 输入棋盘，输出落子或 pass；内部可调用本地模型或 HTTP |
+| 阶段    | 实现类/文件                      | 说明                                                            |
+| ------- | -------------------------------- | --------------------------------------------------------------- |
+| Phase 1 | `HeuristicAgent` / `RandomAgent` | 赢法数组启发（已实现）；随机为空位回退                          |
+| Phase 2 | `MinimaxAgent`                   | Minimax + Alpha-Beta，四级难度见 [ai-agents.md](./ai-agents.md) |
+| Phase 3 | `AlphaZeroAgent`（预留）         | 输入棋盘，输出落子或 pass；内部可调用本地模型或 HTTP            |
 
 ### 4.3 与状态层协作
 

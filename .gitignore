@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# 老师棋谱批量导出产物（本地生成，不入库）
+data/teacher/
+
 # Husky (internal scripts, recreated on npm install)
 .husky/_
 

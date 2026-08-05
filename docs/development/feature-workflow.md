@@ -24,15 +24,17 @@
 
 1. **确认当前在正确的 feature 分支**（上一步已创建）。
 2. **阅读 Backlog**：在 `docs/project/issue-backlog.md` 中找到当前 Issue 的标题、描述与验收标准。
-3. **实现 → 自测 → 单测/构建**：按 Backlog 与架构文档实现，跑 `npm run test`、`npm run build`。
+3. **实现 → 自测 → 单测/构建**：按 Backlog 与架构文档实现，跑 `npm run test`、`npm run build`、`npm run lint`；若改了文档再跑 `npm run format:check`（失败则 `npm run format`）。
 4. **提交与推送**：提交信息建议包含 Issue 编号，例如 `feat: 胜负判定 (Issue 5)`，然后 `git push -u origin feature/<分支名>`。
+   - 本地已配置 **husky + lint-staged**：`pre-commit` 会对暂存文件跑 ESLint / Prettier（含 `*.md`、`*.mdc`），避免 Markdown 表格等格式错误进入仓库；`commit-msg` 走 commitlint。
+   - 不要用 `--no-verify` 跳过 hook（除非有明确理由）。CI 仍会跑全量 lint 与 `format:check`。
 5. **开 PR**：在 GitHub 上创建 PR，**Base 选 `develop`**，描述中可写 `Closes #<GitHub Issue 编号>`。
 
 ## 分支命名建议
 
-| 类型     | 示例                    |
-|----------|-------------------------|
-| 新功能   | `feature/check-winner`  |
+| 类型      | 示例                     |
+| --------- | ------------------------ |
+| 新功能    | `feature/check-winner`   |
 | 文档/修复 | `docs/xxx`、`bugfix/xxx` |
 
 与 Backlog 中的 Issue 顺序保持一致，便于追溯。

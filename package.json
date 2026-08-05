@@ -11,8 +11,21 @@
     "test:watch": "vitest",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"src/**/*.{ts,tsx,vue,js,css,json}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,vue,js,css,json}\" \"docs/**/*.md\" \"*.md\" \".cursor/**/*.mdc\"",
+    "format:check": "prettier --check \"docs/**/*.md\" \"*.md\" \".cursor/**/*.mdc\"",
     "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,vue}": [
+      "eslint --fix --max-warnings 0",
+      "prettier --write"
+    ],
+    "*.{js,css,json}": [
+      "prettier --write"
+    ],
+    "*.{md,mdc}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -33,6 +46,7 @@
     "eslint-plugin-vue": "^9.31.0",
     "globals": "^15.15.0",
     "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "postcss": "^8.5.6",
     "prettier": "^3.4.2",
     "tailwindcss": "^4.2.1",

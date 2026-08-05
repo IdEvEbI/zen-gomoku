@@ -16,14 +16,14 @@ npm run dev
 
 ## 脚本
 
-| 命令 | 说明 |
-| --- | --- |
-| `npm run dev` | 启动开发服务器 |
-| `npm run build` | 生产构建 |
-| `npm run preview` | 预览构建产物 |
-| `npm run lint` | ESLint 检查 |
-| `npm run lint:fix` | ESLint 自动修复 |
-| `npm run format` | Prettier 格式化源码 |
+| 命令               | 说明                |
+| ------------------ | ------------------- |
+| `npm run dev`      | 启动开发服务器      |
+| `npm run build`    | 生产构建            |
+| `npm run preview`  | 预览构建产物        |
+| `npm run lint`     | ESLint 检查         |
+| `npm run lint:fix` | ESLint 自动修复     |
+| `npm run format`   | Prettier 格式化源码 |
 
 ## 分支与协作
 

@@ -83,7 +83,7 @@
 | —   | **feat: Minimax + Alpha-Beta AI**   | ~~实现 Minimax~~ — 已合入（见 [ai-agents.md](../design/ai-agents.md)）。                                                                                 | Phase 2（已完成）    |
 | —   | **feat: 中国规则禁手 + 规则切换**   | 三三 / 四四 / 长连（仅黑）；与自由模式并存；规格 + 单测 + AI 走法过滤；禁手红叉。 → **[#54](https://github.com/IdEvEbI/zen-gomoku/issues/54)**           | alphazero-lite R0    |
 | —   | **feat: 老师棋谱导出（双规则）**    | **唐僧 vs 唐僧**批量互打；自由/禁手分套导出（带 `rules`）；开局扰动 + 可选花月/浦月等种子。 → **[#58](https://github.com/IdEvEbI/zen-gomoku/issues/58)** | alphazero-lite R1    |
-| —   | **chore: 新建 zen-gomoku-ml**       | 独立训练仓；`rules` 参数化；先自由后禁手两套模仿模型与 ONNX。                                                                                            | alphazero-lite R2    |
+| —   | **chore: 新建 zen-gomoku-ml**       | 独立训练仓；`rules` 参数化；先自由后禁手两套模仿模型与 ONNX。 → **[#60](https://github.com/IdEvEbI/zen-gomoku/issues/60)**                               | alphazero-lite R2    |
 | —   | **feat: AlphaZeroAgent 按规则加载** | 本仓按当前规则加载对应 ONNX；人机可选；不上训练。                                                                                                        | alphazero-lite R3    |
 | —   | **feat: 自对弈闭环（可选）**        | 两套规则各自自对弈 + 擂台；产物回灌本仓。                                                                                                                | alphazero-lite R4    |
 | —   | **feat: 悔棋**                      | 从 `history` pop；人人 1 手、人机人+AI；恢复 board / 行棋方 / 终局状态。 → **[#51](https://github.com/IdEvEbI/zen-gomoku/issues/51)**                    | 架构 3.1             |

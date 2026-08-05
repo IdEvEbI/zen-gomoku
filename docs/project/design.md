@@ -1,14 +1,8 @@
-# 设计文档
+# 设计说明
 
-<!-- 在此维护架构、交互、视觉或技术方案，可按模块拆分小节 -->
+正式设计文档：
 
-## 技术栈
+- **[../design/technical-architecture.md](../design/technical-architecture.md)** — 分层架构、目录、状态、渲染、存储
+- **[../design/ai-agents.md](../design/ai-agents.md)** — 启发 / Minimax、四级对手参数
 
-- Vue 3 + TypeScript + Vite
-- Pinia、Tailwind CSS v4、Canvas 2D
-
-## 待补充
-
-- 模块划分与目录约定
-- 棋盘与落子交互设计
-- 胜负判定与状态设计
+本文件仅作入口。

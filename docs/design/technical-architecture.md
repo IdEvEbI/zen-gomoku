@@ -4,6 +4,7 @@
 
 - **项目**：zen-gomoku
 - **最后更新**：2026-08-04
+- **配套**：功能规格 [functional-spec.md](../requirements/functional-spec.md)；AI [ai-agents.md](./ai-agents.md)
 
 ---
 
@@ -12,123 +13,160 @@
 ```mermaid
 flowchart TB
     subgraph View["展示层 (View)"]
-        V1["Vue 组件 / Canvas 渲染"]
-        V2["小程序视图层（预留）"]
+        V1["Vue 组件 / Canvas"]
+        V2["音效 placeSound"]
+        V3["小程序视图（预留）"]
     end
 
     subgraph Pinia["状态层 (Pinia)"]
-        P1["对局状态"]
-        P2["历史栈（复盘、悔棋）"]
-        P3["棋谱序列"]
+        P1["对局 board / history / status"]
+        P2["复盘 displayHistoryIndex"]
+        P3["人机 vsAi / 难度 / 先后手"]
     end
 
     subgraph Core["逻辑层 (Core)"]
-        C1["落子规则 / 胜负判定"]
-        C2["坐标换算"]
-        C3["事件归一（Mouse+Touch）"]
+        C1["胜负判定 checkWinner"]
+        C2["棋谱 JSON gameRecord"]
     end
 
-    subgraph AI["AI 层（可插拔）"]
-        A1["IAgent 接口"]
-        A2["随机 / Minimax / AlphaZero 实现可替换"]
+    subgraph Renderer["渲染层"]
+        R1["BoardRenderer + 星位 / 末手标记"]
+        R2["coordMapper / pointerMapper"]
+    end
+
+    subgraph AI["AI 层"]
+        A1["IAgent"]
+        A2["Heuristic / Minimax / Sha"]
     end
 
     View --> Pinia
+    View --> Renderer
     Pinia --> Core
-    Core --> AI
+    Pinia --> AI
 ```
 
-- **展示层** 只负责绘制与输入，不持有业务状态。
-- **状态层** 使用 Pinia，单一 store（如 `useGameStore`），状态含：棋盘二维数组、当前玩家、历史步数列表（用于复盘/悔棋）。
-- **逻辑层** 纯函数或 composable，不依赖 DOM，便于在 Node / 小程序逻辑层复用。
-- **AI 层** 通过接口注入，默认实现可替换为 Minimax 或后续 AlphaZero 风格实现。
+- **展示层**：绘制与输入、落子音效/动效；不持有业务权威状态。
+- **状态层**：`useGameStore` 单一真相来源。
+- **逻辑层**：纯函数，可在 Node / 小程序逻辑层复用。
+- **AI 层**：`IAgent` 注入；难度映射见 [ai-agents.md](./ai-agents.md)。
 
-### 1.1 源码目录建议
+### 1.1 源码目录（现状）
 
-| 目录            | 职责                                             |
-| --------------- | ------------------------------------------------ |
-| `src/core/`     | 棋盘状态与规则、胜负判定、坐标换算（不依赖 DOM） |
-| `src/renderer/` | Canvas 绘制、坐标映射                            |
-| `src/stores/`   | Pinia store（如 `useGameStore`）                 |
-| `src/ai/`       | IAgent 实现（RandomAgent、MinimaxAgent 等）      |
+| 目录                   | 职责                                                   |
+| ---------------------- | ------------------------------------------------------ |
+| `src/core/`            | 胜负判定、棋谱序列化 / 重建                            |
+| `src/renderer/`        | Canvas 棋盘、星位、棋子、末手标记、坐标 / pointer 映射 |
+| `src/stores/`          | `useGameStore`（对局、复盘、人机、天元开局）           |
+| `src/ai/`              | `IAgent`、启发、Minimax、四级难度工厂                  |
+| `src/audio/`           | 落子音效与静音偏好                                     |
+| `src/storage/`         | localStorage / 文件读写适配                            |
+| `src/components/game/` | 棋盘、模式栏、棋谱栏、复盘栏                           |
+| `src/hooks/`           | `useBoardPointer` 等                                   |
 
 ---
 
-## 2. Canvas 渲染层多端适配
+## 2. Canvas 渲染层
 
 ### 2.1 目标
 
-- 同一套绘制与坐标换算逻辑，在 PC、Mobile H5、微信内置浏览器中一致表现。
-- 交互统一为「物理坐标 → 棋盘 (row, col)」，由上层根据环境绑定 Mouse 或 Touch。
+- PC / Mobile H5 / 微信内一致：物理坐标 → `(row, col)`。
+- 正方形棋盘容器 + `devicePixelRatio`，避免非等比拉伸。
 
 ### 2.2 设计要点
 
-| 要点     | 方案                                                                                                                                  |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| 绘制 API | 使用 Canvas 2D（不依赖 DOM 尺寸单位），以「逻辑尺寸」计算格线/棋子位置，再乘以 scale 得到像素坐标                                     |
-| 缩放     | `scale = min(containerWidth, containerHeight) / 15`，保证 15×15 格子落在容器内                                                        |
-| 坐标换算 | 点击/触摸坐标 → 减去偏移、除以 scale → 得到逻辑坐标 → 四舍五入到最近交点，再转为 (row, col)                                           |
-| 事件     | 在容器上统一监听 `pointerdown`（Mouse 与 Touch 均会触发），或分别 `mousedown` + `touchstart` 内调用同一套「物理坐标 → (row,col)」逻辑 |
+| 要点 | 方案                                                           |
+| ---- | -------------------------------------------------------------- |
+| 绘制 | Canvas 2D；格线 → **五星** → 棋子 → 末手红圈                   |
+| 缩放 | `scale = min(w, h) / 15`；外层 CSS `--board-size`              |
+| 坐标 | offset 半格内收；`pointerEventToLogical`                       |
+| 事件 | `pointerdown` + `touch-action: none`                           |
+| 反馈 | 末手标记；落子短缩放由 View 驱动 `drawPiece(..., radiusScale)` |
 
-### 2.3 文件与职责建议
+### 2.3 文件
 
-- `renderer/BoardRenderer.ts`：接收 canvas 与容器尺寸，暴露 `drawBoard()`、`drawPiece(row, col, color)`、`clear()`。
-- `renderer/coordMapper.ts`：`pixelToLogical(x, y)`、`logicalToPixel(row, col)`，依赖容器与 scale。
-- 视图层不持有「当前棋盘状态」，由 Pinia 提供；渲染层只做「根据当前状态重绘」。
+- `BoardRenderer.ts`：`drawBoard`（含 `STAR_POINTS`）、`drawPiece` / `drawPieces`、`drawLastMoveMark`
+- `coordMapper.ts` / `pointerMapper.ts`
 
 ---
 
-## 3. 游戏状态管理（Pinia）与复盘/悔棋
+## 3. 游戏状态（Pinia）与复盘
 
-### 3.1 状态结构建议
+### 3.1 状态（要点）
 
 ```ts
-// 示例结构
-interface GameState {
-  board: number[][] // 0 空 1 黑 2 白
+// 概念结构（非完整类型）
+{
+  board: number[][]           // 0 空 1 黑 2 白
   currentPlayer: 1 | 2
-  history: { row: number; col: number; player: number }[] // 用于复盘、悔棋
+  history: { row, col, player }[]
   status: 'playing' | 'black_win' | 'white_win' | 'draw'
+  displayHistoryIndex: number // 复盘：绘制 history 前 N 步
+  vsAi: boolean
+  humanFirst: boolean         // true 人执黑；false AI 执黑
+  aiDifficulty: 'sha' | 'zhu' | 'wukong' | 'tang'
+  aiThinking: boolean
 }
 ```
 
-- **落子**：在 `history` 末尾 push 一步，并更新 `board`、`currentPlayer`、必要时 `status`。落子前由 Core 校验（空位、当前玩家）；非法落子不写入 `history`，通过返回值或事件通知 View 提示。
-- **悔棋**：从 `history` pop 一步，恢复 `board` 与 `currentPlayer`。建议约定「仅允许撤销己方上一步」或明确双方可撤销步数，保证 `board` 与 `history` 一致。
-- **复盘**：不修改 `history`，仅用「当前回放索引」在 UI 上高亮到某一步；播放时按索引取 `history` 前 N 步重绘。
+- **天元开局**：`history.length === 0` 时仅允许 `(7, 7)`。
+- **人机**：`aiPlayer = humanFirst ? 2 : 1`；轮到 AI 时调度 `agent.getNextMove` 再 `placeStone`。
+- **先后手切换**：清空对局并按新设置开局（含 AI 先时自动下天元）。
+- **复盘**：不改 `history`；非 live 边沿时 `canPlay === false`。
+- **悔棋**：规格预留，**尚未实现**。
 
-### 3.2 与视图的配合
+### 3.2 棋谱
 
-- 渲染层通过 `storeToRefs` 或计算属性订阅 `board`、`history.length` 等，状态变化后触发重绘。
-- 复盘模式下，可用 `displayHistoryIndex`（0 到 history.length），渲染时只绘制 `history.slice(0, displayHistoryIndex)` 的棋子。
-
----
-
-## 4. AI 模块可扩展设计
-
-> **算法细节与四级难度**：见 [ai-agents.md](./ai-agents.md)（Heuristic 现状、Minimax / α-β 计划、沙和尚～唐僧映射）。
-
-### 4.1 接口统一
-
-- 定义 `IAgent` 接口：`getNextMove(board: number[][]): Promise<{ row: number; col: number } | null>`（null 表示认输或无法落子）。
-- 人类玩家视为「由用户输入驱动的 Agent」，不实现该接口；AI 对战时代理白方或黑方调用不同 Agent 实现。
-
-### 4.2 分阶段实现
-
-| 阶段    | 实现类/文件                      | 说明                                                            |
-| ------- | -------------------------------- | --------------------------------------------------------------- |
-| Phase 1 | `HeuristicAgent` / `RandomAgent` | 赢法数组启发（已实现）；随机为空位回退                          |
-| Phase 2 | `MinimaxAgent`                   | Minimax + Alpha-Beta，四级难度见 [ai-agents.md](./ai-agents.md) |
-| Phase 3 | `AlphaZeroAgent`（预留）         | 输入棋盘，输出落子或 pass；内部可调用本地模型或 HTTP            |
-
-### 4.3 与状态层协作
-
-- 落子流程：状态层收到「请求落子」→ 调用当前 Agent 的 `getNextMove(currentBoard)` → 将返回的 `(row, col)` 作为一步写入 `history` 并更新 `board`。
-- 不把 AI 状态（如搜索树）放进 Pinia，仅把「当前 Agent 实例」或类型标识存入 store，便于切换难度或机型。
+- 格式：项目 JSON（`gameRecord`）；非 SGF。
+- 适配：`storage` 键值 + 文件下载/选择导入；终局可自动写入 localStorage。
 
 ---
 
-## 5. 小程序/小游戏预留
+## 4. AI 模块
 
-- **逻辑层**：将「棋盘状态 + 落子逻辑 + 胜负判定」放在独立模块（如 `core/board.ts`、`core/engine.ts`），不依赖 `document`/`window`，可在小程序逻辑层直接引用。
-- **视图层**：通过适配层调用小程序 setData 或 Canvas 2D API，事件由逻辑层统一处理（点击 → 坐标换算 → 落子命令）。
-- **存储与网络**：棋谱保存/加载通过适配层抽象为「读/写键值」，在 Web 为 localStorage 或后端 API，在小程序为本地存储或云开发。
+> 算法、四级参数与文件表见 **[ai-agents.md](./ai-agents.md)**。
+
+### 4.1 接口
+
+```ts
+interface IAgent {
+  readonly name: string
+  getNextMove(board: number[][]): Promise<{ row: number; col: number } | null>
+}
+```
+
+### 4.2 阶段
+
+| 阶段    | 实现                                  | 状态   |
+| ------- | ------------------------------------- | ------ |
+| Phase 1 | `HeuristicAgent` / `RandomAgent`      | 已实现 |
+| Phase 2 | `MinimaxAgent` + `difficulty.ts` 四级 | 已实现 |
+| Phase 3 | `AlphaZeroAgent`                      | 预留   |
+
+### 4.3 与 Store
+
+- Store 持有 Agent 实例与 `aiDifficulty`；搜索树不进 Pinia。
+- 切换难度：`createAgentForDifficulty`，影响后续 AI 手。
+
+---
+
+## 5. 音效与体验
+
+- `src/audio/placeSound.ts`：懒加载音频；`localStorage` 静音键。
+- 素材与许可：`src/assets/audio/README.md`。
+- 布局：模式栏 / 记录提示 / 复盘条固定占位，减轻棋盘跳动。
+
+---
+
+## 6. 小程序/小游戏预留
+
+- **逻辑层**：`core/`、`ai/` 保持无 DOM。
+- **视图 / 存储**：需适配层；当前仅 Web。
+
+---
+
+## 修订记录
+
+| 日期       | 说明                                       |
+| ---------- | ------------------------------------------ |
+| 2026-03-02 | 初稿                                       |
+| 2026-08-04 | 同步目录、天元/人机/星位/音效等现状（#49） |

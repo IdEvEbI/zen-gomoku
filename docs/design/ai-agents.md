@@ -3,11 +3,10 @@
 ## 文档信息
 
 - **项目**：zen-gomoku
-- **对应 Issue**：[#44](https://github.com/IdEvEbI/zen-gomoku/issues/44)（Minimax + 四级对手）
-- **相关代码**：`src/ai/`
-- **状态**：设计契约已定；深度 / 时限 / 噪声等数值以实现与实测回填为准
+- **状态**：Phase 1/2 与四级对手**已上线**；参数见 §3.2
+- **对应 Issue**：[#44](https://github.com/IdEvEbI/zen-gomoku/issues/44)
 
-本文记录当前已上线的启发算法，以及即将实现的 Minimax + Alpha-Beta 与四级难度映射，便于后续调参与对照。
+本文记录已上线的启发算法、Minimax + Alpha-Beta 与四级难度映射，便于调参与对照。
 
 ---
 
@@ -22,10 +21,11 @@ interface IAgent {
 }
 ```
 
-- 棋盘约定：`0` 空、`1` 黑、`2` 白；人机模式下默认人类执黑、AI 执白。
+- 棋盘约定：`0` 空、`1` 黑、`2` 白。
+- 人机：`humanFirst` 为 true 时人执黑 AI 执白；为 false 时 AI 执黑人执白。
 - 下一手颜色由 `nextPlayerFromBoard(board)` 推断（黑先；子数相等走黑）。
 - Store 持有当前 Agent 实例与难度标识；**不把搜索树放进 Pinia**。
-- 落子流程：人类落子 →（可选短延迟）→ `agent.getNextMove(board)` → `placeStone`。
+- 落子流程：轮到 AI →（短延迟）→ `agent.getNextMove(board)` → `placeStone`。
 
 架构总览见 [technical-architecture.md §4](./technical-architecture.md)。
 
@@ -43,7 +43,7 @@ interface IAgent {
 - `wins[row][col][k] === true` 表示交点 `(row,col)` 属于第 `k` 种赢法。
 - 对局中维护（或按盘面重算）每条赢法上黑/白已占子数；落子点得分 = 该点相关赢法的攻防分之和。
 
-### 2.3 评分（与旧 gobang DEMO 同构）
+### 2.3 评分
 
 对每个候选空位累加：
 
@@ -104,7 +104,7 @@ interface IAgent {
 
 ---
 
-## 4. 计划：`MinimaxAgent` + Alpha-Beta（Phase 2）
+## 4. 已实现：`MinimaxAgent` + Alpha-Beta（Phase 2）
 
 ### 4.1 目标
 
@@ -177,3 +177,4 @@ Phase 3（预留）：`AlphaZeroAgent`，仍实现 `IAgent`，与本文四级正
 | 2026-08-04 | 初稿：记录 Heuristic 现状与四级 + Minimax 设计契约 |
 | 2026-08-04 | 实现回填：Sha/Zhu/Wukong/Tang 参数与文件表         |
 | 2026-08-04 | 沙和尚去掉全盘随机：改为次优抽样 + 必应四连        |
+| 2026-08-04 | 文档同步：标注已上线；补充先后手 humanFirst（#49） |

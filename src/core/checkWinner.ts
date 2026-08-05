@@ -1,20 +1,25 @@
 /**
- * 胜负判定：给定棋盘与最后落子位置，沿横、竖、两斜四向检测五子连珠
- * 无禁手规则，返回赢家 1 黑 2 白，否则 null
+ * 胜负判定：给定棋盘与最后落子位置，沿横、竖、两斜检测连珠
+ * - freestyle：≥5 即胜（长连亦胜）
+ * - renju-cn：白 ≥5 胜；黑恰 5 胜；黑长连（≥6）不记胜（应由禁手拦截）
  */
+
+import {
+  DEFAULT_RULE_SET,
+  RULE_FREESTYLE,
+  RULE_RENJU_CN,
+  type RuleSetId,
+} from './rules'
 
 const BOARD_SIZE = 15
 
 const DIRECTIONS = [
-  [0, 1],   // 水平
-  [1, 0],   // 竖直
-  [1, 1],   // 主对角线
-  [1, -1],  // 副对角线
+  [0, 1],
+  [1, 0],
+  [1, 1],
+  [1, -1],
 ] as const
 
-/**
- * 在 (row, col) 处沿 (dr, dc) 方向统计与 board[row][col] 同色的连续棋子数（含当前格）
- */
 function countInDirection(
   board: number[][],
   row: number,
@@ -35,24 +40,41 @@ function countInDirection(
   return count
 }
 
+function maxLineLength(board: number[][], lastRow: number, lastCol: number): number {
+  let best = 0
+  for (const [dr, dc] of DIRECTIONS) {
+    const forward = countInDirection(board, lastRow, lastCol, dr, dc)
+    const backward = countInDirection(board, lastRow, lastCol, -dr, -dc)
+    best = Math.max(best, forward + backward - 1)
+  }
+  return best
+}
+
 /**
- * 给定棋盘与最后落子位置，若该子形成五连则返回赢家（1 黑 2 白），否则返回 null
+ * 若该子形成有效五连则返回赢家（1 黑 2 白），否则返回 null
  */
 export function checkWinner(
   board: number[][],
   lastRow: number,
-  lastCol: number
+  lastCol: number,
+  rules: RuleSetId = DEFAULT_RULE_SET
 ): 1 | 2 | null {
   const player = board[lastRow]?.[lastCol]
   if (player !== 1 && player !== 2) return null
 
-  for (const [dr, dc] of DIRECTIONS) {
-    const forward = countInDirection(board, lastRow, lastCol, dr, dc)
-    const backward = countInDirection(board, lastRow, lastCol, -dr, -dc)
-    // 当前格被正反各算了一次，所以总数为 forward + backward - 1
-    if (forward + backward - 1 >= 5) {
-      return player as 1 | 2
-    }
+  const len = maxLineLength(board, lastRow, lastCol)
+
+  if (rules === RULE_FREESTYLE) {
+    return len >= 5 ? (player as 1 | 2) : null
   }
+
+  if (rules === RULE_RENJU_CN) {
+    if (player === 2) {
+      return len >= 5 ? 2 : null
+    }
+    // 黑：恰五胜，长连不记胜
+    return len === 5 ? 1 : null
+  }
+
   return null
 }

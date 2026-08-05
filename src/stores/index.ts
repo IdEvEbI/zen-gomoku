@@ -11,3 +11,10 @@ export {
   DEFAULT_AI_DIFFICULTY,
   type AiDifficulty,
 } from '../ai'
+export {
+  RULE_SET_OPTIONS,
+  DEFAULT_RULE_SET,
+  RULE_FREESTYLE,
+  RULE_RENJU_CN,
+  type RuleSetId,
+} from '../core'

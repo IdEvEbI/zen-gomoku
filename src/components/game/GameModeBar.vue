@@ -4,7 +4,9 @@ import { storeToRefs } from 'pinia'
 import {
   useGameStore,
   AI_DIFFICULTY_OPTIONS,
+  RULE_SET_OPTIONS,
   type AiDifficulty,
+  type RuleSetId,
 } from '../../stores'
 import {
   isPlaceSoundEnabled,
@@ -13,7 +15,8 @@ import {
 } from '../../audio'
 
 const gameStore = useGameStore()
-const { vsAi, aiThinking, aiDifficulty, humanFirst } = storeToRefs(gameStore)
+const { vsAi, aiThinking, aiDifficulty, humanFirst, rules } =
+  storeToRefs(gameStore)
 const soundOn = ref(isPlaceSoundEnabled())
 
 function toggleVsAi() {
@@ -31,6 +34,12 @@ function onFirstChange(event: Event) {
   unlockPlaceSound()
   const value = (event.target as HTMLSelectElement).value
   gameStore.setHumanFirst(value === 'human')
+}
+
+function onRulesChange(event: Event) {
+  unlockPlaceSound()
+  const value = (event.target as HTMLSelectElement).value as RuleSetId
+  gameStore.setRules(value)
 }
 
 function onToggleSound() {
@@ -76,6 +85,20 @@ function onToggleSound() {
       >
         AI 思考中…
       </span>
+    </div>
+
+    <div class="mode-bar__options mode-bar__options--rules">
+      <label class="mode-bar__diff-label" for="game-rules">规则</label>
+      <select
+        id="game-rules"
+        class="mode-bar__select"
+        :value="rules"
+        @change="onRulesChange"
+      >
+        <option v-for="opt in RULE_SET_OPTIONS" :key="opt.id" :value="opt.id">
+          {{ opt.name }}
+        </option>
+      </select>
     </div>
 
     <div
@@ -171,6 +194,9 @@ function onToggleSound() {
   justify-content: center;
   gap: 0.4rem;
   min-height: 1.75rem;
+}
+.mode-bar__options--rules {
+  min-height: auto;
 }
 .mode-bar__options--idle {
   visibility: hidden;

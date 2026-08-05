@@ -5,6 +5,12 @@
 import type { AiMove, AiPlayer } from './types'
 import { listEmptyCells } from './types'
 import { buildWinsCounts } from './winsTable'
+import { isLegalMove } from '../core/forbiddenMoves'
+import {
+  DEFAULT_RULE_SET,
+  RULE_FREESTYLE,
+  type RuleSetId,
+} from '../core/rules'
 
 export const OPPONENT_SCORE = [0, 200, 400, 2000, 10000] as const
 export const SELF_SCORE = [0, 220, 420, 2400, 20000] as const
@@ -13,6 +19,16 @@ export const SELF_SCORE = [0, 220, 420, 2400, 20000] as const
 export const WIN_SCORE = 10_000_000
 
 export const DEFAULT_NEIGHBOR_RADIUS = 2
+
+export function filterLegalCandidates(
+  board: number[][],
+  moves: AiMove[],
+  player: AiPlayer,
+  rules: RuleSetId = DEFAULT_RULE_SET
+): AiMove[] {
+  if (rules === RULE_FREESTYLE) return moves
+  return moves.filter((m) => isLegalMove(board, m.row, m.col, player, rules))
+}
 
 /**
  * 从 perspective 视角评估整盘：己方赢法加分、对方赢法减分
@@ -86,17 +102,24 @@ export function hasNeighbor(
 
 export function listNeighborCandidates(
   board: number[][],
-  radius = DEFAULT_NEIGHBOR_RADIUS
+  radius = DEFAULT_NEIGHBOR_RADIUS,
+  player?: AiPlayer,
+  rules: RuleSetId = DEFAULT_RULE_SET
 ): AiMove[] {
   const empty = listEmptyCells(board)
   const stoneCount = board.length * board.length - empty.length
+  let pool: AiMove[]
   if (stoneCount === 0) {
     const mid = Math.floor(board.length / 2)
-    return [{ row: mid, col: mid }]
+    pool = [{ row: mid, col: mid }]
+  } else if (stoneCount <= 2) {
+    pool = empty
+  } else {
+    const near = empty.filter((m) => hasNeighbor(board, m.row, m.col, radius))
+    pool = near.length > 0 ? near : empty
   }
-  if (stoneCount <= 2) return empty
-  const near = empty.filter((m) => hasNeighbor(board, m.row, m.col, radius))
-  return near.length > 0 ? near : empty
+  if (player === undefined) return pool
+  return filterLegalCandidates(board, pool, player, rules)
 }
 
 /** 按启发分降序的候选，截断到 limit */
@@ -106,10 +129,11 @@ export function listOrderedCandidates(
   wins: boolean[][][],
   winsCount: number,
   limit: number,
-  radius = DEFAULT_NEIGHBOR_RADIUS
+  radius = DEFAULT_NEIGHBOR_RADIUS,
+  rules: RuleSetId = DEFAULT_RULE_SET
 ): AiMove[] {
   const boardSize = board.length
-  const candidates = listNeighborCandidates(board, radius)
+  const candidates = listNeighborCandidates(board, radius, player, rules)
   const opp = (player === 1 ? 2 : 1) as AiPlayer
   const selfCounts = buildWinsCounts(board, wins, winsCount, player)
   const oppCounts = buildWinsCounts(board, wins, winsCount, opp)

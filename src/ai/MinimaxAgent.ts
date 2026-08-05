@@ -16,6 +16,7 @@ import {
   DEFAULT_NEIGHBOR_RADIUS,
 } from './evaluate'
 import { RandomAgent } from './RandomAgent'
+import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
 export interface MinimaxAgentOptions {
   /** 最大搜索深度（半步层数：1=只看一步） */
@@ -29,6 +30,7 @@ export interface MinimaxAgentOptions {
   /** 是否迭代加深（时限内尽量加深） */
   iterativeDeepening?: boolean
   name?: string
+  rules?: RuleSetId
 }
 
 export class MinimaxAgent implements IAgent {
@@ -39,9 +41,10 @@ export class MinimaxAgent implements IAgent {
   private readonly neighborRadius: number
   private readonly iterativeDeepening: boolean
   private readonly boardSize: number
+  private readonly rules: RuleSetId
   private readonly wins: boolean[][][]
   private readonly winsCount: number
-  private readonly fallback = new RandomAgent()
+  private readonly fallback: RandomAgent
   private deadline = 0
   private aborted = false
 
@@ -52,10 +55,12 @@ export class MinimaxAgent implements IAgent {
     this.neighborRadius = options.neighborRadius ?? DEFAULT_NEIGHBOR_RADIUS
     this.iterativeDeepening = options.iterativeDeepening ?? false
     this.boardSize = options.boardSize ?? 15
+    this.rules = options.rules ?? DEFAULT_RULE_SET
     this.name = options.name ?? `minimax-d${this.maxDepth}`
     const table = buildWinsTable(this.boardSize)
     this.wins = table.wins
     this.winsCount = table.winsCount
+    this.fallback = new RandomAgent(this.rules)
   }
 
   async getNextMove(board: number[][]): Promise<AiMove | null> {
@@ -87,7 +92,6 @@ export class MinimaxAgent implements IAgent {
       if (this.timedOut()) break
       const result = this.searchRoot(board, aiPlayer, depth)
       if (result) best = result
-      // 让出主线程，避免唐僧长时间卡死 UI
       await Promise.resolve()
     }
 
@@ -113,7 +117,8 @@ export class MinimaxAgent implements IAgent {
       this.wins,
       this.winsCount,
       this.candidateLimit,
-      this.neighborRadius
+      this.neighborRadius,
+      this.rules
     )
     if (moves.length === 0) return null
 
@@ -127,17 +132,10 @@ export class MinimaxAgent implements IAgent {
       const next = cloneBoard(board)
       next[move.row]![move.col] = aiPlayer
       let score: number
-      if (checkWinner(next, move.row, move.col) === aiPlayer) {
+      if (checkWinner(next, move.row, move.col, this.rules) === aiPlayer) {
         score = WIN_SCORE
       } else {
-        score = this.minimax(
-          next,
-          depth - 1,
-          alpha,
-          beta,
-          false,
-          aiPlayer
-        )
+        score = this.minimax(next, depth - 1, alpha, beta, false, aiPlayer)
       }
       if (score > bestScore) {
         bestScore = score
@@ -173,7 +171,8 @@ export class MinimaxAgent implements IAgent {
       this.wins,
       this.winsCount,
       this.candidateLimit,
-      this.neighborRadius
+      this.neighborRadius,
+      this.rules
     )
 
     if (moves.length === 0) {
@@ -186,7 +185,7 @@ export class MinimaxAgent implements IAgent {
         if (this.timedOut()) break
         const next = cloneBoard(board)
         next[move.row]![move.col] = player
-        const winner = checkWinner(next, move.row, move.col)
+        const winner = checkWinner(next, move.row, move.col, this.rules)
         let score: number
         if (winner === aiPlayer) score = WIN_SCORE
         else if (winner !== null) score = -WIN_SCORE
@@ -205,7 +204,7 @@ export class MinimaxAgent implements IAgent {
       if (this.timedOut()) break
       const next = cloneBoard(board)
       next[move.row]![move.col] = player
-      const winner = checkWinner(next, move.row, move.col)
+      const winner = checkWinner(next, move.row, move.col, this.rules)
       let score: number
       if (winner === aiPlayer) score = WIN_SCORE
       else if (winner !== null) score = -WIN_SCORE

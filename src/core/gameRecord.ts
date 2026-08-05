@@ -4,6 +4,16 @@
  */
 
 import { checkWinner } from './checkWinner'
+import {
+  DEFAULT_RULE_SET,
+  isRuleSetId,
+  RULE_RENJU_CN,
+  type RuleSetId,
+} from './rules'
+import {
+  getForbiddenKind,
+  forbiddenKindMessage,
+} from './forbiddenMoves'
 
 export const GAME_RECORD_VERSION = 1
 export const DEFAULT_BOARD_SIZE = 15
@@ -22,6 +32,8 @@ export interface GameRecord {
   version: number
   boardSize: number
   moves: RecordMove[]
+  /** 规则集；缺省视为自由五子（兼容旧谱） */
+  rules?: RuleSetId
   /** 可选；缺省时由着法重算 */
   status?: RecordStatus
 }
@@ -77,7 +89,7 @@ function isStatus(v: unknown): v is RecordStatus {
  */
 export function toGameRecord(
   history: { row: number; col: number; player: number }[],
-  options?: { boardSize?: number; status?: RecordStatus }
+  options?: { boardSize?: number; status?: RecordStatus; rules?: RuleSetId }
 ): GameRecord {
   const boardSize = options?.boardSize ?? DEFAULT_BOARD_SIZE
   const moves: RecordMove[] = history.map((h) => ({
@@ -89,6 +101,7 @@ export function toGameRecord(
     version: GAME_RECORD_VERSION,
     boardSize,
     moves,
+    rules: options?.rules ?? DEFAULT_RULE_SET,
   }
   if (options?.status) {
     record.status = options.status
@@ -156,6 +169,14 @@ export function parseGameRecord(input: unknown): ParseRecordResult {
     boardSize,
     moves,
   }
+  if (obj.rules !== undefined) {
+    if (!isRuleSetId(obj.rules)) {
+      return { ok: false, message: '棋谱规则字段无效' }
+    }
+    record.rules = obj.rules
+  } else {
+    record.rules = DEFAULT_RULE_SET
+  }
   if (obj.status !== undefined) {
     if (!isStatus(obj.status)) {
       return { ok: false, message: '对局状态无效' }
@@ -170,6 +191,7 @@ export function parseGameRecord(input: unknown): ParseRecordResult {
  */
 export function rebuildFromRecord(record: GameRecord): RebuiltGameState | { error: string } {
   const size = record.boardSize
+  const rules = record.rules ?? DEFAULT_RULE_SET
   const board = createEmptyBoard(size)
   const history: RebuiltGameState['history'] = []
   let status: RecordStatus = 'playing'
@@ -188,8 +210,16 @@ export function rebuildFromRecord(record: GameRecord): RebuiltGameState | { erro
       return { error: `第 ${i + 1} 手：位置已被占用` }
     }
     rowData[move.c] = move.player
+    if (move.player === 1 && rules === RULE_RENJU_CN) {
+      const kind = getForbiddenKind(board, move.r, move.c)
+      if (kind) {
+        return {
+          error: `第 ${i + 1} 手：${forbiddenKindMessage(kind)}`,
+        }
+      }
+    }
     history.push({ row: move.r, col: move.c, player: move.player })
-    const winner = checkWinner(board, move.r, move.c)
+    const winner = checkWinner(board, move.r, move.c, rules)
     if (winner !== null) {
       status = winner === 1 ? 'black_win' : 'white_win'
     } else if (history.length >= size * size) {
@@ -202,7 +232,6 @@ export function rebuildFromRecord(record: GameRecord): RebuiltGameState | { erro
   const currentPlayer: RecordPlayer =
     status === 'playing' ? expected : history.length > 0 ? history[history.length - 1]!.player : 1
 
-  // 若棋谱带 status，以重算为准（保证与 board 一致）；不一致则仍用重算结果
   return { board, history, currentPlayer, status }
 }
 

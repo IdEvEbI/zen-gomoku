@@ -5,6 +5,7 @@ import { createBoardRenderer } from '../../renderer'
 import { useGameStore } from '../../stores'
 import { useBoardPointer } from '../../hooks'
 import { playPlaceSound, preloadPlaceSound } from '../../audio'
+import { listForbiddenEmptyCells, RULE_RENJU_CN } from '../../core'
 
 const gameStore = useGameStore()
 const {
@@ -17,6 +18,7 @@ const {
   vsAi,
   aiThinking,
   aiPlayer,
+  rules,
 } = storeToRefs(gameStore)
 
 const containerRef = ref<HTMLDivElement | null>(null)
@@ -73,6 +75,16 @@ function draw() {
       ? { row: last.row, col: last.col, radiusScale: scaleNow }
       : undefined
   renderer.drawPieces(displayBoard.value, pulse)
+  // 禁手规则：空点红叉提示黑方不可落（白方回合也显示，便于捉禁）
+  if (
+    rules.value === RULE_RENJU_CN &&
+    status.value === 'playing' &&
+    isAtLiveEdge.value
+  ) {
+    renderer.drawForbiddenMarks(
+      listForbiddenEmptyCells(displayBoard.value, RULE_RENJU_CN)
+    )
+  }
   if (last) renderer.drawLastMoveMark(last.row, last.col)
 }
 
@@ -107,6 +119,7 @@ function placeAt(row: number, col: number) {
     lastClick.value = { row, col }
     draw()
   } else {
+    lastClick.value = { row, col }
     lastMessage.value = result.message
   }
 }
@@ -132,7 +145,7 @@ function handleStartReplay() {
 
 /** 棋谱 / 复盘索引变化时重绘 */
 watch(
-  [displayBoard, history, status, displayHistoryIndex],
+  [displayBoard, history, status, displayHistoryIndex, rules],
   () => {
     scheduleDraw()
   },

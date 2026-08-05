@@ -26,7 +26,8 @@ docs/
 └── design/
     ├── technical-architecture.md
     ├── ai-agents.md
-    └── alphazero-lite.md
+    ├── alphazero-lite.md
+    └── forbidden-moves.md
 ```
 
 ## 开发文档 (development/)
@@ -57,5 +58,6 @@ docs/
 | [technical-architecture.md](design/technical-architecture.md) | 技术架构设计                          |
 | [ai-agents.md](design/ai-agents.md)                           | AI 算法与四级难度                     |
 | [alphazero-lite.md](design/alphazero-lite.md)                 | 自由/禁手双模型训练路线（已确认设计） |
+| [forbidden-moves.md](design/forbidden-moves.md)               | 中国规则禁手规格（实现对照）          |
 
 新文档请按上述目录放入对应子目录，并保持 kebab-case 命名；新增后可在本 README 的表格中加一行链接。

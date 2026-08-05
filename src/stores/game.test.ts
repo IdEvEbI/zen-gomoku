@@ -214,4 +214,46 @@ describe('useGameStore', () => {
     store.setAiDifficulty('tang')
     expect(store.aiDifficulty).toBe('tang')
   })
+
+  it('setRules switches to renju and resets board', () => {
+    const store = useGameStore()
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
+    expect(store.history.length).toBe(1)
+    store.setRules('renju-cn-v1')
+    expect(store.rules).toBe('renju-cn-v1')
+    expect(store.history.length).toBe(0)
+    expect(store.status).toBe('playing')
+  })
+
+  it('renju: rejects black double-three', () => {
+    const store = useGameStore()
+    store.setRules('renju-cn-v1')
+    store.placeStone(7, 7)
+    store.placeStone(0, 0)
+    store.placeStone(8, 6)
+    store.placeStone(1, 0)
+    store.placeStone(8, 7)
+    store.placeStone(2, 0)
+    store.placeStone(6, 8)
+    store.placeStone(0, 14)
+    store.placeStone(7, 8)
+    store.placeStone(1, 14)
+    expect(store.status).toBe('playing')
+    const before = store.history.length
+    const result = store.placeStone(8, 8)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.message).toContain('三三')
+    }
+    expect(store.history.length).toBe(before)
+    expect(store.board[8]![8]).toBe(0)
+  })
+
+  it('exportRecord includes rules', () => {
+    const store = useGameStore()
+    store.setRules('renju-cn-v1')
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
+    const rec = store.exportRecord()
+    expect(rec.rules).toBe('renju-cn-v1')
+  })
 })

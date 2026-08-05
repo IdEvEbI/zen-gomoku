@@ -16,6 +16,7 @@ import {
   SELF_SCORE,
 } from './evaluate'
 import { RandomAgent } from './RandomAgent'
+import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
 /** 四连档启发分：必须应手，不允许「失误」 */
 const CRITICAL_SCORE = Math.min(OPPONENT_SCORE[4]!, SELF_SCORE[4]!)
@@ -29,6 +30,7 @@ export interface ShaHeshangOptions {
    */
   bestMoveChance?: number
   boardSize?: number
+  rules?: RuleSetId
 }
 
 export class ShaHeshangAgent implements IAgent {
@@ -36,17 +38,20 @@ export class ShaHeshangAgent implements IAgent {
   private readonly topK: number
   private readonly bestMoveChance: number
   private readonly boardSize: number
+  private readonly rules: RuleSetId
   private readonly wins: boolean[][][]
   private readonly winsCount: number
-  private readonly fallback = new RandomAgent()
+  private readonly fallback: RandomAgent
 
   constructor(options: ShaHeshangOptions = {}) {
     this.topK = options.topK ?? 4
     this.bestMoveChance = options.bestMoveChance ?? 0.55
     this.boardSize = options.boardSize ?? 15
+    this.rules = options.rules ?? DEFAULT_RULE_SET
     const table = buildWinsTable(this.boardSize)
     this.wins = table.wins
     this.winsCount = table.winsCount
+    this.fallback = new RandomAgent(this.rules)
   }
 
   async getNextMove(board: number[][]): Promise<AiMove | null> {
@@ -67,7 +72,12 @@ export class ShaHeshangAgent implements IAgent {
     const opp = (player === 1 ? 2 : 1) as 1 | 2
     const selfCounts = buildWinsCounts(board, this.wins, this.winsCount, player)
     const oppCounts = buildWinsCounts(board, this.wins, this.winsCount, opp)
-    const pool = listNeighborCandidates(board, DEFAULT_NEIGHBOR_RADIUS)
+    const pool = listNeighborCandidates(
+      board,
+      DEFAULT_NEIGHBOR_RADIUS,
+      player,
+      this.rules
+    )
 
     const scored = pool.map((m) => ({
       move: m,
@@ -88,7 +98,6 @@ export class ShaHeshangAgent implements IAgent {
     if (top.length === 0) return this.fallback.getNextMove(board)
 
     const best = top[0]!
-    // 冲四 / 堵四：必须走，否则体验极差
     if (best.score >= CRITICAL_SCORE) {
       return best.move
     }

@@ -20,3 +20,14 @@ export {
   type AiDifficulty,
   type AiDifficultyOption,
 } from './difficulty'
+export {
+  OpeningBookController,
+  expandOpeningSeeds,
+  DEFAULT_OPENING_SEEDS,
+  SEED_TENGEN,
+  SEED_HUAYUE,
+  SEED_PUYUE,
+  getOpeningSeedById,
+  type OpeningSeed,
+  type BookMove,
+} from './openingBook'

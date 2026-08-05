@@ -105,4 +105,23 @@ describe('playSelfPlayGame / generateTeacherRecords', () => {
       expect('error' in rebuildFromRecord(r)).toBe(false)
     }
   })
+
+  it('onProgress fires once per game', async () => {
+    const events: number[] = []
+    await generateTeacherRecords({
+      rules: RULE_FREESTYLE,
+      count: 3,
+      openingMode: 'seed',
+      seedIds: ['tengen'],
+      random: () => 0.1,
+      createAgent: (rules) => createRandomLegalAgent(rules),
+      onProgress: (info) => {
+        events.push(info.index)
+        expect(info.total).toBe(3)
+        expect(info.gameMs).toBeGreaterThanOrEqual(0)
+        expect(info.elapsedMs).toBeGreaterThanOrEqual(info.gameMs)
+      },
+    })
+    expect(events).toEqual([1, 2, 3])
+  })
 })

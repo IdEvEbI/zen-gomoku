@@ -24,6 +24,7 @@ import { DEFAULT_RECORD_STORAGE_KEY, type KeyValueStorage } from '../storage'
 import {
   createAgentForDifficulty,
   DEFAULT_AI_DIFFICULTY,
+  OpeningBookController,
   type AiDifficulty,
   type IAgent,
 } from '../ai'
@@ -72,6 +73,8 @@ export const useGameStore = defineStore('game', () => {
   const rules = ref<RuleSetId>(DEFAULT_RULE_SET)
   let agent: IAgent = createAgentForDifficulty(DEFAULT_AI_DIFFICULTY, BOARD_SIZE, DEFAULT_RULE_SET)
   let aiToken = 0
+  const openingBook = new OpeningBookController()
+  openingBook.reset()
 
   function recreateAgent(): void {
     agent = createAgentForDifficulty(aiDifficulty.value, BOARD_SIZE, rules.value)
@@ -230,7 +233,8 @@ export const useGameStore = defineStore('game', () => {
       if (!vsAi.value || status.value !== 'playing') return
       if (currentPlayer.value !== aiPlayer.value) return
       const snapshot = board.value.map((row) => row.slice())
-      const move = await agent.getNextMove(snapshot)
+      const bookMove = openingBook.nextMove(history.value, aiPlayer.value)
+      const move = bookMove ?? (await agent.getNextMove(snapshot))
       if (token !== aiToken) return
       if (!move) return
       placeStone(move.row, move.col)
@@ -246,6 +250,7 @@ export const useGameStore = defineStore('game', () => {
     aiToken++
     aiThinking.value = false
     if (enabled) {
+      openingBook.reset()
       scheduleAiMove()
     }
   }
@@ -288,6 +293,7 @@ export const useGameStore = defineStore('game', () => {
     history.value = []
     status.value = 'playing'
     displayHistoryIndex.value = 0
+    openingBook.reset()
     scheduleAiMove()
   }
 
@@ -391,6 +397,7 @@ export const useGameStore = defineStore('game', () => {
     currentPlayer.value = rebuilt.currentPlayer
     status.value = rebuilt.status
     displayHistoryIndex.value = history.value.length
+    openingBook.reset()
     scheduleAiMove()
     return { success: true }
   }

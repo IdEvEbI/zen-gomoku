@@ -12,7 +12,7 @@ import path from 'node:path'
 import { RULE_FREESTYLE, RULE_RENJU_CN, isRuleSetId, type RuleSetId } from '../src/core'
 import { generateTeacherRecords, recordsToJsonl } from '../src/training'
 import type { AiDifficulty } from '../src/ai'
-import type { OpeningMode } from '../src/training'
+import type { GenerateProgress, OpeningMode } from '../src/training'
 
 function printHelp(): void {
   console.log(`Usage: npm run generate:teacher-records -- [options]
@@ -73,6 +73,35 @@ function resolveRulesList(spec: string): RuleSetId[] {
   throw new Error(`未知 rules: ${spec}`)
 }
 
+function formatDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return '?'
+  if (ms < 1000) return `${Math.round(ms)}ms`
+  const sec = Math.round(ms / 1000)
+  if (sec < 60) return `${sec}s`
+  const min = Math.floor(sec / 60)
+  const rem = sec % 60
+  if (min < 60) return `${min}m${String(rem).padStart(2, '0')}s`
+  const hr = Math.floor(min / 60)
+  const remMin = min % 60
+  return `${hr}h${String(remMin).padStart(2, '0')}m`
+}
+
+function printProgress(rules: RuleSetId, info: GenerateProgress): void {
+  const { index, total, record, gameMs, elapsedMs } = info
+  const pct = ((index / total) * 100).toFixed(1)
+  const avg = elapsedMs / index
+  const eta = avg * (total - index)
+  const line =
+    `[${rules}] ${index}/${total} (${pct}%) | ` +
+    `last ${formatDuration(gameMs)} | elapsed ${formatDuration(elapsedMs)} | ` +
+    `ETA ${formatDuration(eta)} | ${record.status} ${record.moves.length}moves`
+  // 单行刷新，避免 1000 局刷屏；每局结束都会更新，不会「卡住」
+  process.stdout.write(`\r${line.padEnd(100)}`)
+  if (index === total) {
+    process.stdout.write('\n')
+  }
+}
+
 async function main(): Promise<void> {
   const opts = parseArgs(process.argv.slice(2))
   const rulesList = resolveRulesList(opts.rules)
@@ -89,6 +118,7 @@ async function main(): Promise<void> {
       difficulty: opts.difficulty,
       openingMode: opts.opening,
       randomExtraMoves: opts.extra,
+      onProgress: (info) => printProgress(rules, info),
     })
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')
     const file = path.join(opts.out, `${rules}-${stamp}.jsonl`)
@@ -98,7 +128,10 @@ async function main(): Promise<void> {
       white: records.filter((r) => r.status === 'white_win').length,
       draw: records.filter((r) => r.status === 'draw').length,
     }
-    console.log(`Wrote ${records.length} records → ${file} (${Date.now() - started}ms)`, wins)
+    console.log(
+      `Wrote ${records.length} records → ${file} (${formatDuration(Date.now() - started)})`,
+      wins
+    )
   }
 }
 

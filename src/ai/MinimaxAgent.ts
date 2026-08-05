@@ -78,8 +78,7 @@ export class MinimaxAgent implements IAgent {
       return { row: mid, col: mid }
     }
 
-    this.deadline =
-      this.timeLimitMs > 0 ? Date.now() + this.timeLimitMs : Number.POSITIVE_INFINITY
+    this.deadline = this.timeLimitMs > 0 ? Date.now() + this.timeLimitMs : Number.POSITIVE_INFINITY
     this.aborted = false
 
     let best: AiMove | null = null
@@ -106,11 +105,7 @@ export class MinimaxAgent implements IAgent {
     return false
   }
 
-  private searchRoot(
-    board: number[][],
-    aiPlayer: AiPlayer,
-    depth: number
-  ): AiMove | null {
+  private searchRoot(board: number[][], aiPlayer: AiPlayer, depth: number): AiMove | null {
     const moves = listOrderedCandidates(
       board,
       aiPlayer,
@@ -124,6 +119,7 @@ export class MinimaxAgent implements IAgent {
 
     let bestMove = moves[0]!
     let bestScore = -Infinity
+    const tied: AiMove[] = []
     let alpha = -Infinity
     const beta = Infinity
 
@@ -140,11 +136,18 @@ export class MinimaxAgent implements IAgent {
       if (score > bestScore) {
         bestScore = score
         bestMove = move
+        tied.length = 0
+        tied.push(move)
+      } else if (score === bestScore) {
+        tied.push(move)
       }
       alpha = Math.max(alpha, bestScore)
       if (bestScore >= WIN_SCORE / 2) break
     }
 
+    if (tied.length > 1) {
+      return tied[Math.floor(Math.random() * tied.length)] ?? bestMove
+    }
     return bestMove
   }
 

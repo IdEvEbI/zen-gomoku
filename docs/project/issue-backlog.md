@@ -76,12 +76,18 @@
 
 ## 四、后续（Backlog 保留）
 
-| #   | 标题                              | 描述                                                                                         | 对应                 |
-| --- | --------------------------------- | -------------------------------------------------------------------------------------------- | -------------------- |
-| —   | **feat: Minimax + Alpha-Beta AI** | 实现 `src/ai/MinimaxAgent.ts`，可配置深度/耗时；替换 IAgent 实现。                           | Phase 2              |
-| —   | **feat: AlphaZero 风格接口预留**  | 预留 `AlphaZeroAgent` 接口（本地模型或 HTTP），输入棋盘输出落子。                            | Phase 3              |
-| —   | **feat: 悔棋**                    | 从 `history` pop 一步，恢复 `board` 与 `currentPlayer`；约定仅撤销己方上一步或步数上限。     | 架构 3.1             |
-| —   | **feat: 小程序/小游戏适配**       | 逻辑层复用 `src/core/`；视图与存储通过适配层对接小程序 setData / Canvas / 本地存储或云开发。 | F-REQ-011, F-REQ-012 |
+> **AlphaZero 风格路线（2026-08-05）**：设计见 [alphazero-lite.md](../design/alphazero-lite.md)。已定：独立训练仓；**自由 + 禁手两套规则并存**；**两个模型各训各用**；先模仿唐僧再自对弈。下列切片待设计确认后再建 GitHub Issue。
+
+| #   | 标题                                | 描述                                                                                         | 对应                 |
+| --- | ----------------------------------- | -------------------------------------------------------------------------------------------- | -------------------- |
+| —   | **feat: Minimax + Alpha-Beta AI**   | ~~实现 Minimax~~ — 已合入（见 [ai-agents.md](../design/ai-agents.md)）。                     | Phase 2（已完成）    |
+| —   | **feat: 中国规则禁手 + 规则切换**   | 三三 / 四四 / 长连（仅黑）；与自由模式并存；规格 + 单测 + AI 走法过滤。                      | alphazero-lite R0    |
+| —   | **feat: 老师棋谱导出（双规则）**    | 自由 / 禁手下唐僧均可批量导出训练棋谱（带 `rules` 元数据）。                                 | alphazero-lite R1    |
+| —   | **chore: 新建 zen-gomoku-ml**       | 独立训练仓；`rules` 参数化；先自由后禁手两套模仿模型与 ONNX。                                | alphazero-lite R2    |
+| —   | **feat: AlphaZeroAgent 按规则加载** | 本仓按当前规则加载对应 ONNX；人机可选；不上训练。                                            | alphazero-lite R3    |
+| —   | **feat: 自对弈闭环（可选）**        | 两套规则各自自对弈 + 擂台；产物回灌本仓。                                                    | alphazero-lite R4    |
+| —   | **feat: 悔棋**                      | 从 `history` pop 一步，恢复 `board` 与 `currentPlayer`；约定仅撤销己方上一步或步数上限。     | 架构 3.1             |
+| —   | **feat: 小程序/小游戏适配**         | 逻辑层复用 `src/core/`；视图与存储通过适配层对接小程序 setData / Canvas / 本地存储或云开发。 | F-REQ-011, F-REQ-012 |
 
 ---
 

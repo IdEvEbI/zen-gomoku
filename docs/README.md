@@ -11,44 +11,49 @@
 
 ## 目录结构
 
-```text
+```txt
 docs/
-├── README.md           # 本索引与约定说明
-├── development/        # 开发相关
-│   └── branch-strategy.md
-├── project/            # 项目相关（需求、设计等）
+├── README.md
+├── development/
+│   ├── branch-strategy.md
+│   └── feature-workflow.md
+├── project/
 │   ├── issue-backlog.md
-│   └── doc-review.md   # 文档评审与补充建议
-├── requirements/       # 需求规格
+│   ├── requirements.md   # 指向正式规格的入口
+│   └── design.md         # 指向正式设计的入口
+├── requirements/
 │   └── functional-spec.md
-└── design/             # 设计与架构
-    └── technical-architecture.md
+└── design/
+    ├── technical-architecture.md
+    └── ai-agents.md
 ```
 
 ## 开发文档 (development/)
 
-| 文档 | 说明 |
-| --- | --- |
-| [branch-strategy.md](development/branch-strategy.md) | 分支策略与 Git 工作流 |
+| 文档                                                   | 说明                               |
+| ------------------------------------------------------ | ---------------------------------- |
+| [branch-strategy.md](development/branch-strategy.md)   | 分支策略与 Git 工作流              |
 | [feature-workflow.md](development/feature-workflow.md) | PR 合并后与开始新 Issue 的标准步骤 |
 
 ## 项目文档 (project/)
 
-| 文档 | 说明 |
-| --- | --- |
-| [issue-backlog.md](project/issue-backlog.md) | Issue 清单与开发路线（示例标题与描述） |
-| [doc-review.md](project/doc-review.md) | 文档评审与补充建议（2026-03-02） |
+| 文档                                         | 说明                                      |
+| -------------------------------------------- | ----------------------------------------- |
+| [issue-backlog.md](project/issue-backlog.md) | Issue 清单与开发路线                      |
+| [requirements.md](project/requirements.md)   | 需求入口（指向 functional-spec）          |
+| [design.md](project/design.md)               | 设计入口（指向 architecture / ai-agents） |
 
 ## 需求规格 (requirements/)
 
-| 文档 | 说明 |
-| --- | --- |
+| 文档                                                  | 说明           |
+| ----------------------------------------------------- | -------------- |
 | [functional-spec.md](requirements/functional-spec.md) | 功能规格说明书 |
 
 ## 设计与架构 (design/)
 
-| 文档 | 说明 |
-| --- | --- |
-| [technical-architecture.md](design/technical-architecture.md) | 技术架构设计 |
+| 文档                                                          | 说明              |
+| ------------------------------------------------------------- | ----------------- |
+| [technical-architecture.md](design/technical-architecture.md) | 技术架构设计      |
+| [ai-agents.md](design/ai-agents.md)                           | AI 算法与四级难度 |
 
 新文档请按上述目录放入对应子目录，并保持 kebab-case 命名；新增后可在本 README 的表格中加一行链接。

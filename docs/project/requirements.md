@@ -1,13 +1,9 @@
 # 需求说明
 
-<!-- 在此维护产品/功能需求，可按版本或模块拆分小节 -->
+正式功能规格见：**[../requirements/functional-spec.md](../requirements/functional-spec.md)**（v0.3，与 `develop` 已实现功能同步）。
 
 ## 概述
 
-zen-gomoku 五子棋 H5 游戏：支持 PC / 手机 / 微信浏览器，响应式布局，鼠标与触摸操作，极简 UI，Canvas 渲染。
+zen-gomoku 五子棋 H5：15×15，人人 / 人机，Canvas 渲染，鼠标与触摸统一，棋谱与复盘，四级 AI。
 
-## 待细化
-
-- 功能范围与优先级
-- 交互与规则细节
-- 非功能需求（性能、兼容性等）
+本文件仅作入口，避免与 `functional-spec.md` 双份维护。

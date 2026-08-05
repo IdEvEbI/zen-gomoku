@@ -4,6 +4,7 @@ import {
   setPlaceSoundEnabled,
   togglePlaceSoundEnabled,
   playPlaceSound,
+  unlockPlaceSound,
 } from './placeSound'
 
 describe('placeSound', () => {
@@ -30,6 +31,11 @@ describe('placeSound', () => {
 
   it('playPlaceSound does not throw when muted', () => {
     setPlaceSoundEnabled(false)
+    expect(() => playPlaceSound()).not.toThrow()
+  })
+
+  it('unlockPlaceSound and playPlaceSound do not throw', () => {
+    expect(() => unlockPlaceSound()).not.toThrow()
     expect(() => playPlaceSound()).not.toThrow()
   })
 })

@@ -9,6 +9,7 @@ import {
 import {
   isPlaceSoundEnabled,
   togglePlaceSoundEnabled,
+  unlockPlaceSound,
 } from '../../audio'
 
 const gameStore = useGameStore()
@@ -16,20 +17,24 @@ const { vsAi, aiThinking, aiDifficulty, humanFirst } = storeToRefs(gameStore)
 const soundOn = ref(isPlaceSoundEnabled())
 
 function toggleVsAi() {
+  unlockPlaceSound()
   gameStore.setVsAi(!vsAi.value)
 }
 
 function onDifficultyChange(event: Event) {
+  unlockPlaceSound()
   const value = (event.target as HTMLSelectElement).value as AiDifficulty
   gameStore.setAiDifficulty(value)
 }
 
 function onFirstChange(event: Event) {
+  unlockPlaceSound()
   const value = (event.target as HTMLSelectElement).value
   gameStore.setHumanFirst(value === 'human')
 }
 
 function onToggleSound() {
+  unlockPlaceSound()
   soundOn.value = togglePlaceSoundEnabled()
 }
 </script>

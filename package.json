@@ -13,6 +13,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,vue,js,css,json}\" \"docs/**/*.md\" \"*.md\" \".cursor/**/*.mdc\"",
     "format:check": "prettier --check \"docs/**/*.md\" \"*.md\" \".cursor/**/*.mdc\"",
+    "generate:teacher-records": "tsx scripts/generate-teacher-records.ts",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -50,6 +51,7 @@
     "postcss": "^8.5.6",
     "prettier": "^3.4.2",
     "tailwindcss": "^4.2.1",
+    "tsx": "^4.23.7",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.18.0",
     "vite": "^7.3.1",

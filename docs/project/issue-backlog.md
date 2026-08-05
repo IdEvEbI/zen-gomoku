@@ -76,7 +76,7 @@
 
 ## 四、后续（Backlog 保留）
 
-> **AlphaZero 风格路线（2026-08-05）**：设计见 [alphazero-lite.md](../design/alphazero-lite.md)。已定：独立训练仓；**自由 + 禁手两套规则并存**；**两个模型各训各用**；先模仿唐僧再自对弈。R0 [#54](https://github.com/IdEvEbI/zen-gomoku/issues/54)（已关）；R1 [#58](https://github.com/IdEvEbI/zen-gomoku/issues/58)。
+> **AlphaZero 风格路线（2026-08-05）**：设计见 [alphazero-lite.md](../design/alphazero-lite.md)。已定：独立训练仓；**自由 + 禁手两套规则并存**；**两个模型各训各用**；先模仿唐僧再自对弈。R0 [#54](https://github.com/IdEvEbI/zen-gomoku/issues/54)、R1 [#58](https://github.com/IdEvEbI/zen-gomoku/issues/58)（已关）；R2 [#60](https://github.com/IdEvEbI/zen-gomoku/issues/60)。
 
 | #   | 标题                                | 描述                                                                                                                                                     | 对应                 |
 | --- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |

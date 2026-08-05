@@ -86,7 +86,7 @@
 | —   | **chore: 新建 zen-gomoku-ml**       | 独立训练仓；`rules` 参数化；先自由后禁手两套模仿模型与 ONNX。                                                                                  | alphazero-lite R2    |
 | —   | **feat: AlphaZeroAgent 按规则加载** | 本仓按当前规则加载对应 ONNX；人机可选；不上训练。                                                                                              | alphazero-lite R3    |
 | —   | **feat: 自对弈闭环（可选）**        | 两套规则各自自对弈 + 擂台；产物回灌本仓。                                                                                                      | alphazero-lite R4    |
-| —   | **feat: 悔棋**                      | 从 `history` pop 一步，恢复 `board` 与 `currentPlayer`；约定仅撤销己方上一步或步数上限。                                                       | 架构 3.1             |
+| —   | **feat: 悔棋**                      | 从 `history` pop；人人 1 手、人机人+AI；恢复 board / 行棋方 / 终局状态。 → **[#51](https://github.com/IdEvEbI/zen-gomoku/issues/51)**          | 架构 3.1             |
 | —   | **feat: 小程序/小游戏适配**         | 逻辑层复用 `src/core/`；视图与存储通过适配层对接小程序 setData / Canvas / 本地存储或云开发。                                                   | F-REQ-011, F-REQ-012 |
 
 ---

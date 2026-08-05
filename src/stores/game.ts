@@ -20,10 +20,7 @@ import {
   type GameRecord,
   type RuleSetId,
 } from '../core'
-import {
-  DEFAULT_RECORD_STORAGE_KEY,
-  type KeyValueStorage,
-} from '../storage'
+import { DEFAULT_RECORD_STORAGE_KEY, type KeyValueStorage } from '../storage'
 import {
   createAgentForDifficulty,
   DEFAULT_AI_DIFFICULTY,
@@ -49,9 +46,7 @@ export interface HistoryEntry {
   player: Player
 }
 
-export type ActionResult =
-  | { success: true }
-  | { success: false; message: string }
+export type ActionResult = { success: true } | { success: false; message: string }
 
 function createEmptyBoard(): number[][] {
   return Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(0))
@@ -75,27 +70,17 @@ export const useGameStore = defineStore('game', () => {
   const aiDifficulty = ref<AiDifficulty>(DEFAULT_AI_DIFFICULTY)
   /** 规则：自由 / 禁手 */
   const rules = ref<RuleSetId>(DEFAULT_RULE_SET)
-  let agent: IAgent = createAgentForDifficulty(
-    DEFAULT_AI_DIFFICULTY,
-    BOARD_SIZE,
-    DEFAULT_RULE_SET
-  )
+  let agent: IAgent = createAgentForDifficulty(DEFAULT_AI_DIFFICULTY, BOARD_SIZE, DEFAULT_RULE_SET)
   let aiToken = 0
 
   function recreateAgent(): void {
-    agent = createAgentForDifficulty(
-      aiDifficulty.value,
-      BOARD_SIZE,
-      rules.value
-    )
+    agent = createAgentForDifficulty(aiDifficulty.value, BOARD_SIZE, rules.value)
   }
 
   /** 人机下 AI 所执颜色 */
   const aiPlayer = computed<Player>(() => (humanFirst.value ? 2 : 1))
 
-  const isAtLiveEdge = computed(
-    () => displayHistoryIndex.value >= history.value.length
-  )
+  const isAtLiveEdge = computed(() => displayHistoryIndex.value >= history.value.length)
 
   /** 仅在对局进行中、最新局面、非 AI 思考、且轮到人类时可落子 */
   const canPlay = computed(
@@ -107,6 +92,12 @@ export const useGameStore = defineStore('game', () => {
   )
 
   const canReplay = computed(() => history.value.length > 0)
+
+  /**
+   * 悔棋可用：有着法、在最新局面（非复盘浏览）。
+   * AI 思考中也可悔棋（会取消进行中的 AI 落子）。
+   */
+  const canUndo = computed(() => history.value.length > 0 && isAtLiveEdge.value)
 
   /** 供 Canvas 绘制：history 前 displayHistoryIndex 步 */
   const displayBoard = computed(() => {
@@ -191,10 +182,7 @@ export const useGameStore = defineStore('game', () => {
     if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
       return { success: false, message: '落子超出棋盘' }
     }
-    if (
-      history.value.length === 0 &&
-      (row !== TENGEN_ROW || col !== TENGEN_COL)
-    ) {
+    if (history.value.length === 0 && (row !== TENGEN_ROW || col !== TENGEN_COL)) {
       return { success: false, message: '第一步请下在天元' }
     }
     const rowData = board.value[row]
@@ -303,6 +291,72 @@ export const useGameStore = defineStore('game', () => {
     scheduleAiMove()
   }
 
+  /**
+   * 悔棋步数约定：
+   * - 人人：每次撤销 1 手
+   * - 人机：末手为 AI 时撤销 AI+人类共 2 手；末手为人类（含取消 AI 思考）时撤销 1 手；
+   *   仅 AI 开局一手时撤销 1 手
+   */
+  function undoPopCount(): number {
+    const len = history.value.length
+    if (len === 0) return 0
+    if (!vsAi.value) return 1
+    const last = history.value[len - 1]!
+    if (last.player === aiPlayer.value) {
+      if (len >= 2 && history.value[len - 2]!.player !== aiPlayer.value) {
+        return 2
+      }
+      return 1
+    }
+    return 1
+  }
+
+  /**
+   * 悔棋：从 history pop，重建 board / currentPlayer / status，回到 live 边沿。
+   * 终局可悔棋回到 playing；复盘浏览中需先回到最新局面。
+   */
+  function undoMove(): ActionResult {
+    if (history.value.length === 0) {
+      return { success: false, message: '没有可悔的棋' }
+    }
+    if (!isAtLiveEdge.value) {
+      return { success: false, message: '请先回到最新局面再悔棋' }
+    }
+
+    pauseReplay()
+    aiToken++
+    aiThinking.value = false
+
+    const pop = undoPopCount()
+    const nextHistory = history.value.slice(0, -pop)
+    if (nextHistory.length === 0) {
+      board.value = createEmptyBoard()
+      history.value = []
+      currentPlayer.value = 1
+      status.value = 'playing'
+      displayHistoryIndex.value = 0
+      scheduleAiMove()
+      return { success: true }
+    }
+
+    const rebuilt = rebuildFromRecord(
+      toGameRecord(nextHistory, {
+        boardSize: BOARD_SIZE,
+        rules: rules.value,
+      })
+    )
+    if ('error' in rebuilt) {
+      return { success: false, message: rebuilt.error }
+    }
+    board.value = rebuilt.board
+    history.value = rebuilt.history
+    currentPlayer.value = rebuilt.currentPlayer
+    status.value = rebuilt.status
+    displayHistoryIndex.value = history.value.length
+    scheduleAiMove()
+    return { success: true }
+  }
+
   function exportRecord(): GameRecord {
     return toGameRecord(history.value, {
       boardSize: BOARD_SIZE,
@@ -375,6 +429,7 @@ export const useGameStore = defineStore('game', () => {
     isAtLiveEdge,
     canPlay,
     canReplay,
+    canUndo,
     vsAi,
     aiThinking,
     aiDifficulty,
@@ -383,6 +438,7 @@ export const useGameStore = defineStore('game', () => {
     rules,
     placeStone,
     resetGame,
+    undoMove,
     setVsAi,
     setHumanFirst,
     setRules,

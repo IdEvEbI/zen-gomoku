@@ -4,19 +4,19 @@
 
 ## 常设分支
 
-| 分支 | 说明 | 保护 |
-| --- | --- | --- |
-| `main` | 生产就绪代码，对应线上/发布版本 | 建议保护：仅通过 PR 合并，需 CI 通过 |
-| `develop` | 集成开发分支，功能合并后的稳定开发线 | 建议保护：仅通过 PR 合并 |
+| 分支      | 说明                                 | 保护                                 |
+| --------- | ------------------------------------ | ------------------------------------ |
+| `main`    | 生产就绪代码，对应线上/发布版本      | 建议保护：仅通过 PR 合并，需 CI 通过 |
+| `develop` | 集成开发分支，功能合并后的稳定开发线 | 建议保护：仅通过 PR 合并             |
 
 ## 临时分支（按需创建，合并后删除）
 
-| 类型 | 命名规范 | 从何拉取 | 合并到 |
-| --- | --- | --- | --- |
-| 功能 | `feature/<简短描述>` 例：`feature/canvas-board` | `develop` | `develop` |
-| 修复 | `bugfix/<简短描述>` 例：`bugfix/win-check` | `develop` | `develop` |
-| 热修 | `hotfix/<简短描述>` 例：`hotfix/touch-event` | `main` | `main` 并同步回 `develop` |
-| 发布 | `release/<版本号>` 例：`release/v0.1.0` | `develop` | `main` 和 `develop` |
+| 类型 | 命名规范                                        | 从何拉取  | 合并到                    |
+| ---- | ----------------------------------------------- | --------- | ------------------------- |
+| 功能 | `feature/<简短描述>` 例：`feature/canvas-board` | `develop` | `develop`                 |
+| 修复 | `bugfix/<简短描述>` 例：`bugfix/win-check`      | `develop` | `develop`                 |
+| 热修 | `hotfix/<简短描述>` 例：`hotfix/touch-event`    | `main`    | `main` 并同步回 `develop` |
+| 发布 | `release/<版本号>` 例：`release/v0.1.0`         | `develop` | `main` 和 `develop`       |
 
 ## 工作流简述
 

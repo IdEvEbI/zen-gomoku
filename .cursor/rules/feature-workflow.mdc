@@ -14,3 +14,13 @@ alwaysApply: true
 完整说明见 **docs/development/feature-workflow.md**。执行前可简要复述这三步，待用户确认后再执行。
 
 开始新 Issue 开发时：从 Backlog 取当前 Issue 的标题、描述与验收标准，实现后跑 `npm run test` 与 `npm run build`，提交信息含 Issue 编号，PR 的 Base 选 `develop`。
+
+## 提交前质量检查
+
+当用户要求 **commit / 提交** 时：
+
+1. **先跑本地检查**（提交前主动执行，不要只依赖 hook）：
+   - 改了 `src/` 或配置：`npm run lint`
+   - 改了 Markdown（含 `docs/`、`.cursor/**/*.mdc`）：`npm run format:check`；若失败则 `npm run format` 后把改动一并纳入提交
+2. **再执行 git commit**。仓库已配置 husky `pre-commit` → `lint-staged`（ESLint + Prettier，含 `*.md` / `*.mdc`），格式错误会拦截提交；`commit-msg` 仍走 commitlint。
+3. **不要**用 `--no-verify` 跳过 hook，除非用户明确要求。CI 会再跑全量 `lint` 与 Markdown `format:check`，是最终门禁。

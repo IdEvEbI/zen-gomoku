@@ -35,9 +35,10 @@
 ## 代码规范
 
 - 通过 ESLint：`npm run lint`。
-- 格式化：`npm run format`（提交前建议执行）。
+- 格式化：`npm run format`（`src/` + Markdown）。CI 的 `format:check` 当前校验 Markdown（`docs/**/*.md`、根目录 `*.md`、`.cursor/**/*.mdc`），避免文档表格等格式问题合入。
+- 提交时 **husky pre-commit** 会通过 **lint-staged** 只对暂存文件跑 ESLint / Prettier（含代码与 Markdown），拦截格式与 lint 问题；`commit-msg` 校验 Conventional Commits。
 - 使用项目内配置的 EditorConfig，保持缩进与换行一致。
 
 ## CI
 
-每次推送到 PR 或目标分支会触发 GitHub Actions：安装依赖、lint、构建。合并前请确保 CI 通过。
+每次推送到 PR 或目标分支会触发 GitHub Actions：安装依赖、lint、format check（Markdown）、构建。合并前请确保 CI 通过。

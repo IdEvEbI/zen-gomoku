@@ -21,11 +21,24 @@ export interface GenerateTeacherRecordsOptions {
   seedProbability?: number
   maxMoves?: number
   random?: () => number
+  /** 每完成一局回调（用于 CLI 进度） */
+  onProgress?: (info: GenerateProgress) => void
   /** 单测可注入更快 Agent */
   createAgent?: (
     rules: RuleSetId,
     role: 'black' | 'white'
   ) => ReturnType<typeof createAgentForDifficulty>
+}
+
+export interface GenerateProgress {
+  /** 1-based */
+  index: number
+  total: number
+  record: GameRecord
+  /** 本局耗时 */
+  gameMs: number
+  /** 自本批开始累计耗时 */
+  elapsedMs: number
 }
 
 function pickSeed(seeds: readonly OpeningSeed[], random: () => number): OpeningSeed {
@@ -62,7 +75,9 @@ export async function generateTeacherRecords(
     ((rules: RuleSetId) => createAgentForDifficulty(difficulty, options.boardSize ?? 15, rules))
 
   const records: GameRecord[] = []
+  const batchStarted = Date.now()
   for (let i = 0; i < count; i++) {
+    const gameStarted = Date.now()
     const seed = pickSeed(seeds, random)
     const opening: OpeningPlan = {
       mode: openingMode,
@@ -80,6 +95,13 @@ export async function generateTeacherRecords(
       random,
     })
     records.push(record)
+    options.onProgress?.({
+      index: i + 1,
+      total: count,
+      record,
+      gameMs: Date.now() - gameStarted,
+      elapsedMs: Date.now() - batchStarted,
+    })
   }
   return records
 }

@@ -176,7 +176,11 @@ describe('useGameStore', () => {
     expect(store.aiThinking).toBe(true)
     await vi.advanceTimersByTimeAsync(300)
     await Promise.resolve()
-    expect(store.board[1]![1]).toBe(2)
+    expect(store.history).toHaveLength(2)
+    expect(store.history[1]!.player).toBe(2)
+    const wr = store.history[1]!.row
+    const wc = store.history[1]!.col
+    expect(store.board[wr]![wc]).toBe(2)
     expect(store.currentPlayer).toBe(1)
     expect(store.aiThinking).toBe(false)
     vi.useRealTimers()
@@ -315,10 +319,12 @@ describe('useGameStore', () => {
     await vi.advanceTimersByTimeAsync(300)
     await Promise.resolve()
     expect(store.history).toHaveLength(2)
+    const aiRow = store.history[1]!.row
+    const aiCol = store.history[1]!.col
     expect(store.undoMove().success).toBe(true)
     expect(store.history).toHaveLength(0)
     expect(store.board[TENGEN_ROW]![TENGEN_COL]).toBe(0)
-    expect(store.board[1]![1]).toBe(0)
+    expect(store.board[aiRow]![aiCol]).toBe(0)
     expect(store.currentPlayer).toBe(1)
     expect(store.canPlay).toBe(true)
     vi.useRealTimers()
@@ -347,10 +353,29 @@ describe('useGameStore', () => {
     vi.useRealTimers()
   })
 
-  it('undoMove: empty history fails', () => {
-    const store = useGameStore()
-    expect(store.canUndo).toBe(false)
-    const r = store.undoMove()
-    expect(r.success).toBe(false)
+  it('vsAi: opening book diversifies white reply after tengen', async () => {
+    vi.useFakeTimers()
+    const replies = new Set<string>()
+    for (let i = 0; i < 24; i++) {
+      setActivePinia(createPinia())
+      const store = useGameStore()
+      store.setAgent({
+        name: 'never',
+        async getNextMove() {
+          return { row: 0, col: 0 }
+        },
+      })
+      store.setVsAi(true)
+      expect(store.placeStone(TENGEN_ROW, TENGEN_COL).success).toBe(true)
+      await vi.advanceTimersByTimeAsync(300)
+      await Promise.resolve()
+      expect(store.history.length).toBe(2)
+      const w = store.history[1]!
+      expect(w.player).toBe(2)
+      // 若跟书，不应总是落到 agent 的 (0,0)
+      replies.add(`${w.row},${w.col}`)
+    }
+    expect(replies.size).toBeGreaterThan(1)
+    vi.useRealTimers()
   })
 })

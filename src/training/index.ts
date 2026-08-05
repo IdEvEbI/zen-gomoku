@@ -8,6 +8,7 @@ export {
   generateTeacherRecords,
   recordsToJsonl,
   type GenerateTeacherRecordsOptions,
+  type GenerateProgress,
 } from './generateTeacherRecords'
 export {
   DEFAULT_OPENING_SEEDS,

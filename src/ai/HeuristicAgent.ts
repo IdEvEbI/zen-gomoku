@@ -12,6 +12,8 @@ import {
   scoreEmptyCell,
   listNeighborCandidates,
   DEFAULT_NEIGHBOR_RADIUS,
+  OPPONENT_SCORE,
+  SELF_SCORE,
 } from './evaluate'
 import { RandomAgent } from './RandomAgent'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
@@ -51,12 +53,7 @@ export class HeuristicAgent implements IAgent {
     const opp = (player === 1 ? 2 : 1) as 1 | 2
     const selfCounts = buildWinsCounts(board, this.wins, this.winsCount, player)
     const oppCounts = buildWinsCounts(board, this.wins, this.winsCount, opp)
-    const pool = listNeighborCandidates(
-      board,
-      DEFAULT_NEIGHBOR_RADIUS,
-      player,
-      this.rules
-    )
+    const pool = listNeighborCandidates(board, DEFAULT_NEIGHBOR_RADIUS, player, this.rules)
 
     let max = -1
     const best: AiMove[] = []
@@ -84,6 +81,32 @@ export class HeuristicAgent implements IAgent {
     if (best.length === 0 || max <= 0) {
       return this.fallback.getNextMove(board)
     }
+
+    const critical = Math.min(OPPONENT_SCORE[4]!, SELF_SCORE[4]!)
+    // 开局且无冲四级紧急手：在 Top-3 中抽样，增加变化
+    if (stoneCount < 8 && max < critical) {
+      const scored = pool
+        .map((m) => ({
+          move: m,
+          score: scoreEmptyCell(
+            m.row,
+            m.col,
+            player,
+            selfCounts,
+            oppCounts,
+            this.wins,
+            this.winsCount,
+            this.boardSize
+          ),
+        }))
+        .filter((s) => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+      const topN = scored.slice(0, Math.min(3, scored.length))
+      if (topN.length > 0) {
+        return topN[Math.floor(Math.random() * topN.length)]!.move
+      }
+    }
+
     return best[Math.floor(Math.random() * best.length)] ?? null
   }
 }

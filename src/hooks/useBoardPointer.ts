@@ -5,6 +5,7 @@
 
 import type { Ref } from 'vue'
 import { pointerEventToLogical } from '../renderer/pointerMapper'
+import { unlockPlaceSound } from '../audio'
 
 export interface UseBoardPointerOptions {
   canvasRef: Ref<HTMLCanvasElement | null>
@@ -24,6 +25,10 @@ export function useBoardPointer(options: UseBoardPointerOptions) {
     // 忽略多指副指针、鼠标非主键（右键/中键）
     if (!e.isPrimary) return
     if (e.pointerType === 'mouse' && e.button !== 0) return
+
+    // 用户手势中解锁音效，保证随后 AI 落子也能出声
+    unlockPlaceSound()
+
     if (!options.canPlace()) return
 
     const canvas = options.canvasRef.value

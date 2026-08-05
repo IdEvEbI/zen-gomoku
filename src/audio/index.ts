@@ -1,6 +1,7 @@
 export {
   playPlaceSound,
   preloadPlaceSound,
+  unlockPlaceSound,
   isPlaceSoundEnabled,
   setPlaceSoundEnabled,
   togglePlaceSoundEnabled,

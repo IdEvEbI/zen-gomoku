@@ -139,12 +139,11 @@ watch(
   { deep: true }
 )
 
-/** 实际落子（含 AI）：音效 + 缩放；复盘 scrub 不触发 */
+/** 实际落子（含 AI）：音效 + 缩放。history 变长才触发（复盘 scrub 不增 length） */
 watch(
   () => history.value.length,
   (len, prev) => {
     if (len <= (prev ?? 0)) return
-    if (!isAtLiveEdge.value) return
     playPlaceSound()
     startPlacePulse()
   }

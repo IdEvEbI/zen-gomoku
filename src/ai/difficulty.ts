@@ -7,6 +7,7 @@ import type { IAgent } from './types'
 import { HeuristicAgent } from './HeuristicAgent'
 import { MinimaxAgent } from './MinimaxAgent'
 import { ShaHeshangAgent } from './ShaHeshangAgent'
+import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
 export type AiDifficulty = 'sha' | 'zhu' | 'wukong' | 'tang'
 
@@ -28,7 +29,8 @@ export const AI_DIFFICULTY_OPTIONS: readonly AiDifficultyOption[] = [
 
 export function createAgentForDifficulty(
   difficulty: AiDifficulty,
-  boardSize = 15
+  boardSize = 15,
+  rules: RuleSetId = DEFAULT_RULE_SET
 ): IAgent {
   switch (difficulty) {
     case 'sha':
@@ -36,9 +38,10 @@ export function createAgentForDifficulty(
         boardSize,
         topK: 4,
         bestMoveChance: 0.55,
+        rules,
       })
     case 'zhu':
-      return new HeuristicAgent(boardSize)
+      return new HeuristicAgent(boardSize, rules)
     case 'wukong':
       return new MinimaxAgent({
         name: 'wukong',
@@ -47,6 +50,7 @@ export function createAgentForDifficulty(
         timeLimitMs: 180,
         candidateLimit: 12,
         iterativeDeepening: false,
+        rules,
       })
     case 'tang':
       return new MinimaxAgent({
@@ -56,6 +60,7 @@ export function createAgentForDifficulty(
         timeLimitMs: 350,
         candidateLimit: 10,
         iterativeDeepening: true,
+        rules,
       })
     default: {
       const _exhaustive: never = difficulty

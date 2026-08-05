@@ -15,7 +15,7 @@ describe('createBoardRenderer', () => {
     expect(() => renderer.drawBoard()).not.toThrow()
   })
 
-  it.skipIf(!hasCanvas)('returns drawBoard, drawPiece, drawPieces, drawLastMoveMark, clear', () => {
+  it.skipIf(!hasCanvas)('returns drawBoard, drawPiece, drawPieces, drawLastMoveMark, drawForbiddenMarks, clear', () => {
     const canvas = document.createElement('canvas')
     const renderer = createBoardRenderer(canvas, {
       containerWidth: 300,
@@ -25,6 +25,7 @@ describe('createBoardRenderer', () => {
     expect(typeof renderer.drawPiece).toBe('function')
     expect(typeof renderer.drawPieces).toBe('function')
     expect(typeof renderer.drawLastMoveMark).toBe('function')
+    expect(typeof renderer.drawForbiddenMarks).toBe('function')
     expect(typeof renderer.clear).toBe('function')
   })
 
@@ -63,6 +64,22 @@ describe('createBoardRenderer', () => {
     renderer.drawPiece(7, 7, 1)
     expect(() => renderer.drawLastMoveMark(7, 7)).not.toThrow()
     expect(() => renderer.drawLastMoveMark(-1, 0)).not.toThrow()
+  })
+
+  it.skipIf(!hasCanvas)('drawForbiddenMarks does not throw', () => {
+    const canvas = document.createElement('canvas')
+    const renderer = createBoardRenderer(canvas, {
+      containerWidth: 300,
+      containerHeight: 300,
+    })
+    renderer.drawBoard()
+    expect(() =>
+      renderer.drawForbiddenMarks([
+        { row: 7, col: 7 },
+        { row: 0, col: 0 },
+      ])
+    ).not.toThrow()
+    expect(() => renderer.drawForbiddenMarks([])).not.toThrow()
   })
 
   it.skipIf(!hasCanvas)('clear does not throw', () => {

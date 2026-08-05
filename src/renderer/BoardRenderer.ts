@@ -2,7 +2,8 @@
  * 棋盘渲染器：15×15 格线绘制，棋子绘制，响应式尺寸
  * scale = min(containerWidth, containerHeight) / 15
  * 支持 devicePixelRatio，保证高分屏清晰
- * 暴露 drawBoard()、drawPiece()、drawPieces()、drawLastMoveMark()、clear()
+ * 暴露 drawBoard()、drawPiece()、drawPieces()、drawLastMoveMark()、
+ * drawForbiddenMarks()、clear()
  */
 
 const BOARD_SIZE = 15
@@ -30,6 +31,13 @@ const WHITE_STROKE = '#999'
 const LAST_MOVE_MARK = '#e53935'
 const LAST_MOVE_RADIUS_RATIO = 0.15
 const LAST_MOVE_LINE_RATIO = 0.055
+/**
+ * 禁手点标记：行业常见为红叉或红圈；本项目用半透明红叉（❌ 形），
+ * 不挡棋子、与最近落子小圆区分
+ */
+const FORBIDDEN_MARK = 'rgba(229, 57, 53, 0.85)'
+const FORBIDDEN_ARM_RATIO = 0.22
+const FORBIDDEN_LINE_RATIO = 0.08
 
 export interface BoardRendererOptions {
   /** 容器宽度（CSS 像素） */
@@ -180,6 +188,30 @@ export function createBoardRenderer(
       ctx.beginPath()
       ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
       ctx.stroke()
+    },
+
+    /**
+     * 在空点绘制半透明红叉，提示黑方禁手（连珠 UI 常见红叉/红圈）
+     */
+    drawForbiddenMarks(points: ReadonlyArray<{ row: number; col: number }>): void {
+      if (points.length === 0) return
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      const arm = scale * FORBIDDEN_ARM_RATIO
+      ctx.strokeStyle = FORBIDDEN_MARK
+      ctx.lineWidth = Math.max(1.5, scale * FORBIDDEN_LINE_RATIO)
+      ctx.lineCap = 'round'
+      for (const { row, col } of points) {
+        if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) continue
+        const x = offset + col * scale
+        const y = offset + row * scale
+        ctx.beginPath()
+        ctx.moveTo(x - arm, y - arm)
+        ctx.lineTo(x + arm, y + arm)
+        ctx.moveTo(x + arm, y - arm)
+        ctx.lineTo(x - arm, y + arm)
+        ctx.stroke()
+      }
     },
 
     /** 清空画布 */

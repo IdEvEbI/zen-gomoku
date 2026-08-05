@@ -14,19 +14,23 @@ import {
   DEFAULT_NEIGHBOR_RADIUS,
 } from './evaluate'
 import { RandomAgent } from './RandomAgent'
+import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
 export class HeuristicAgent implements IAgent {
   readonly name = 'heuristic'
   private readonly boardSize: number
+  private readonly rules: RuleSetId
   private readonly wins: boolean[][][]
   private readonly winsCount: number
-  private readonly fallback = new RandomAgent()
+  private readonly fallback: RandomAgent
 
-  constructor(boardSize = 15) {
+  constructor(boardSize = 15, rules: RuleSetId = DEFAULT_RULE_SET) {
     this.boardSize = boardSize
+    this.rules = rules
     const table = buildWinsTable(boardSize)
     this.wins = table.wins
     this.winsCount = table.winsCount
+    this.fallback = new RandomAgent(rules)
   }
 
   async getNextMove(board: number[][]): Promise<AiMove | null> {
@@ -47,7 +51,12 @@ export class HeuristicAgent implements IAgent {
     const opp = (player === 1 ? 2 : 1) as 1 | 2
     const selfCounts = buildWinsCounts(board, this.wins, this.winsCount, player)
     const oppCounts = buildWinsCounts(board, this.wins, this.winsCount, opp)
-    const pool = listNeighborCandidates(board, DEFAULT_NEIGHBOR_RADIUS)
+    const pool = listNeighborCandidates(
+      board,
+      DEFAULT_NEIGHBOR_RADIUS,
+      player,
+      this.rules
+    )
 
     let max = -1
     const best: AiMove[] = []

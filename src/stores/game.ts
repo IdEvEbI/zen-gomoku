@@ -13,7 +13,12 @@ import {
   rebuildFromRecord,
   stringifyGameRecord,
   boardFromHistory,
+  getForbiddenKind,
+  forbiddenKindMessage,
+  DEFAULT_RULE_SET,
+  RULE_RENJU_CN,
   type GameRecord,
+  type RuleSetId,
 } from '../core'
 import {
   DEFAULT_RECORD_STORAGE_KEY,
@@ -68,8 +73,22 @@ export const useGameStore = defineStore('game', () => {
   const humanFirst = ref(true)
   /** 对手等级：沙和尚～唐僧 */
   const aiDifficulty = ref<AiDifficulty>(DEFAULT_AI_DIFFICULTY)
-  let agent: IAgent = createAgentForDifficulty(DEFAULT_AI_DIFFICULTY, BOARD_SIZE)
+  /** 规则：自由 / 禁手 */
+  const rules = ref<RuleSetId>(DEFAULT_RULE_SET)
+  let agent: IAgent = createAgentForDifficulty(
+    DEFAULT_AI_DIFFICULTY,
+    BOARD_SIZE,
+    DEFAULT_RULE_SET
+  )
   let aiToken = 0
+
+  function recreateAgent(): void {
+    agent = createAgentForDifficulty(
+      aiDifficulty.value,
+      BOARD_SIZE,
+      rules.value
+    )
+  }
 
   /** 人机下 AI 所执颜色 */
   const aiPlayer = computed<Player>(() => (humanFirst.value ? 2 : 1))
@@ -184,11 +203,20 @@ export const useGameStore = defineStore('game', () => {
     }
     const player = currentPlayer.value
     rowData[col] = player
+    if (player === 1 && rules.value === RULE_RENJU_CN) {
+      const kind = getForbiddenKind(board.value, row, col)
+      if (kind) {
+        rowData[col] = 0
+        return { success: false, message: forbiddenKindMessage(kind) }
+      }
+    }
     history.value.push({ row, col, player })
     displayHistoryIndex.value = history.value.length
-    const winner = checkWinner(board.value, row, col)
+    const winner = checkWinner(board.value, row, col, rules.value)
     if (winner !== null) {
       status.value = winner === 1 ? 'black_win' : 'white_win'
+    } else if (history.value.length >= BOARD_SIZE * BOARD_SIZE) {
+      status.value = 'draw'
     } else {
       currentPlayer.value = (player === 1 ? 2 : 1) as Player
     }
@@ -241,9 +269,17 @@ export const useGameStore = defineStore('game', () => {
     resetGame()
   }
 
+  /** 切换规则会清空当前对局并重建 AI */
+  function setRules(next: RuleSetId): void {
+    if (rules.value === next) return
+    rules.value = next
+    recreateAgent()
+    resetGame()
+  }
+
   function setAiDifficulty(next: AiDifficulty): void {
     aiDifficulty.value = next
-    agent = createAgentForDifficulty(next, BOARD_SIZE)
+    recreateAgent()
     aiToken++
     aiThinking.value = false
     if (vsAi.value) {
@@ -271,6 +307,7 @@ export const useGameStore = defineStore('game', () => {
     return toGameRecord(history.value, {
       boardSize: BOARD_SIZE,
       status: status.value,
+      rules: rules.value,
     })
   }
 
@@ -293,6 +330,8 @@ export const useGameStore = defineStore('game', () => {
     pauseReplay()
     aiToken++
     aiThinking.value = false
+    rules.value = parsed.record.rules ?? DEFAULT_RULE_SET
+    recreateAgent()
     board.value = rebuilt.board
     history.value = rebuilt.history
     currentPlayer.value = rebuilt.currentPlayer
@@ -341,10 +380,12 @@ export const useGameStore = defineStore('game', () => {
     aiDifficulty,
     humanFirst,
     aiPlayer,
+    rules,
     placeStone,
     resetGame,
     setVsAi,
     setHumanFirst,
+    setRules,
     setAiDifficulty,
     setAgent,
     exportRecord,

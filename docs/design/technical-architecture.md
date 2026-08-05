@@ -112,7 +112,7 @@ flowchart TB
 - **人机**：`aiPlayer = humanFirst ? 2 : 1`；轮到 AI 时调度 `agent.getNextMove` 再 `placeStone`。
 - **先后手切换**：清空对局并按新设置开局（含 AI 先时自动下天元）。
 - **复盘**：不改 `history`；非 live 边沿时 `canPlay === false`。
-- **悔棋**：规格预留，**尚未实现**。
+- **悔棋**：`undoMove()`；人人每次 pop 1 手；人机末手为 AI 时 pop「人+AI」2 手（仅 AI 开局一手则 pop 1）；取消进行中的 AI；终局可悔回 `playing`；复盘浏览中不可悔（须先回最新局面）。
 
 ### 3.2 棋谱
 

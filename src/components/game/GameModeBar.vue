@@ -8,15 +8,10 @@ import {
   type AiDifficulty,
   type RuleSetId,
 } from '../../stores'
-import {
-  isPlaceSoundEnabled,
-  togglePlaceSoundEnabled,
-  unlockPlaceSound,
-} from '../../audio'
+import { isPlaceSoundEnabled, togglePlaceSoundEnabled, unlockPlaceSound } from '../../audio'
 
 const gameStore = useGameStore()
-const { vsAi, aiThinking, aiDifficulty, humanFirst, rules } =
-  storeToRefs(gameStore)
+const { vsAi, aiThinking, aiDifficulty, humanFirst, rules, canUndo } = storeToRefs(gameStore)
 const soundOn = ref(isPlaceSoundEnabled())
 
 function toggleVsAi() {
@@ -45,6 +40,11 @@ function onRulesChange(event: Event) {
 function onToggleSound() {
   unlockPlaceSound()
   soundOn.value = togglePlaceSoundEnabled()
+}
+
+function onUndo() {
+  unlockPlaceSound()
+  gameStore.undoMove()
 }
 </script>
 
@@ -78,23 +78,24 @@ function onToggleSound() {
         >
           {{ soundOn ? '音效开' : '音效关' }}
         </button>
+        <button
+          type="button"
+          class="mode-bar__btn"
+          :disabled="!canUndo"
+          title="人人撤 1 手；人机撤人+AI"
+          @click="onUndo"
+        >
+          悔棋
+        </button>
       </div>
-      <span
-        class="mode-bar__status"
-        :class="{ 'mode-bar__status--idle': !(vsAi && aiThinking) }"
-      >
+      <span class="mode-bar__status" :class="{ 'mode-bar__status--idle': !(vsAi && aiThinking) }">
         AI 思考中…
       </span>
     </div>
 
     <div class="mode-bar__options mode-bar__options--rules">
       <label class="mode-bar__diff-label" for="game-rules">规则</label>
-      <select
-        id="game-rules"
-        class="mode-bar__select"
-        :value="rules"
-        @change="onRulesChange"
-      >
+      <select id="game-rules" class="mode-bar__select" :value="rules" @change="onRulesChange">
         <option v-for="opt in RULE_SET_OPTIONS" :key="opt.id" :value="opt.id">
           {{ opt.name }}
         </option>
@@ -125,11 +126,7 @@ function onToggleSound() {
         :disabled="!vsAi"
         @change="onDifficultyChange"
       >
-        <option
-          v-for="opt in AI_DIFFICULTY_OPTIONS"
-          :key="opt.id"
-          :value="opt.id"
-        >
+        <option v-for="opt in AI_DIFFICULTY_OPTIONS" :key="opt.id" :value="opt.id">
           {{ opt.name }}
         </option>
       </select>
@@ -177,6 +174,13 @@ function onToggleSound() {
   color: #fff;
   background: #555;
   border-color: #555;
+}
+.mode-bar__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.mode-bar__btn:disabled:hover {
+  background: #fff;
 }
 .mode-bar__status {
   justify-self: start;

@@ -256,4 +256,101 @@ describe('useGameStore', () => {
     const rec = store.exportRecord()
     expect(rec.rules).toBe('renju-cn-v1')
   })
+
+  it('undoMove: human-human pops one move', () => {
+    const store = useGameStore()
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
+    store.placeStone(1, 1)
+    expect(store.canUndo).toBe(true)
+    const r = store.undoMove()
+    expect(r.success).toBe(true)
+    expect(store.history).toHaveLength(1)
+    expect(store.board[1]![1]).toBe(0)
+    expect(store.board[TENGEN_ROW]![TENGEN_COL]).toBe(1)
+    expect(store.currentPlayer).toBe(2)
+    expect(store.displayHistoryIndex).toBe(1)
+  })
+
+  it('undoMove: from black_win restores playing', () => {
+    const store = useGameStore()
+    store.placeStone(7, 7)
+    store.placeStone(0, 0)
+    store.placeStone(7, 6)
+    store.placeStone(0, 1)
+    store.placeStone(7, 5)
+    store.placeStone(0, 2)
+    store.placeStone(7, 4)
+    store.placeStone(0, 3)
+    store.placeStone(7, 3)
+    expect(store.status).toBe('black_win')
+    expect(store.undoMove().success).toBe(true)
+    expect(store.status).toBe('playing')
+    expect(store.currentPlayer).toBe(1)
+    expect(store.board[7]![3]).toBe(0)
+    expect(store.canPlay).toBe(true)
+  })
+
+  it('undoMove: rejected while scrubbing replay', () => {
+    const store = useGameStore()
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
+    store.placeStone(1, 1)
+    store.stepBack()
+    expect(store.canUndo).toBe(false)
+    const r = store.undoMove()
+    expect(r.success).toBe(false)
+    expect(store.history).toHaveLength(2)
+  })
+
+  it('undoMove: vsAi pops human + AI pair', async () => {
+    vi.useFakeTimers()
+    const store = useGameStore()
+    store.setAgent({
+      name: 'test',
+      async getNextMove() {
+        return { row: 1, col: 1 }
+      },
+    })
+    store.setVsAi(true)
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
+    await vi.advanceTimersByTimeAsync(300)
+    await Promise.resolve()
+    expect(store.history).toHaveLength(2)
+    expect(store.undoMove().success).toBe(true)
+    expect(store.history).toHaveLength(0)
+    expect(store.board[TENGEN_ROW]![TENGEN_COL]).toBe(0)
+    expect(store.board[1]![1]).toBe(0)
+    expect(store.currentPlayer).toBe(1)
+    expect(store.canPlay).toBe(true)
+    vi.useRealTimers()
+  })
+
+  it('undoMove: vsAi cancels in-flight AI and pops human move', async () => {
+    vi.useFakeTimers()
+    const store = useGameStore()
+    store.setAgent({
+      name: 'test',
+      async getNextMove() {
+        return { row: 1, col: 1 }
+      },
+    })
+    store.setVsAi(true)
+    store.placeStone(TENGEN_ROW, TENGEN_COL)
+    expect(store.aiThinking).toBe(true)
+    expect(store.history).toHaveLength(1)
+    expect(store.undoMove().success).toBe(true)
+    expect(store.history).toHaveLength(0)
+    expect(store.aiThinking).toBe(false)
+    await vi.advanceTimersByTimeAsync(300)
+    await Promise.resolve()
+    expect(store.history).toHaveLength(0)
+    expect(store.board[1]![1]).toBe(0)
+    vi.useRealTimers()
+  })
+
+  it('undoMove: empty history fails', () => {
+    const store = useGameStore()
+    expect(store.canUndo).toBe(false)
+    const r = store.undoMove()
+    expect(r.success).toBe(false)
+  })
 })

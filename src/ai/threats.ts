@@ -273,7 +273,31 @@ export function listForcedReplies(
 }
 
 /**
- * 在必防点中选「堵完后对方残留双活四叉最少」的点，避免随机抽到无效冲四格。
+ * 堵完后对方残留双活四威胁的「严重度」：叉点数、下一手最多可造活四数、活四总和。
+ */
+function remainingForkSeverity(
+  board: number[][],
+  attacker: AiPlayer,
+  rules: RuleSetId,
+  radius: number
+): { forks: number; maxOF: number; sumOF: number; openLeft: number } {
+  const forks = findForkThreeMoves(board, attacker, rules, radius)
+  let maxOF = 0
+  let sumOF = 0
+  for (const f of forks) {
+    board[f.row]![f.col] = attacker
+    const n = findOpenFourMoves(board, attacker, rules, radius).length
+    board[f.row]![f.col] = 0
+    maxOF = Math.max(maxOF, n)
+    sumOF += n
+  }
+  const openLeft = findOpenFourMoves(board, attacker, rules, radius).length
+  return { forks: forks.length, maxOF, sumOF, openLeft }
+}
+
+/**
+ * 在必防点中选堵完后对方残留双活四威胁最轻的点。
+ * 同分按 (row,col) 稳定打破，避免随机抽到仍放行明显杀点的叉。
  */
 export function pickBestForcedReply(
   board: number[][],
@@ -285,26 +309,22 @@ export function pickBestForcedReply(
   if (candidates.length === 0) return null
   if (candidates.length === 1) return candidates[0]!
   const opp = other(toPlay)
-  let best = candidates[0]!
+  let best: AiMove | null = null
   let bestScore = Number.POSITIVE_INFINITY
-  const tied: AiMove[] = []
   for (const m of candidates) {
     if (board[m.row]![m.col] !== 0) continue
     board[m.row]![m.col] = toPlay
-    const forksLeft = findForkThreeMoves(board, opp, rules, radius).length
-    const openLeft = findOpenFourMoves(board, opp, rules, radius).length
+    const s = remainingForkSeverity(board, opp, rules, radius)
     board[m.row]![m.col] = 0
-    const score = forksLeft * 100 + openLeft
+    // 行/列作稳定平局键，保证同严重度时结果可复现
+    const score =
+      s.forks * 1_000_000 + s.maxOF * 10_000 + s.sumOF * 100 + s.openLeft * 10 + m.row + m.col / 100
     if (score < bestScore) {
       bestScore = score
       best = m
-      tied.length = 0
-      tied.push(m)
-    } else if (score === bestScore) {
-      tied.push(m)
     }
   }
-  return tied[Math.floor(Math.random() * tied.length)] ?? best
+  return best
 }
 
 /** 进攻威胁 ∪ 防守点，供搜索展开（不含全盘活三叉枚举，以免拖垮时限） */

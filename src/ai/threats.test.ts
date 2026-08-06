@@ -236,6 +236,57 @@ describe('regression: zen-gomoku-2026-08-06-09-25-18 double open-four', () => {
   })
 })
 
+describe('regression: zen-gomoku-2026-08-06-09-42-16 dual-four fork', () => {
+  const afterBlack85: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [8, 8, 2],
+    [8, 6, 1],
+    [6, 8, 2],
+    [9, 6, 1],
+    [10, 6, 2],
+    [9, 7, 1],
+    [10, 8, 2],
+    [9, 8, 1],
+    [9, 9, 2],
+    [7, 6, 1],
+    [7, 8, 2],
+    [8, 5, 1],
+  ]
+
+  it('(9,4) is a dual open-four kill; (10,7) is a weak fork block', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack85)
+    expect(findForkThreeMoves(board, 1).some((m) => m.row === 9 && m.col === 4)).toBe(true)
+    const forced = listForcedReplies(board, 2)
+    expect(forced.some((m) => m.row === 9 && m.col === 4)).toBe(true)
+    expect(forced.some((m) => m.row === 10 && m.col === 7)).toBe(true)
+
+    board[10]![7] = 2
+    expect(findForkThreeMoves(board, 1).some((m) => m.row === 9 && m.col === 4)).toBe(true)
+    board[10]![7] = 0
+
+    board[6]![7] = 2
+    expect(findForkThreeMoves(board, 1).some((m) => m.row === 9 && m.col === 4)).toBe(false)
+  })
+
+  it('pickBestForcedReply chooses (6,7), not weak (10,7)/(9,4)', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack85)
+    const best = pickBestForcedReply(board, 2, listForcedReplies(board, 2))
+    expect(best).toEqual({ row: 6, col: 7 })
+  })
+
+  it('Tang always blocks with (6,7)', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlack85)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 8; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).toEqual({ row: 6, col: 7 })
+    }
+  })
+})
+
 describe('Tang / Minimax threat integration', () => {
   it('Tang blocks open three', async () => {
     const agent = createAgentForDifficulty('tang')

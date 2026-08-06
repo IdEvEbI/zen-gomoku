@@ -1,7 +1,7 @@
 /**
  * 沙和尚：弱于纯启发，但不瞎下
  * - 从不在全盘随机空位落子（避免「弱智」体感）
- * - 必应冲四 / 堵四等高威胁
+ * - 必应活三 / 冲四等高威胁
  * - 其余在启发 Top-K 中按权重抽样（偏最优，偶发次优）
  */
 
@@ -12,14 +12,10 @@ import {
   scoreEmptyCell,
   listNeighborCandidates,
   DEFAULT_NEIGHBOR_RADIUS,
-  OPPONENT_SCORE,
-  SELF_SCORE,
+  URGENT_THREAT_SCORE,
 } from './evaluate'
 import { RandomAgent } from './RandomAgent'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
-
-/** 四连档启发分：必须应手，不允许「失误」 */
-const CRITICAL_SCORE = Math.min(OPPONENT_SCORE[4]!, SELF_SCORE[4]!)
 
 export interface ShaHeshangOptions {
   /** 启发 Top-K（在非关键局面中抽样） */
@@ -72,12 +68,7 @@ export class ShaHeshangAgent implements IAgent {
     const opp = (player === 1 ? 2 : 1) as 1 | 2
     const selfCounts = buildWinsCounts(board, this.wins, this.winsCount, player)
     const oppCounts = buildWinsCounts(board, this.wins, this.winsCount, opp)
-    const pool = listNeighborCandidates(
-      board,
-      DEFAULT_NEIGHBOR_RADIUS,
-      player,
-      this.rules
-    )
+    const pool = listNeighborCandidates(board, DEFAULT_NEIGHBOR_RADIUS, player, this.rules)
 
     const scored = pool.map((m) => ({
       move: m,
@@ -98,8 +89,10 @@ export class ShaHeshangAgent implements IAgent {
     if (top.length === 0) return this.fallback.getNextMove(board)
 
     const best = top[0]!
-    if (best.score >= CRITICAL_SCORE) {
-      return best.move
+    // 活三及以上：不允许抽次优漏堵
+    if (best.score >= URGENT_THREAT_SCORE) {
+      const urgent = top.filter((s) => s.score >= best.score - 1e-6)
+      return urgent[Math.floor(Math.random() * urgent.length)]!.move
     }
 
     if (top.length === 1 || Math.random() < this.bestMoveChance) {

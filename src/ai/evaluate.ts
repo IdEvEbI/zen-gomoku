@@ -6,14 +6,15 @@ import type { AiMove, AiPlayer } from './types'
 import { listEmptyCells } from './types'
 import { buildWinsCounts } from './winsTable'
 import { isLegalMove } from '../core/forbiddenMoves'
-import {
-  DEFAULT_RULE_SET,
-  RULE_FREESTYLE,
-  type RuleSetId,
-} from '../core/rules'
+import { DEFAULT_RULE_SET, RULE_FREESTYLE, type RuleSetId } from '../core/rules'
 
 export const OPPONENT_SCORE = [0, 200, 400, 2000, 10000] as const
 export const SELF_SCORE = [0, 220, 420, 2400, 20000] as const
+
+/** 冲四档：必应 */
+export const CRITICAL_THREAT_SCORE = Math.min(OPPONENT_SCORE[4]!, SELF_SCORE[4]!)
+/** 活三/冲三档：亦必须应手，禁止软随机漏堵 */
+export const URGENT_THREAT_SCORE = Math.min(OPPONENT_SCORE[3]!, SELF_SCORE[3]!)
 
 /** 终局分，须远大于启发累加 */
 export const WIN_SCORE = 10_000_000
@@ -77,7 +78,9 @@ export function scoreEmptyCell(
   const mid = (boardSize - 1) / 2
   const dist = Math.abs(row - mid) + Math.abs(col - mid)
   const center = Math.max(0, 50 - dist * 3)
-  return Math.max(selfScore, oppScore) + center
+  // 攻防都计入，且高威胁防守略加权，避免「只进攻不堵活三」
+  const defenseBias = oppScore >= URGENT_THREAT_SCORE ? oppScore * 0.15 : 0
+  return selfScore + oppScore + defenseBias + center
 }
 
 export function hasNeighbor(
@@ -140,16 +143,7 @@ export function listOrderedCandidates(
 
   const scored = candidates.map((m) => ({
     move: m,
-    score: scoreEmptyCell(
-      m.row,
-      m.col,
-      player,
-      selfCounts,
-      oppCounts,
-      wins,
-      winsCount,
-      boardSize
-    ),
+    score: scoreEmptyCell(m.row, m.col, player, selfCounts, oppCounts, wins, winsCount, boardSize),
   }))
   scored.sort((a, b) => b.score - a.score)
   return scored.slice(0, Math.max(1, limit)).map((s) => s.move)

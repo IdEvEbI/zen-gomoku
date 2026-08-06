@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  HeuristicAgent,
-  RandomAgent,
-  nextPlayerFromBoard,
-  buildWinsTable,
-} from './index'
+import { HeuristicAgent, RandomAgent, nextPlayerFromBoard, buildWinsTable } from './index'
 
 function emptyBoard(size = 15): number[][] {
   return Array.from({ length: size }, () => Array(size).fill(0))
@@ -79,5 +74,46 @@ describe('HeuristicAgent', () => {
     expect(move).not.toBeNull()
     expect(move!.row).toBe(5)
     expect(move!.col).toBe(4)
+  })
+
+  it('blocks open three on diagonal (must not soft-random away)', async () => {
+    const agent = new HeuristicAgent(15)
+    // 黑斜向活三 (6,6)(7,7)(8,8)，两端 (5,5)/(9,9)；白应堵其一
+    // 子数 7 < 8，曾触发软随机漏堵
+    const board = emptyBoard()
+    board[6]![6] = 1
+    board[7]![7] = 1
+    board[8]![8] = 1
+    board[0]![0] = 2
+    board[0]![1] = 2
+    board[0]![2] = 2
+    board[1]![0] = 1 // black 4, white 3 → white to move
+    for (let i = 0; i < 20; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).not.toBeNull()
+      const end = (move!.row === 5 && move!.col === 5) || (move!.row === 9 && move!.col === 9)
+      expect(end).toBe(true)
+    }
+  })
+})
+
+describe('ShaHeshangAgent', () => {
+  it('always blocks open three (never misses for variety)', async () => {
+    const { ShaHeshangAgent } = await import('./ShaHeshangAgent')
+    const agent = new ShaHeshangAgent({ bestMoveChance: 0.1 })
+    const board = emptyBoard()
+    board[6]![6] = 1
+    board[7]![7] = 1
+    board[8]![8] = 1
+    board[0]![0] = 2
+    board[0]![1] = 2
+    board[0]![2] = 2
+    board[1]![0] = 1
+    for (let i = 0; i < 30; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).not.toBeNull()
+      const end = (move!.row === 5 && move!.col === 5) || (move!.row === 9 && move!.col === 9)
+      expect(end).toBe(true)
+    }
   })
 })

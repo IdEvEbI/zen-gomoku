@@ -141,7 +141,9 @@ Heuristic 评估 + 深搜 → 唐僧
 - 完美解或职业级强度。
 - 把搜索调试信息默认暴露给玩家。
 
-> **后续路线（草案）**：自由/禁手双规则双模型 + 独立训练仓 + 模仿唐僧 → 自对弈，见 [alphazero-lite.md](./alphazero-lite.md)。设计已确认；实现按 backlog 切片推进，不在本文件四级参数内默认启用。
+> **后续路线（草案）**：自由/禁手双规则双模型 + 独立训练仓 + 模仿唐僧 → 自对弈，见 [alphazero-lite.md](./alphazero-lite.md)。设计已确认；实现按 backlog 切片推进，不在本文件四级参数内默认启用。  
+> **棋力分层策略**：对标结论与 P0/P1/P2 见 [strength-roadmap.md](./strength-roadmap.md)。  
+> **唐僧棋力增强（威胁搜索 + 评估）**：P0 交接规格见 [tang-seng-strength.md](./tang-seng-strength.md)（优先于 ML）。
 
 ---
 

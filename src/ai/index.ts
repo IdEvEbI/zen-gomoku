@@ -7,6 +7,10 @@ export {
   listOrderedCandidates,
   listNeighborCandidates,
   WIN_SCORE,
+  CRITICAL_THREAT_SCORE,
+  URGENT_THREAT_SCORE,
+  OPPONENT_SCORE,
+  SELF_SCORE,
 } from './evaluate'
 export { RandomAgent } from './RandomAgent'
 export { HeuristicAgent } from './HeuristicAgent'

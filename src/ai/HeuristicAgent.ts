@@ -2,7 +2,7 @@
  * 赢法数组启发式 Agent（Phase 1 / 猪八戒）
  * - 开局偏中心
  * - 只对邻近已有子的空位打分（空盘除外）
- * - 进攻略重于防守；四连权重最高
+ * - 活三及以上必须应手；无紧急威胁时开局可在同分附近略作变化
  */
 
 import type { IAgent, AiMove } from './types'
@@ -12,8 +12,7 @@ import {
   scoreEmptyCell,
   listNeighborCandidates,
   DEFAULT_NEIGHBOR_RADIUS,
-  OPPONENT_SCORE,
-  SELF_SCORE,
+  URGENT_THREAT_SCORE,
 } from './evaluate'
 import { RandomAgent } from './RandomAgent'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
@@ -55,58 +54,45 @@ export class HeuristicAgent implements IAgent {
     const oppCounts = buildWinsCounts(board, this.wins, this.winsCount, opp)
     const pool = listNeighborCandidates(board, DEFAULT_NEIGHBOR_RADIUS, player, this.rules)
 
-    let max = -1
-    const best: AiMove[] = []
+    const scored = pool
+      .map((m) => ({
+        move: m,
+        score: scoreEmptyCell(
+          m.row,
+          m.col,
+          player,
+          selfCounts,
+          oppCounts,
+          this.wins,
+          this.winsCount,
+          this.boardSize
+        ),
+      }))
+      .filter((s) => s.score > 0)
+      .sort((a, b) => b.score - a.score)
 
-    for (const { row, col } of pool) {
-      const total = scoreEmptyCell(
-        row,
-        col,
-        player,
-        selfCounts,
-        oppCounts,
-        this.wins,
-        this.winsCount,
-        this.boardSize
-      )
-      if (total > max) {
-        max = total
-        best.length = 0
-        best.push({ row, col })
-      } else if (total === max) {
-        best.push({ row, col })
-      }
-    }
-
-    if (best.length === 0 || max <= 0) {
+    if (scored.length === 0) {
       return this.fallback.getNextMove(board)
     }
 
-    const critical = Math.min(OPPONENT_SCORE[4]!, SELF_SCORE[4]!)
-    // 开局且无冲四级紧急手：在 Top-3 中抽样，增加变化
-    if (stoneCount < 8 && max < critical) {
-      const scored = pool
-        .map((m) => ({
-          move: m,
-          score: scoreEmptyCell(
-            m.row,
-            m.col,
-            player,
-            selfCounts,
-            oppCounts,
-            this.wins,
-            this.winsCount,
-            this.boardSize
-          ),
-        }))
-        .filter((s) => s.score > 0)
-        .sort((a, b) => b.score - a.score)
-      const topN = scored.slice(0, Math.min(3, scored.length))
-      if (topN.length > 0) {
-        return topN[Math.floor(Math.random() * topN.length)]!.move
+    const bestScore = scored[0]!.score
+
+    // 活三/冲四等紧急威胁：必须走最高分（可同分随机）
+    if (bestScore >= URGENT_THREAT_SCORE) {
+      const urgent = scored.filter((s) => s.score >= bestScore - 1e-6)
+      return urgent[Math.floor(Math.random() * urgent.length)]!.move
+    }
+
+    // 开局无紧急手：仅在「接近最优」的候选里抽样，避免漏应又保持变化
+    if (stoneCount < 8) {
+      const nearBest = scored.filter((s) => s.score >= bestScore - 40)
+      const pick = nearBest.slice(0, Math.min(3, nearBest.length))
+      if (pick.length > 0) {
+        return pick[Math.floor(Math.random() * pick.length)]!.move
       }
     }
 
-    return best[Math.floor(Math.random() * best.length)] ?? null
+    const tied = scored.filter((s) => s.score >= bestScore - 1e-6)
+    return tied[Math.floor(Math.random() * tied.length)]!.move
   }
 }

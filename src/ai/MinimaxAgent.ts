@@ -15,7 +15,13 @@ import {
   WIN_SCORE,
   DEFAULT_NEIGHBOR_RADIUS,
 } from './evaluate'
-import { findForcedWinMove, findWinningMoves, listThreatCandidates } from './threats'
+import {
+  findForcedWinMove,
+  findOpenFourMoves,
+  findWinningMoves,
+  listForcedReplies,
+  listThreatCandidates,
+} from './threats'
 import { RandomAgent } from './RandomAgent'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
@@ -93,6 +99,12 @@ export class MinimaxAgent implements IAgent {
       return instant[Math.floor(Math.random() * instant.length)]!
     }
 
+    // 对方活四 / 双端活三叉：根节点只在必防（及己方活四抢攻）中搜索
+    const mustReply = listForcedReplies(work, aiPlayer, this.rules, this.neighborRadius)
+    const myOpenFours = findOpenFourMoves(work, aiPlayer, this.rules, this.neighborRadius)
+    const rootRestrict =
+      mustReply.length > 0 ? uniqueMoveList([...mustReply, ...myOpenFours]) : null
+
     if (this.threatSearchPly > 0) {
       const forced = findForcedWinMove(
         work,
@@ -113,7 +125,7 @@ export class MinimaxAgent implements IAgent {
 
     for (const depth of depths) {
       if (this.timedOut()) break
-      const result = this.searchRoot(work, aiPlayer, depth)
+      const result = this.searchRoot(work, aiPlayer, depth, rootRestrict)
       if (result) best = result
       await Promise.resolve()
     }
@@ -129,7 +141,10 @@ export class MinimaxAgent implements IAgent {
     return false
   }
 
-  private candidatesFor(board: number[][], player: AiPlayer): AiMove[] {
+  private candidatesFor(board: number[][], player: AiPlayer, restrict: AiMove[] | null): AiMove[] {
+    if (restrict && restrict.length > 0) {
+      return restrict.filter((m) => board[m.row]?.[m.col] === 0)
+    }
     const threats = listThreatCandidates(board, player, this.rules, this.neighborRadius)
     return listOrderedCandidates(
       board,
@@ -143,8 +158,13 @@ export class MinimaxAgent implements IAgent {
     )
   }
 
-  private searchRoot(board: number[][], aiPlayer: AiPlayer, depth: number): AiMove | null {
-    const moves = this.candidatesFor(board, aiPlayer)
+  private searchRoot(
+    board: number[][],
+    aiPlayer: AiPlayer,
+    depth: number,
+    restrict: AiMove[] | null
+  ): AiMove | null {
+    const moves = this.candidatesFor(board, aiPlayer, restrict)
     if (moves.length === 0) return null
 
     let bestMove = moves[0]!
@@ -198,7 +218,7 @@ export class MinimaxAgent implements IAgent {
     }
 
     const player = nextPlayerFromBoard(board)
-    const moves = this.candidatesFor(board, player)
+    const moves = this.candidatesFor(board, player, null)
 
     if (moves.length === 0) {
       return evaluateBoard(board, aiPlayer, this.wins, this.winsCount, this.rules)
@@ -246,4 +266,16 @@ export class MinimaxAgent implements IAgent {
 
 function cloneBoard(board: number[][]): number[][] {
   return board.map((row) => row.slice())
+}
+
+function uniqueMoveList(moves: AiMove[]): AiMove[] {
+  const seen = new Set<string>()
+  const out: AiMove[] = []
+  for (const m of moves) {
+    const k = `${m.row},${m.col}`
+    if (seen.has(k)) continue
+    seen.add(k)
+    out.push(m)
+  }
+  return out
 }

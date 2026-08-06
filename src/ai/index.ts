@@ -15,7 +15,9 @@ export {
 export {
   findWinningMoves,
   findFourThreatMoves,
+  findOpenFourMoves,
   findOpenThreeMoves,
+  findForkThreeMoves,
   listForcedReplies,
   listThreatCandidates,
   findForcedWinMove,

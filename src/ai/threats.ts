@@ -145,10 +145,64 @@ export function findOpenThreeMoves(
 }
 
 /**
- * 当前行棋方必须优先考虑的防守点：
- * 1) 对方一步胜落点；
- * 2) 否则对方冲四点及其造成的胜点；
- * 3) 否则对方活三点（防其走成冲四）。
+ * 落子后「下一步可胜」点数（用于区分冲四 vs 活四）
+ */
+function winningReplyCount(
+  board: number[][],
+  player: AiPlayer,
+  move: AiMove,
+  rules: RuleSetId,
+  radius: number
+): number {
+  if (board[move.row]![move.col] !== 0) return 0
+  board[move.row]![move.col] = player
+  if (checkWinner(board, move.row, move.col, rules) === player) {
+    board[move.row]![move.col] = 0
+    return 99
+  }
+  const n = findWinningMoves(board, player, rules, radius).length
+  board[move.row]![move.col] = 0
+  return n
+}
+
+/** 活四点：落子后 ≥2 个胜点（对方挡不住） */
+export function findOpenFourMoves(
+  board: number[][],
+  player: AiPlayer,
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS
+): AiMove[] {
+  return findFourThreatMoves(board, player, rules, radius).filter(
+    (m) => winningReplyCount(board, player, m, rules, radius) >= 2
+  )
+}
+
+/**
+ * 活三「成杀点」：落子后形成至少两个可走成活四的端点（典型双端活三 / 叉）。
+ * 普通单活三预备点不算必防。
+ */
+export function findForkThreeMoves(
+  board: number[][],
+  player: AiPlayer,
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS
+): AiMove[] {
+  const out: AiMove[] = []
+  for (const m of findOpenThreeMoves(board, player, rules, radius)) {
+    board[m.row]![m.col] = player
+    const openFourEnds = findOpenFourMoves(board, player, rules, radius).length
+    board[m.row]![m.col] = 0
+    if (openFourEnds >= 2) out.push(m)
+  }
+  return out
+}
+
+/**
+ * 当前行棋方必须优先考虑的防守点（收紧，避免「假必防」）：
+ * 1) 对方一步胜；
+ * 2) 对方活四点（及活四后的胜点）——真活三两端，不含单缺口冲四如远处补子；
+ * 3) 若无活四，则对方所有冲四点 + 胜点；
+ * 4) 否则仅「双端活三/叉」成杀点（非所有活三预备点）。
  */
 export function listForcedReplies(
   board: number[][],
@@ -159,6 +213,13 @@ export function listForcedReplies(
   const opp = other(toPlay)
   const immediate = findWinningMoves(board, opp, rules, radius)
   if (immediate.length > 0) return uniqueMoves(immediate)
+
+  const openFours = findOpenFourMoves(board, opp, rules, radius)
+  if (openFours.length > 0) {
+    // 只堵活四落点（活三两端）；不要把「活四之后的胜点」也算进当前必防
+    // （否则会把缺口冲四点如 (5,5) 误当成与端点同等必防）
+    return uniqueMoves(openFours)
+  }
 
   const fours = findFourThreatMoves(board, opp, rules, radius)
   if (fours.length > 0) {
@@ -171,7 +232,7 @@ export function listForcedReplies(
     return uniqueMoves(blocks)
   }
 
-  return uniqueMoves(findOpenThreeMoves(board, opp, rules, radius))
+  return uniqueMoves(findForkThreeMoves(board, opp, rules, radius))
 }
 
 /** 进攻威胁 ∪ 防守点，供根节点优先展开 */
@@ -184,8 +245,9 @@ export function listThreatCandidates(
   return uniqueMoves([
     ...findWinningMoves(board, toPlay, rules, radius),
     ...listForcedReplies(board, toPlay, rules, radius),
+    ...findOpenFourMoves(board, toPlay, rules, radius),
     ...findFourThreatMoves(board, toPlay, rules, radius),
-    ...findOpenThreeMoves(board, toPlay, rules, radius),
+    ...findForkThreeMoves(board, toPlay, rules, radius),
   ])
 }
 

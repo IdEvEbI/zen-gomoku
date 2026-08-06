@@ -1,6 +1,6 @@
 /**
  * 赢法数组评估（Heuristic / Minimax 叶子共用）
- * 另加形分（冲四 / 活三），与 threats.ts 定义一致
+ * 另加形分（冲四 / 可成活四 / 双杀叉），与 threats.ts 定义一致
  */
 
 import { checkWinner } from '../core'
@@ -8,7 +8,7 @@ import { isLegalMove } from '../core/forbiddenMoves'
 import { DEFAULT_RULE_SET, RULE_FREESTYLE, type RuleSetId } from '../core/rules'
 import type { AiMove, AiPlayer } from './types'
 import { listEmptyCells } from './types'
-import { findFourThreatMoves, findWinningMoves } from './threats'
+import { findFourThreatMoves, findOpenFourMoves, findWinningMoves } from './threats'
 import { buildWinsCounts } from './winsTable'
 
 export const OPPONENT_SCORE = [0, 200, 400, 2000, 10000] as const
@@ -19,11 +19,14 @@ export const CRITICAL_THREAT_SCORE = Math.min(OPPONENT_SCORE[4]!, SELF_SCORE[4]!
 /** 活三/冲三档：亦必须应手，禁止软随机漏堵 */
 export const URGENT_THREAT_SCORE = Math.min(OPPONENT_SCORE[3]!, SELF_SCORE[3]!)
 
-/** 形分：冲四接近/超过四连档；活三显著高于「赢法 2 子」 */
+/** 形分：冲四接近/超过四连档；可成活四（活三端）显著高于「赢法 2 子」 */
 export const SHAPE_SELF_FOUR = 12_000
 export const SHAPE_SELF_OPEN_THREE = 2_800
 export const SHAPE_OPP_FOUR = 10_000
 export const SHAPE_OPP_OPEN_THREE = 2_200
+/** 双杀叉：根节点启发用；叶子评估不算（控 NPS） */
+export const SHAPE_SELF_FORK = 45_000
+export const SHAPE_OPP_FORK = 70_000
 
 /** 终局分，须远大于启发累加 */
 export const WIN_SCORE = 10_000_000
@@ -40,19 +43,9 @@ export function filterLegalCandidates(
   return moves.filter((m) => isLegalMove(board, m.row, m.col, player, rules))
 }
 
-function shapeBonusForSide(
-  board: number[][],
-  player: AiPlayer,
-  rules: RuleSetId,
-  fourW: number,
-  _threeW: number
-): number {
-  // 仅统计冲四档，避免叶子上反复跑 open-three（时限杀手）
-  return findFourThreatMoves(board, player, rules).length * fourW
-}
-
 /**
- * 从 perspective 视角评估整盘：己方赢法加分、对方赢法减分 + 形分
+ * 从 perspective 视角评估整盘：己方赢法加分、对方赢法减分 + 形分。
+ * 可成活四点 ≈ 活三信号。双杀叉改在根节点用 pickBest / 软根处理，叶子不算以免拖垮 NPS。
  */
 export function evaluateBoard(
   board: number[][],
@@ -71,8 +64,17 @@ export function evaluateBoard(
     if (sc > 0 && sc <= 4) score += SELF_SCORE[sc]!
     if (oc > 0 && oc <= 4) score -= OPPONENT_SCORE[oc]!
   }
-  score += shapeBonusForSide(board, perspective, rules, SHAPE_SELF_FOUR, SHAPE_SELF_OPEN_THREE)
-  score -= shapeBonusForSide(board, opp, rules, SHAPE_OPP_FOUR, SHAPE_OPP_OPEN_THREE)
+
+  const selfFours = findFourThreatMoves(board, perspective, rules).length
+  const oppFours = findFourThreatMoves(board, opp, rules).length
+  score += selfFours * SHAPE_SELF_FOUR
+  score -= oppFours * SHAPE_OPP_FOUR
+
+  const selfLive = findOpenFourMoves(board, perspective, rules).length
+  const oppLive = findOpenFourMoves(board, opp, rules).length
+  score += selfLive * SHAPE_SELF_OPEN_THREE
+  score -= oppLive * SHAPE_OPP_OPEN_THREE
+
   return score
 }
 

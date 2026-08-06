@@ -94,12 +94,12 @@ interface IAgent {
 
 ### 3.2 已定参数（#44 + #66）
 
-| 等级   | Agent             | 关键参数                                                                             |
-| ------ | ----------------- | ------------------------------------------------------------------------------------ |
-| 沙和尚 | `ShaHeshangAgent` | Top-K=`4`，`bestMoveChance=0.55`；必应一步胜/`listForcedReplies`；无全盘随机         |
-| 猪八戒 | `HeuristicAgent`  | 0 层赢法启发 + 形分；必应同上                                                        |
-| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`candidateLimit=12`，`timeLimitMs=180`；威胁候选优先；无威胁 DFS       |
-| 唐僧   | `MinimaxAgent`    | `maxDepth=5` + 迭代加深，`candidateLimit=14`，`timeLimitMs=700`，`threatSearchPly=8` |
+| 等级   | Agent             | 关键参数                                                                                          |
+| ------ | ----------------- | ------------------------------------------------------------------------------------------------- |
+| 沙和尚 | `ShaHeshangAgent` | Top-K=`4`，`bestMoveChance=0.55`；必应一步胜/`listForcedReplies`；无全盘随机                      |
+| 猪八戒 | `HeuristicAgent`  | 0 层赢法启发 + 形分；必应同上                                                                     |
+| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`candidateLimit=12`，`timeLimitMs=180`；威胁候选优先；无威胁 DFS                    |
+| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + 迭代加深，`candidateLimit=16`，`timeLimitMs=1000`，`threatSearchPly=8`，软根含对杀 |
 
 默认等级：**猪八戒**。切换等级仅影响后续 AI 手数（不强制重开）。
 
@@ -113,8 +113,8 @@ interface IAgent {
 
 ### 4.2 算法骨架
 
-1. **根节点**：一步胜 → **硬必防**（对方下一步可胜，短路）→ 己方活四 → **软防守**（活三端 / 双杀叉 / 冲四，限制根着法做 αβ，不短路）→ 短威胁 DFS（唐僧）→ 全盘搜索。
-2. **走法生成**：`listThreatCandidates`（胜/硬软防守/冲四）优先，再 `listOrderedCandidates` 启发补齐；威胁点截断前必留。
+1. **根节点**：一步胜 → **硬必防**（对方下一步可胜，短路）→ 己方活四 → 短威胁 DFS（有预算）→ **软威胁时「挡∪攻」受限 αβ** → 否则全盘搜索；超时返回当前最佳（不回退随机）。
+2. **走法生成**：`listThreatCandidates`（胜/硬软防守/冲四/叉）优先，再 `listOrderedCandidates` 启发补齐；威胁点截断前必留。
 3. **递归**：交替落子；α-β 剪枝；触达深度或终局停止；层内同样威胁优先。
 4. **叶子评估**：赢法计数分 + 形分（冲四/活三数量加权）。
 5. **终局**：己方五连 → +∞ 档；对方五连 → −∞ 档。
@@ -182,7 +182,7 @@ Phase 3（预留）：`AlphaZeroAgent`，仍实现 `IAgent`，与本文四级正
 
 - [x] `threats` 单测：冲四必挡、活三必应、一步胜优先
 - [x] 唐僧对活三 / 活四强迫局面选出正确点
-- [x] 唐僧参数：depth 5 / 700ms / candidate 14 / threatSearchPly 8
+- [x] 唐僧参数：depth 6 / 1000ms / candidate 16 / threatSearchPly 8；软根含对杀
 - [x] 沙/猪复用 `listForcedReplies`；悟空参数未升
 
 ---
@@ -197,3 +197,4 @@ Phase 3（预留）：`AlphaZeroAgent`，仍实现 `IAgent`，与本文四级正
 | 2026-08-04 | 文档同步：标注已上线；补充先后手 humanFirst（#49）    |
 | 2026-08-05 | 链到 alphazero-lite 草案（禁手 + 小模型，未开发）     |
 | 2026-08-06 | #66：威胁模块 + 形分；唐僧 depth/时限/threatSearchPly |
+| 2026-08-06 | 三刀调优：软根对杀、叶子活三/叉形分、唐僧 6×1000ms    |

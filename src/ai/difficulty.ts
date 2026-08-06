@@ -56,11 +56,13 @@ export function createAgentForDifficulty(
       return new MinimaxAgent({
         name: 'tang-seng',
         boardSize,
-        maxDepth: 5,
-        timeLimitMs: 700,
-        candidateLimit: 14,
+        maxDepth: 6,
+        timeLimitMs: 1000,
+        candidateLimit: 16,
         iterativeDeepening: true,
         threatSearchPly: 8,
+        threatSearchBudgetMs: 280,
+        softRootLimit: 16,
         rules,
       })
     default: {

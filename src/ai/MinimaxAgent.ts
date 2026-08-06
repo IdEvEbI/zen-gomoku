@@ -1,8 +1,8 @@
 /**
  * Minimax + Alpha-Beta
  * - 叶子用赢法启发 + 形分评估
- * - 根节点：一步胜 / 硬必防短路；软防守（活三端·叉·冲四）限制搜索；其余威胁 DFS + αβ
- * - 可选短威胁 DFS（唐僧）与迭代加深硬时限
+ * - 根节点：一步胜 / 硬必防短路；软威胁时「挡∪攻」受限搜索；否则威胁 DFS + 全盘 αβ
+ * - 唐僧：迭代加深 + 短威胁 DFS；硬时限内返回当前最佳（不回退随机）
  */
 
 import { checkWinner } from '../core'
@@ -11,20 +11,23 @@ import { listEmptyCells, nextPlayerFromBoard } from './types'
 import { buildWinsTable } from './winsTable'
 import {
   evaluateBoard,
+  listNeighborCandidates,
   listOrderedCandidates,
   WIN_SCORE,
   DEFAULT_NEIGHBOR_RADIUS,
 } from './evaluate'
 import {
   findForcedWinMove,
+  findForkThreeMoves,
   findOpenFourMoves,
   findWinningMoves,
   listHardForcedReplies,
   listSoftDefenseCandidates,
+  listSoftRootCandidates,
   listThreatCandidates,
   pickBestForcedReply,
+  scoreForcedReply,
 } from './threats'
-import { RandomAgent } from './RandomAgent'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
 export interface MinimaxAgentOptions {
@@ -40,6 +43,10 @@ export interface MinimaxAgentOptions {
   iterativeDeepening?: boolean
   /** 根节点短威胁 DFS 半步上限；0 关闭 */
   threatSearchPly?: number
+  /** 短威胁 DFS 最多占用的时限（ms）；0 表示不单独截断 */
+  threatSearchBudgetMs?: number
+  /** 软威胁根候选上限（挡点 + 进攻） */
+  softRootLimit?: number
   name?: string
   rules?: RuleSetId
 }
@@ -52,11 +59,12 @@ export class MinimaxAgent implements IAgent {
   private readonly neighborRadius: number
   private readonly iterativeDeepening: boolean
   private readonly threatSearchPly: number
+  private readonly threatSearchBudgetMs: number
+  private readonly softRootLimit: number
   private readonly boardSize: number
   private readonly rules: RuleSetId
   private readonly wins: boolean[][][]
   private readonly winsCount: number
-  private readonly fallback: RandomAgent
   private deadline = 0
   private aborted = false
 
@@ -67,13 +75,14 @@ export class MinimaxAgent implements IAgent {
     this.neighborRadius = options.neighborRadius ?? DEFAULT_NEIGHBOR_RADIUS
     this.iterativeDeepening = options.iterativeDeepening ?? false
     this.threatSearchPly = options.threatSearchPly ?? 0
+    this.threatSearchBudgetMs = options.threatSearchBudgetMs ?? 250
+    this.softRootLimit = options.softRootLimit ?? 16
     this.boardSize = options.boardSize ?? 15
     this.rules = options.rules ?? DEFAULT_RULE_SET
     this.name = options.name ?? `minimax-d${this.maxDepth}`
     const table = buildWinsTable(this.boardSize)
     this.wins = table.wins
     this.winsCount = table.winsCount
-    this.fallback = new RandomAgent(this.rules)
   }
 
   async getNextMove(board: number[][]): Promise<AiMove | null> {
@@ -102,10 +111,10 @@ export class MinimaxAgent implements IAgent {
       return instant[Math.floor(Math.random() * instant.length)]!
     }
 
-    // 2) 硬必防：对方下一步可胜（不可短路到软叉/活三）
+    // 2) 硬必防：对方下一步可胜（≥2 点时局面已负，仍堵一点以免假动作）
     const hard = listHardForcedReplies(work, aiPlayer, this.rules, this.neighborRadius)
     if (hard.length > 0) {
-      return hard[Math.floor(Math.random() * hard.length)]!
+      return pickBestForcedReply(work, aiPlayer, hard, this.rules, this.neighborRadius) ?? hard[0]!
     }
 
     // 3) 己方活四抢攻
@@ -114,41 +123,47 @@ export class MinimaxAgent implements IAgent {
       return myOpenFours[Math.floor(Math.random() * myOpenFours.length)]!
     }
 
-    // 4) 软防守（活三端 ∪ 叉 / 冲四）：限制根搜索，不跑威胁 DFS（防时限耗尽）
-    const soft = listSoftDefenseCandidates(work, aiPlayer, this.rules, this.neighborRadius)
-    if (soft.length > 0) {
-      const rootRestrict = uniqueMoves([
-        ...soft,
-        ...findOpenFourMoves(work, aiPlayer, this.rules, this.neighborRadius),
-      ])
-      let best: AiMove | null = null
-      const depths = this.iterativeDeepening
-        ? Array.from({ length: this.maxDepth }, (_, i) => i + 1)
-        : [this.maxDepth]
-      for (const depth of depths) {
-        if (this.timedOut()) break
-        const result = this.searchRoot(work, aiPlayer, depth, rootRestrict)
-        if (result) best = result
-        await Promise.resolve()
-      }
-      return (
-        best ??
-        pickBestForcedReply(work, aiPlayer, soft, this.rules, this.neighborRadius) ??
-        soft[0]!
-      )
-    }
-
-    // 5) 无软威胁：短威胁 DFS + 全盘搜索
-    if (this.threatSearchPly > 0) {
+    // 4) 短威胁 DFS（冲四逼胜），单独预算，软/全盘局面都可跑
+    if (this.threatSearchPly > 0 && !this.timedOut()) {
+      const budgetEnd =
+        this.threatSearchBudgetMs > 0
+          ? Math.min(this.deadline, Date.now() + this.threatSearchBudgetMs)
+          : this.deadline
       const forced = findForcedWinMove(
         work,
         aiPlayer,
         this.threatSearchPly,
         this.rules,
-        () => this.timedOut(),
+        () => Date.now() >= budgetEnd || this.timedOut(),
         this.neighborRadius
       )
       if (forced) return forced
+    }
+
+    // 5) 软威胁根候选：
+    //    - 对方可成活四（活三端）：只搜挡点（可并己方活四），避免「对杀漏挡」
+    //    - 叉 / 冲四：挡点 ∪ 己方进攻（对杀）
+    const oppOpenFourEnds = findOpenFourMoves(
+      work,
+      aiPlayer === 1 ? 2 : 1,
+      this.rules,
+      this.neighborRadius
+    )
+    const soft = listSoftDefenseCandidates(work, aiPlayer, this.rules, this.neighborRadius)
+    let rootRestrict: AiMove[] | null = null
+    if (oppOpenFourEnds.length > 0) {
+      rootRestrict = uniqueMoves([
+        ...oppOpenFourEnds,
+        ...findOpenFourMoves(work, aiPlayer, this.rules, this.neighborRadius),
+      ])
+    } else if (soft.length > 0) {
+      rootRestrict = listSoftRootCandidates(
+        work,
+        aiPlayer,
+        this.softRootLimit,
+        this.rules,
+        this.neighborRadius
+      )
     }
 
     let best: AiMove | null = null
@@ -158,12 +173,46 @@ export class MinimaxAgent implements IAgent {
 
     for (const depth of depths) {
       if (this.timedOut()) break
-      const result = this.searchRoot(work, aiPlayer, depth, null)
+      const result = this.searchRoot(work, aiPlayer, depth, rootRestrict)
       if (result) best = result
       await Promise.resolve()
     }
 
-    return best ?? this.fallback.getNextMove(board)
+    if (best) {
+      // 叉软威胁：搜索结果若比启发挡点更差（残留双杀更重），改用 pickBest
+      const opp = (aiPlayer === 1 ? 2 : 1) as AiPlayer
+      if (
+        oppOpenFourEnds.length === 0 &&
+        soft.length > 0 &&
+        findForkThreeMoves(work, opp, this.rules, this.neighborRadius).length > 0
+      ) {
+        const heur = pickBestForcedReply(work, aiPlayer, soft, this.rules, this.neighborRadius)
+        if (heur) {
+          const searchScore = scoreForcedReply(
+            work,
+            aiPlayer,
+            best,
+            this.rules,
+            this.neighborRadius
+          )
+          const heurScore = scoreForcedReply(work, aiPlayer, heur, this.rules, this.neighborRadius)
+          if (searchScore > heurScore) return heur
+        }
+      }
+      return best
+    }
+    if (oppOpenFourEnds.length > 0) {
+      return (
+        pickBestForcedReply(work, aiPlayer, oppOpenFourEnds, this.rules, this.neighborRadius) ??
+        oppOpenFourEnds[0]!
+      )
+    }
+    if (soft.length > 0) {
+      return pickBestForcedReply(work, aiPlayer, soft, this.rules, this.neighborRadius) ?? soft[0]!
+    }
+    // 无软威胁且搜索未出结果：邻近启发第一手，禁止全盘随机
+    const near = listNeighborCandidates(work, this.neighborRadius, aiPlayer, this.rules)
+    return near[0] ?? empty[0] ?? null
   }
 
   private timedOut(): boolean {

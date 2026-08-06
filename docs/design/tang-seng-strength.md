@@ -39,6 +39,8 @@
 | 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`timeLimitMs=180`，`candidateLimit=12`            |
 | 唐僧   | `MinimaxAgent`    | `maxDepth=4` + 迭代加深，`timeLimitMs=350`，`candidateLimit=10` |
 
+**已落地（三刀调优后）**：唐僧 `maxDepth=6`，`timeLimitMs=1000`，`candidateLimit=16`；软威胁根候选含对杀；叶子含可成活四形分。
+
 开局：`openingBook.ts`（花月/浦月等）+ 对称 + 人机/教师 mixed 随机——**已解决开局单调**，不解决中盘战术洞。
 
 ### 1.2 为什么认真下能赢唐僧

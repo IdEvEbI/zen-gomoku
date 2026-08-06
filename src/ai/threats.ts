@@ -342,6 +342,31 @@ function remainingForkSeverity(
 }
 
 /**
+ * 堵完后对方残留双活四威胁分数（越小越好）。
+ */
+export function scoreForcedReply(
+  board: number[][],
+  toPlay: AiPlayer,
+  move: AiMove,
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS
+): number {
+  if (board[move.row]![move.col] !== 0) return Number.POSITIVE_INFINITY
+  const opp = other(toPlay)
+  board[move.row]![move.col] = toPlay
+  const s = remainingForkSeverity(board, opp, rules, radius)
+  board[move.row]![move.col] = 0
+  return (
+    s.forks * 1_000_000 +
+    s.maxOF * 10_000 +
+    s.sumOF * 100 +
+    s.openLeft * 10 +
+    move.row +
+    move.col / 100
+  )
+}
+
+/**
  * 在必防点中选堵完后对方残留双活四威胁最轻的点。
  * 同分按 (row,col) 稳定打破，避免随机抽到仍放行明显杀点的叉。
  */
@@ -354,17 +379,10 @@ export function pickBestForcedReply(
 ): AiMove | null {
   if (candidates.length === 0) return null
   if (candidates.length === 1) return candidates[0]!
-  const opp = other(toPlay)
   let best: AiMove | null = null
   let bestScore = Number.POSITIVE_INFINITY
   for (const m of candidates) {
-    if (board[m.row]![m.col] !== 0) continue
-    board[m.row]![m.col] = toPlay
-    const s = remainingForkSeverity(board, opp, rules, radius)
-    board[m.row]![m.col] = 0
-    // 行/列作稳定平局键，保证同严重度时结果可复现
-    const score =
-      s.forks * 1_000_000 + s.maxOF * 10_000 + s.sumOF * 100 + s.openLeft * 10 + m.row + m.col / 100
+    const score = scoreForcedReply(board, toPlay, m, rules, radius)
     if (score < bestScore) {
       bestScore = score
       best = m
@@ -385,8 +403,35 @@ export function listThreatCandidates(
     ...listHardForcedReplies(board, toPlay, rules, radius),
     ...listSoftDefenseCandidates(board, toPlay, rules, radius),
     ...findOpenFourMoves(board, toPlay, rules, radius),
+    ...findForkThreeMoves(board, toPlay, rules, radius),
     ...findFourThreatMoves(board, toPlay, rules, radius),
   ])
+}
+
+/**
+ * 软威胁局面的根搜索候选：全部软挡点 + 己方进攻（活四/叉/冲四），堵点优先且总数封顶。
+ * 无软威胁时返回 []（调用方走全盘搜索）。
+ */
+export function listSoftRootCandidates(
+  board: number[][],
+  toPlay: AiPlayer,
+  limit = 16,
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS
+): AiMove[] {
+  const soft = listSoftDefenseCandidates(board, toPlay, rules, radius)
+  if (soft.length === 0) return []
+  const attacks = uniqueMoves([
+    ...findOpenFourMoves(board, toPlay, rules, radius),
+    ...findForkThreeMoves(board, toPlay, rules, radius),
+    ...findFourThreatMoves(board, toPlay, rules, radius),
+  ])
+  const out = uniqueMoves([...soft, ...attacks])
+  if (out.length <= limit) return out
+  // 软挡点必须保留
+  const softKeys = new Set(soft.map(moveKey))
+  const rest = out.filter((m) => !softKeys.has(moveKey(m)))
+  return uniqueMoves([...soft, ...rest.slice(0, Math.max(0, limit - soft.length))])
 }
 
 /**

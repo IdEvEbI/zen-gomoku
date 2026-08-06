@@ -6,6 +6,7 @@ import {
   findForkThreeMoves,
   listHardForcedReplies,
   listSoftDefenseCandidates,
+  listSoftRootCandidates,
   listForcedReplies,
   pickBestForcedReply,
   findForcedWinMove,
@@ -134,16 +135,20 @@ describe('regression: zen-gomoku-2026-08-06-09-00-46', () => {
       const ok = (move!.row === 6 && move!.col === 5) || (move!.row === 10 && move!.col === 5)
       expect(ok).toBe(true)
     }
-  })
+  }, 30_000)
 
-  it('Tang reply is inside soft defense set', async () => {
+  it('Tang reply is inside soft root set', async () => {
     const board = emptyBoard()
     apply(board, beforeWhite45)
     const agent = createAgentForDifficulty('tang')
     const move = await agent.getNextMove(board)
     expect(move).not.toBeNull()
+    const root = listSoftRootCandidates(board, 2)
     const soft = listSoftDefenseCandidates(board, 2)
-    expect(soft.some((m) => m.row === move!.row && m.col === move!.col)).toBe(true)
+    const ok =
+      root.some((m) => m.row === move!.row && m.col === move!.col) ||
+      soft.some((m) => m.row === move!.row && m.col === move!.col)
+    expect(ok).toBe(true)
   })
 })
 
@@ -229,18 +234,18 @@ describe('regression: zen-gomoku-2026-08-06-09-25-18 double open-four', () => {
     expect(best!.col).toBe(3)
   })
 
-  it('Tang searches soft forks; never plays rush-only (6,8)', async () => {
+  it('Tang searches soft root (defense ∪ attack); never plays rush-only (6,8)', async () => {
     const board = emptyBoard()
     apply(board, afterBlack84)
-    const soft = listSoftDefenseCandidates(board, 2)
+    const root = listSoftRootCandidates(board, 2)
     const agent = createAgentForDifficulty('tang')
     for (let i = 0; i < 5; i++) {
       const move = await agent.getNextMove(board)
       expect(move).not.toBeNull()
       expect(move!.row === 6 && move!.col === 8).toBe(false)
-      expect(soft.some((m) => m.row === move!.row && m.col === move!.col)).toBe(true)
+      expect(root.some((m) => m.row === move!.row && m.col === move!.col)).toBe(true)
     }
-  }, 20_000)
+  }, 30_000)
 })
 
 describe('regression: zen-gomoku-2026-08-06-09-42-16 dual-four fork', () => {
@@ -284,21 +289,30 @@ describe('regression: zen-gomoku-2026-08-06-09-42-16 dual-four fork', () => {
     expect(best).toEqual({ row: 6, col: 7 })
   })
 
-  it('Tang search stays on soft forks and does not leave (9,4) kill', async () => {
+  it('soft root keeps defense and may include white attacks', () => {
     const board = emptyBoard()
     apply(board, afterBlack85)
     const soft = listSoftDefenseCandidates(board, 2)
+    const root = listSoftRootCandidates(board, 2)
+    expect(soft.every((s) => root.some((r) => r.row === s.row && r.col === s.col))).toBe(true)
+    expect(root.length).toBeGreaterThanOrEqual(soft.length)
+  })
+
+  it('Tang search does not leave (9,4) dual-kill', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlack85)
+    const root = listSoftRootCandidates(board, 2)
     const agent = createAgentForDifficulty('tang')
     for (let i = 0; i < 5; i++) {
       const move = await agent.getNextMove(board)
       expect(move).not.toBeNull()
-      expect(soft.some((m) => m.row === move!.row && m.col === move!.col)).toBe(true)
+      expect(root.some((m) => m.row === move!.row && m.col === move!.col)).toBe(true)
       board[move!.row]![move!.col] = 2
       const stillKill = findForkThreeMoves(board, 1).some((m) => m.row === 9 && m.col === 4)
       board[move!.row]![move!.col] = 0
       expect(stillKill).toBe(false)
     }
-  }, 20_000)
+  }, 30_000)
 })
 
 describe('Tang / Minimax threat integration', () => {

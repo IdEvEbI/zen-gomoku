@@ -20,8 +20,10 @@ export {
   findForkThreeMoves,
   listHardForcedReplies,
   listSoftDefenseCandidates,
+  listSoftRootCandidates,
   listForcedReplies,
   pickBestForcedReply,
+  scoreForcedReply,
   listThreatCandidates,
   findForcedWinMove,
 } from './threats'

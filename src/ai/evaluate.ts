@@ -1,12 +1,15 @@
 /**
  * 赢法数组评估（Heuristic / Minimax 叶子共用）
+ * 另加形分（冲四 / 活三），与 threats.ts 定义一致
  */
 
-import type { AiMove, AiPlayer } from './types'
-import { listEmptyCells } from './types'
-import { buildWinsCounts } from './winsTable'
+import { checkWinner } from '../core'
 import { isLegalMove } from '../core/forbiddenMoves'
 import { DEFAULT_RULE_SET, RULE_FREESTYLE, type RuleSetId } from '../core/rules'
+import type { AiMove, AiPlayer } from './types'
+import { listEmptyCells } from './types'
+import { findFourThreatMoves, findOpenThreeMoves, findWinningMoves } from './threats'
+import { buildWinsCounts } from './winsTable'
 
 export const OPPONENT_SCORE = [0, 200, 400, 2000, 10000] as const
 export const SELF_SCORE = [0, 220, 420, 2400, 20000] as const
@@ -15,6 +18,12 @@ export const SELF_SCORE = [0, 220, 420, 2400, 20000] as const
 export const CRITICAL_THREAT_SCORE = Math.min(OPPONENT_SCORE[4]!, SELF_SCORE[4]!)
 /** 活三/冲三档：亦必须应手，禁止软随机漏堵 */
 export const URGENT_THREAT_SCORE = Math.min(OPPONENT_SCORE[3]!, SELF_SCORE[3]!)
+
+/** 形分：冲四接近/超过四连档；活三显著高于「赢法 2 子」 */
+export const SHAPE_SELF_FOUR = 12_000
+export const SHAPE_SELF_OPEN_THREE = 2_800
+export const SHAPE_OPP_FOUR = 10_000
+export const SHAPE_OPP_OPEN_THREE = 2_200
 
 /** 终局分，须远大于启发累加 */
 export const WIN_SCORE = 10_000_000
@@ -31,14 +40,27 @@ export function filterLegalCandidates(
   return moves.filter((m) => isLegalMove(board, m.row, m.col, player, rules))
 }
 
+function shapeBonusForSide(
+  board: number[][],
+  player: AiPlayer,
+  rules: RuleSetId,
+  fourW: number,
+  threeW: number
+): number {
+  const fours = findFourThreatMoves(board, player, rules).length
+  const threes = findOpenThreeMoves(board, player, rules).length
+  return fours * fourW + threes * threeW
+}
+
 /**
- * 从 perspective 视角评估整盘：己方赢法加分、对方赢法减分
+ * 从 perspective 视角评估整盘：己方赢法加分、对方赢法减分 + 形分
  */
 export function evaluateBoard(
   board: number[][],
   perspective: AiPlayer,
   wins: boolean[][][],
-  winsCount: number
+  winsCount: number,
+  rules: RuleSetId = DEFAULT_RULE_SET
 ): number {
   const opp = (perspective === 1 ? 2 : 1) as AiPlayer
   const selfCounts = buildWinsCounts(board, wins, winsCount, perspective)
@@ -50,21 +72,25 @@ export function evaluateBoard(
     if (sc > 0 && sc <= 4) score += SELF_SCORE[sc]!
     if (oc > 0 && oc <= 4) score -= OPPONENT_SCORE[oc]!
   }
+  score += shapeBonusForSide(board, perspective, rules, SHAPE_SELF_FOUR, SHAPE_SELF_OPEN_THREE)
+  score -= shapeBonusForSide(board, opp, rules, SHAPE_OPP_FOUR, SHAPE_OPP_OPEN_THREE)
   return score
 }
 
 /**
- * 对空位 (row,col) 打启发分（进攻/防守取大），供选点与走法排序
+ * 对空位 (row,col) 打启发分（攻防累加 + 形分 + 中心）
  */
 export function scoreEmptyCell(
   row: number,
   col: number,
-  _player: AiPlayer,
+  player: AiPlayer,
   selfCounts: number[],
   oppCounts: number[],
   wins: boolean[][][],
   winsCount: number,
-  boardSize: number
+  boardSize: number,
+  board?: number[][],
+  rules: RuleSetId = DEFAULT_RULE_SET
 ): number {
   let selfScore = 0
   let oppScore = 0
@@ -78,9 +104,33 @@ export function scoreEmptyCell(
   const mid = (boardSize - 1) / 2
   const dist = Math.abs(row - mid) + Math.abs(col - mid)
   const center = Math.max(0, 50 - dist * 3)
-  // 攻防都计入，且高威胁防守略加权，避免「只进攻不堵活三」
   const defenseBias = oppScore >= URGENT_THREAT_SCORE ? oppScore * 0.15 : 0
-  return selfScore + oppScore + defenseBias + center
+
+  let shape = 0
+  if (board && board[row]?.[col] === 0) {
+    const opp = (player === 1 ? 2 : 1) as AiPlayer
+    board[row]![col] = player
+    if (checkWinner(board, row, col, rules) === player) {
+      shape += SHAPE_SELF_FOUR * 2
+    } else if (findWinningMoves(board, player, rules).length > 0) {
+      shape += SHAPE_SELF_FOUR
+    } else if (findFourThreatMoves(board, player, rules).length > 0) {
+      shape += SHAPE_SELF_OPEN_THREE
+    }
+    board[row]![col] = 0
+
+    board[row]![col] = opp
+    if (checkWinner(board, row, col, rules) === opp) {
+      shape += SHAPE_OPP_FOUR * 1.1
+    } else if (findWinningMoves(board, opp, rules).length > 0) {
+      shape += SHAPE_OPP_FOUR
+    } else if (findFourThreatMoves(board, opp, rules).length > 0) {
+      shape += SHAPE_OPP_OPEN_THREE
+    }
+    board[row]![col] = 0
+  }
+
+  return selfScore + oppScore + defenseBias + center + shape
 }
 
 export function hasNeighbor(
@@ -125,7 +175,13 @@ export function listNeighborCandidates(
   return filterLegalCandidates(board, pool, player, rules)
 }
 
-/** 按启发分降序的候选，截断到 limit */
+function moveKey(m: AiMove): string {
+  return `${m.row},${m.col}`
+}
+
+/**
+ * 威胁点优先，再按启发分补齐；威胁点在截断前必留。
+ */
 export function listOrderedCandidates(
   board: number[][],
   player: AiPlayer,
@@ -133,7 +189,8 @@ export function listOrderedCandidates(
   winsCount: number,
   limit: number,
   radius = DEFAULT_NEIGHBOR_RADIUS,
-  rules: RuleSetId = DEFAULT_RULE_SET
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  threatMoves: AiMove[] = []
 ): AiMove[] {
   const boardSize = board.length
   const candidates = listNeighborCandidates(board, radius, player, rules)
@@ -143,8 +200,39 @@ export function listOrderedCandidates(
 
   const scored = candidates.map((m) => ({
     move: m,
-    score: scoreEmptyCell(m.row, m.col, player, selfCounts, oppCounts, wins, winsCount, boardSize),
+    score: scoreEmptyCell(
+      m.row,
+      m.col,
+      player,
+      selfCounts,
+      oppCounts,
+      wins,
+      winsCount,
+      boardSize,
+      board,
+      rules
+    ),
   }))
   scored.sort((a, b) => b.score - a.score)
-  return scored.slice(0, Math.max(1, limit)).map((s) => s.move)
+
+  const seen = new Set<string>()
+  const priority: AiMove[] = []
+  for (const m of threatMoves) {
+    if (board[m.row]?.[m.col] !== 0) continue
+    const k = moveKey(m)
+    if (seen.has(k)) continue
+    seen.add(k)
+    priority.push(m)
+  }
+  const rest: AiMove[] = []
+  for (const s of scored) {
+    const k = moveKey(s.move)
+    if (seen.has(k)) continue
+    seen.add(k)
+    rest.push(s.move)
+  }
+  // 威胁点必留；其余补齐到 limit
+  const fill = Math.max(0, limit - priority.length)
+  const out = [...priority, ...rest.slice(0, fill)]
+  return out.length > 0 ? out : scored.slice(0, Math.max(1, limit)).map((s) => s.move)
 }

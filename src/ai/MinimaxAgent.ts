@@ -1,8 +1,8 @@
 /**
  * Minimax + Alpha-Beta
- * - 叶子用赢法启发评估
- * - 邻域候选 + 启发排序截断
- * - 可选迭代加深与硬时限（唐僧）
+ * - 叶子用赢法启发 + 形分评估
+ * - 威胁优先候选（胜 / 必防 / 冲四 / 活三）
+ * - 可选短威胁 DFS（唐僧）与迭代加深硬时限
  */
 
 import { checkWinner } from '../core'
@@ -15,6 +15,7 @@ import {
   WIN_SCORE,
   DEFAULT_NEIGHBOR_RADIUS,
 } from './evaluate'
+import { findForcedWinMove, findWinningMoves, listThreatCandidates } from './threats'
 import { RandomAgent } from './RandomAgent'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
@@ -23,12 +24,14 @@ export interface MinimaxAgentOptions {
   maxDepth: number
   /** 硬时限（ms）；0 表示不限制 */
   timeLimitMs?: number
-  /** 每层最多展开的候选数 */
+  /** 每层最多展开的候选数（威胁点额外必留） */
   candidateLimit?: number
   neighborRadius?: number
   boardSize?: number
   /** 是否迭代加深（时限内尽量加深） */
   iterativeDeepening?: boolean
+  /** 根节点短威胁 DFS 半步上限；0 关闭 */
+  threatSearchPly?: number
   name?: string
   rules?: RuleSetId
 }
@@ -40,6 +43,7 @@ export class MinimaxAgent implements IAgent {
   private readonly candidateLimit: number
   private readonly neighborRadius: number
   private readonly iterativeDeepening: boolean
+  private readonly threatSearchPly: number
   private readonly boardSize: number
   private readonly rules: RuleSetId
   private readonly wins: boolean[][][]
@@ -54,6 +58,7 @@ export class MinimaxAgent implements IAgent {
     this.candidateLimit = options.candidateLimit ?? 12
     this.neighborRadius = options.neighborRadius ?? DEFAULT_NEIGHBOR_RADIUS
     this.iterativeDeepening = options.iterativeDeepening ?? false
+    this.threatSearchPly = options.threatSearchPly ?? 0
     this.boardSize = options.boardSize ?? 15
     this.rules = options.rules ?? DEFAULT_RULE_SET
     this.name = options.name ?? `minimax-d${this.maxDepth}`
@@ -81,6 +86,25 @@ export class MinimaxAgent implements IAgent {
     this.deadline = this.timeLimitMs > 0 ? Date.now() + this.timeLimitMs : Number.POSITIVE_INFINITY
     this.aborted = false
 
+    const work = board.map((row) => row.slice())
+
+    const instant = findWinningMoves(work, aiPlayer, this.rules, this.neighborRadius)
+    if (instant.length > 0) {
+      return instant[Math.floor(Math.random() * instant.length)]!
+    }
+
+    if (this.threatSearchPly > 0) {
+      const forced = findForcedWinMove(
+        work,
+        aiPlayer,
+        this.threatSearchPly,
+        this.rules,
+        () => this.timedOut(),
+        this.neighborRadius
+      )
+      if (forced) return forced
+    }
+
     let best: AiMove | null = null
 
     const depths = this.iterativeDeepening
@@ -89,7 +113,7 @@ export class MinimaxAgent implements IAgent {
 
     for (const depth of depths) {
       if (this.timedOut()) break
-      const result = this.searchRoot(board, aiPlayer, depth)
+      const result = this.searchRoot(work, aiPlayer, depth)
       if (result) best = result
       await Promise.resolve()
     }
@@ -105,16 +129,22 @@ export class MinimaxAgent implements IAgent {
     return false
   }
 
-  private searchRoot(board: number[][], aiPlayer: AiPlayer, depth: number): AiMove | null {
-    const moves = listOrderedCandidates(
+  private candidatesFor(board: number[][], player: AiPlayer): AiMove[] {
+    const threats = listThreatCandidates(board, player, this.rules, this.neighborRadius)
+    return listOrderedCandidates(
       board,
-      aiPlayer,
+      player,
       this.wins,
       this.winsCount,
       this.candidateLimit,
       this.neighborRadius,
-      this.rules
+      this.rules,
+      threats
     )
+  }
+
+  private searchRoot(board: number[][], aiPlayer: AiPlayer, depth: number): AiMove | null {
+    const moves = this.candidatesFor(board, aiPlayer)
     if (moves.length === 0) return null
 
     let bestMove = moves[0]!
@@ -160,26 +190,18 @@ export class MinimaxAgent implements IAgent {
     aiPlayer: AiPlayer
   ): number {
     if (this.aborted || this.timedOut()) {
-      return evaluateBoard(board, aiPlayer, this.wins, this.winsCount)
+      return evaluateBoard(board, aiPlayer, this.wins, this.winsCount, this.rules)
     }
 
     if (depth === 0) {
-      return evaluateBoard(board, aiPlayer, this.wins, this.winsCount)
+      return evaluateBoard(board, aiPlayer, this.wins, this.winsCount, this.rules)
     }
 
     const player = nextPlayerFromBoard(board)
-    const moves = listOrderedCandidates(
-      board,
-      player,
-      this.wins,
-      this.winsCount,
-      this.candidateLimit,
-      this.neighborRadius,
-      this.rules
-    )
+    const moves = this.candidatesFor(board, player)
 
     if (moves.length === 0) {
-      return evaluateBoard(board, aiPlayer, this.wins, this.winsCount)
+      return evaluateBoard(board, aiPlayer, this.wins, this.winsCount, this.rules)
     }
 
     if (maximizing) {

@@ -24,7 +24,7 @@ export const AI_DIFFICULTY_OPTIONS: readonly AiDifficultyOption[] = [
   { id: 'sha', name: '沙和尚', blurb: '入门，偶尔下次优' },
   { id: 'zhu', name: '猪八戒', blurb: '与现版启发相当' },
   { id: 'wukong', name: '孙悟空', blurb: '会多想两步' },
-  { id: 'tang', name: '唐僧', blurb: '更深搜索' },
+  { id: 'tang', name: '唐僧', blurb: '威胁搜索 + 更深' },
 ] as const
 
 export function createAgentForDifficulty(
@@ -56,10 +56,11 @@ export function createAgentForDifficulty(
       return new MinimaxAgent({
         name: 'tang-seng',
         boardSize,
-        maxDepth: 4,
-        timeLimitMs: 350,
-        candidateLimit: 10,
+        maxDepth: 5,
+        timeLimitMs: 700,
+        candidateLimit: 14,
         iterativeDeepening: true,
+        threatSearchPly: 8,
         rules,
       })
     default: {

@@ -12,6 +12,14 @@ export {
   OPPONENT_SCORE,
   SELF_SCORE,
 } from './evaluate'
+export {
+  findWinningMoves,
+  findFourThreatMoves,
+  findOpenThreeMoves,
+  listForcedReplies,
+  listThreatCandidates,
+  findForcedWinMove,
+} from './threats'
 export { RandomAgent } from './RandomAgent'
 export { HeuristicAgent } from './HeuristicAgent'
 export { ShaHeshangAgent } from './ShaHeshangAgent'

@@ -21,6 +21,7 @@ import {
   findWinningMoves,
   listForcedReplies,
   listThreatCandidates,
+  pickBestForcedReply,
 } from './threats'
 import { RandomAgent } from './RandomAgent'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
@@ -108,7 +109,10 @@ export class MinimaxAgent implements IAgent {
     // 对方活四 / 双端活三叉：必须堵，不深搜、不跑威胁 DFS（防时限耗尽回退随机）
     const mustReply = listForcedReplies(work, aiPlayer, this.rules, this.neighborRadius)
     if (mustReply.length > 0) {
-      return mustReply[Math.floor(Math.random() * mustReply.length)]!
+      return (
+        pickBestForcedReply(work, aiPlayer, mustReply, this.rules, this.neighborRadius) ??
+        mustReply[0]!
+      )
     }
 
     if (this.threatSearchPly > 0) {

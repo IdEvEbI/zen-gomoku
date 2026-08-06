@@ -144,42 +144,71 @@ export function findOpenThreeMoves(
   return out
 }
 
+const LINE_DIRS = [
+  [0, 1],
+  [1, 0],
+  [1, 1],
+  [1, -1],
+] as const
+
 /**
- * 落子后「下一步可胜」点数（用于区分冲四 vs 活四）
+ * 已落子 (row,col) 是否在某一方向形成活四：恰好 4 连且两端皆空。
+ * （避免用「全局胜点 ≥2」误把多个无关冲四当成活四。）
  */
-function winningReplyCount(
+function hasOpenFourThrough(
   board: number[][],
-  player: AiPlayer,
-  move: AiMove,
-  rules: RuleSetId,
-  radius: number
-): number {
-  if (board[move.row]![move.col] !== 0) return 0
-  board[move.row]![move.col] = player
-  if (checkWinner(board, move.row, move.col, rules) === player) {
-    board[move.row]![move.col] = 0
-    return 99
+  row: number,
+  col: number,
+  player: AiPlayer
+): boolean {
+  const size = board.length
+  for (const [dr, dc] of LINE_DIRS) {
+    let count = 1
+    let r = row + dr
+    let c = col + dc
+    while (r >= 0 && c >= 0 && r < size && c < size && board[r]![c] === player) {
+      count++
+      r += dr
+      c += dc
+    }
+    const open1 = r >= 0 && c >= 0 && r < size && c < size && board[r]![c] === 0
+    r = row - dr
+    c = col - dc
+    while (r >= 0 && c >= 0 && r < size && c < size && board[r]![c] === player) {
+      count++
+      r -= dr
+      c -= dc
+    }
+    const open2 = r >= 0 && c >= 0 && r < size && c < size && board[r]![c] === 0
+    if (count === 4 && open1 && open2) return true
   }
-  const n = findWinningMoves(board, player, rules, radius).length
-  board[move.row]![move.col] = 0
-  return n
+  return false
 }
 
-/** 活四点：落子后 ≥2 个胜点（对方挡不住） */
+/** 落子后形成活四的点 */
 export function findOpenFourMoves(
   board: number[][],
   player: AiPlayer,
   rules: RuleSetId = DEFAULT_RULE_SET,
   radius = NEIGHBOR_RADIUS
 ): AiMove[] {
-  return findFourThreatMoves(board, player, rules, radius).filter(
-    (m) => winningReplyCount(board, player, m, rules, radius) >= 2
-  )
+  const out: AiMove[] = []
+  for (const m of candidatePool(board, player, rules, radius)) {
+    if (board[m.row]![m.col] !== 0) continue
+    board[m.row]![m.col] = player
+    if (checkWinner(board, m.row, m.col, rules) === player) {
+      board[m.row]![m.col] = 0
+      continue
+    }
+    const ok = hasOpenFourThrough(board, m.row, m.col, player)
+    board[m.row]![m.col] = 0
+    if (ok) out.push(m)
+  }
+  return out
 }
 
 /**
- * 活三「成杀点」：落子后形成至少两个可走成活四的端点（典型双端活三 / 叉）。
- * 普通单活三预备点不算必防。
+ * 双活四叉：落子后盘面至少有两个不同的活四可走点（对方无法一手全堵）。
  */
 export function findForkThreeMoves(
   board: number[][],
@@ -188,11 +217,16 @@ export function findForkThreeMoves(
   radius = NEIGHBOR_RADIUS
 ): AiMove[] {
   const out: AiMove[] = []
-  for (const m of findOpenThreeMoves(board, player, rules, radius)) {
+  for (const m of candidatePool(board, player, rules, radius)) {
+    if (board[m.row]![m.col] !== 0) continue
     board[m.row]![m.col] = player
-    const openFourEnds = findOpenFourMoves(board, player, rules, radius).length
+    if (checkWinner(board, m.row, m.col, rules) === player) {
+      board[m.row]![m.col] = 0
+      continue
+    }
+    const openFours = findOpenFourMoves(board, player, rules, radius).length
     board[m.row]![m.col] = 0
-    if (openFourEnds >= 2) out.push(m)
+    if (openFours >= 2) out.push(m)
   }
   return out
 }
@@ -200,9 +234,9 @@ export function findForkThreeMoves(
 /**
  * 当前行棋方必须优先考虑的防守点（收紧，避免「假必防」）：
  * 1) 对方一步胜；
- * 2) 对方活四点（及活四后的胜点）——真活三两端，不含单缺口冲四如远处补子；
- * 3) 若无活四，则对方所有冲四点 + 胜点；
- * 4) 否则仅「双端活三/叉」成杀点（非所有活三预备点）。
+ * 2) 对方已有活四；
+ * 3) 对方「双活四叉」成杀点（如下 (7,4) 可同时造两点活四）——优先于散装冲四；
+ * 4) 否则对方冲四点（单冲四预备）。
  */
 export function listForcedReplies(
   board: number[][],
@@ -217,9 +251,12 @@ export function listForcedReplies(
   const openFours = findOpenFourMoves(board, opp, rules, radius)
   if (openFours.length > 0) {
     // 只堵活四落点（活三两端）；不要把「活四之后的胜点」也算进当前必防
-    // （否则会把缺口冲四点如 (5,5) 误当成与端点同等必防）
     return uniqueMoves(openFours)
   }
+
+  // 双活四 / 双杀叉：必须先占，否则对方一手造成两点活四
+  const forks = findForkThreeMoves(board, opp, rules, radius)
+  if (forks.length > 0) return uniqueMoves(forks)
 
   const fours = findFourThreatMoves(board, opp, rules, radius)
   if (fours.length > 0) {
@@ -232,7 +269,42 @@ export function listForcedReplies(
     return uniqueMoves(blocks)
   }
 
-  return uniqueMoves(findForkThreeMoves(board, opp, rules, radius))
+  return []
+}
+
+/**
+ * 在必防点中选「堵完后对方残留双活四叉最少」的点，避免随机抽到无效冲四格。
+ */
+export function pickBestForcedReply(
+  board: number[][],
+  toPlay: AiPlayer,
+  candidates: AiMove[],
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS
+): AiMove | null {
+  if (candidates.length === 0) return null
+  if (candidates.length === 1) return candidates[0]!
+  const opp = other(toPlay)
+  let best = candidates[0]!
+  let bestScore = Number.POSITIVE_INFINITY
+  const tied: AiMove[] = []
+  for (const m of candidates) {
+    if (board[m.row]![m.col] !== 0) continue
+    board[m.row]![m.col] = toPlay
+    const forksLeft = findForkThreeMoves(board, opp, rules, radius).length
+    const openLeft = findOpenFourMoves(board, opp, rules, radius).length
+    board[m.row]![m.col] = 0
+    const score = forksLeft * 100 + openLeft
+    if (score < bestScore) {
+      bestScore = score
+      best = m
+      tied.length = 0
+      tied.push(m)
+    } else if (score === bestScore) {
+      tied.push(m)
+    }
+  }
+  return tied[Math.floor(Math.random() * tied.length)] ?? best
 }
 
 /** 进攻威胁 ∪ 防守点，供搜索展开（不含全盘活三叉枚举，以免拖垮时限） */

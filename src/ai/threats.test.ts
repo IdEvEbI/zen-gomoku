@@ -5,6 +5,7 @@ import {
   findOpenThreeMoves,
   findForkThreeMoves,
   listForcedReplies,
+  pickBestForcedReply,
   findForcedWinMove,
 } from './threats'
 import { MinimaxAgent } from './MinimaxAgent'
@@ -180,6 +181,59 @@ describe('regression: zen-gomoku-2026-08-06-09-14-56 far move', () => {
       expect(ok).toBe(true)
     }
   }, 20_000)
+})
+
+describe('regression: zen-gomoku-2026-08-06-09-25-18 double open-four', () => {
+  const afterBlack84: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [8, 7, 2],
+    [6, 6, 1],
+    [8, 8, 2],
+    [6, 5, 1],
+    [6, 7, 2],
+    [7, 5, 1],
+    [5, 7, 2],
+    [9, 5, 1],
+    [8, 5, 2],
+    [8, 6, 1],
+    [10, 4, 2],
+    [6, 4, 1],
+    [5, 3, 2],
+    [8, 4, 1],
+  ]
+
+  it('(7,4) is a double open-four fork; forced set is forks only', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack84)
+    const forks = findForkThreeMoves(board, 1)
+    expect(forks.some((m) => m.row === 7 && m.col === 4)).toBe(true)
+    const forced = listForcedReplies(board, 2)
+    expect(forced.some((m) => m.row === 7 && m.col === 4)).toBe(true)
+    expect(forced.some((m) => m.row === 6 && m.col === 8)).toBe(false)
+  })
+
+  it('pickBestForcedReply prefers (7,3) over weak forks like (10,6)', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack84)
+    const forced = listForcedReplies(board, 2)
+    const best = pickBestForcedReply(board, 2, forced)
+    expect(best).not.toBeNull()
+    expect(best!.row).toBe(7)
+    expect(best!.col).toBe(3)
+  })
+
+  it('Tang prefers best fork block, never only (6,8)', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlack84)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 8; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).not.toBeNull()
+      expect(move!.row === 6 && move!.col === 8).toBe(false)
+      expect(move!.row).toBe(7)
+      expect(move!.col).toBe(3)
+    }
+  })
 })
 
 describe('Tang / Minimax threat integration', () => {

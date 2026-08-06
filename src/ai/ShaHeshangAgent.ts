@@ -14,7 +14,7 @@ import {
   DEFAULT_NEIGHBOR_RADIUS,
   URGENT_THREAT_SCORE,
 } from './evaluate'
-import { findWinningMoves, listForcedReplies } from './threats'
+import { findWinningMoves, listForcedReplies, pickBestForcedReply } from './threats'
 import { RandomAgent } from './RandomAgent'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
@@ -74,7 +74,10 @@ export class ShaHeshangAgent implements IAgent {
 
     const forced = listForcedReplies(work, player, this.rules)
     if (forced.length > 0) {
-      return this.pickBestAmong(work, player, forced)
+      return (
+        pickBestForcedReply(work, player, forced, this.rules) ??
+        this.pickBestAmong(work, player, forced)
+      )
     }
 
     const opp = (player === 1 ? 2 : 1) as 1 | 2

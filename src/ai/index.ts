@@ -19,6 +19,7 @@ export {
   findOpenThreeMoves,
   findForkThreeMoves,
   listForcedReplies,
+  pickBestForcedReply,
   listThreatCandidates,
   findForcedWinMove,
 } from './threats'

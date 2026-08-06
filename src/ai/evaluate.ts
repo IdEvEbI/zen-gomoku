@@ -8,7 +8,7 @@ import { isLegalMove } from '../core/forbiddenMoves'
 import { DEFAULT_RULE_SET, RULE_FREESTYLE, type RuleSetId } from '../core/rules'
 import type { AiMove, AiPlayer } from './types'
 import { listEmptyCells } from './types'
-import { findFourThreatMoves, findOpenThreeMoves, findWinningMoves } from './threats'
+import { findFourThreatMoves, findWinningMoves } from './threats'
 import { buildWinsCounts } from './winsTable'
 
 export const OPPONENT_SCORE = [0, 200, 400, 2000, 10000] as const
@@ -45,11 +45,10 @@ function shapeBonusForSide(
   player: AiPlayer,
   rules: RuleSetId,
   fourW: number,
-  threeW: number
+  _threeW: number
 ): number {
-  const fours = findFourThreatMoves(board, player, rules).length
-  const threes = findOpenThreeMoves(board, player, rules).length
-  return fours * fourW + threes * threeW
+  // 仅统计冲四档，避免叶子上反复跑 open-three（时限杀手）
+  return findFourThreatMoves(board, player, rules).length * fourW
 }
 
 /**

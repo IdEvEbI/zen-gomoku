@@ -235,7 +235,7 @@ export function listForcedReplies(
   return uniqueMoves(findForkThreeMoves(board, opp, rules, radius))
 }
 
-/** 进攻威胁 ∪ 防守点，供根节点优先展开 */
+/** 进攻威胁 ∪ 防守点，供搜索展开（不含全盘活三叉枚举，以免拖垮时限） */
 export function listThreatCandidates(
   board: number[][],
   toPlay: AiPlayer,
@@ -247,7 +247,6 @@ export function listThreatCandidates(
     ...listForcedReplies(board, toPlay, rules, radius),
     ...findOpenFourMoves(board, toPlay, rules, radius),
     ...findFourThreatMoves(board, toPlay, rules, radius),
-    ...findForkThreeMoves(board, toPlay, rules, radius),
   ])
 }
 
@@ -268,8 +267,8 @@ export function findForcedWinMove(
   if (wins.length > 0) return wins[0]!
 
   const attacks = uniqueMoves([
+    ...findOpenFourMoves(board, player, rules, radius),
     ...findFourThreatMoves(board, player, rules, radius),
-    ...findOpenThreeMoves(board, player, rules, radius),
   ])
 
   for (const m of attacks) {

@@ -99,11 +99,17 @@ export class MinimaxAgent implements IAgent {
       return instant[Math.floor(Math.random() * instant.length)]!
     }
 
-    // 对方活四 / 双端活三叉：根节点只在必防（及己方活四抢攻）中搜索
-    const mustReply = listForcedReplies(work, aiPlayer, this.rules, this.neighborRadius)
+    // 己方活四：抢攻（与对方活三并存时也优先，因本方先手可逼胜）
     const myOpenFours = findOpenFourMoves(work, aiPlayer, this.rules, this.neighborRadius)
-    const rootRestrict =
-      mustReply.length > 0 ? uniqueMoveList([...mustReply, ...myOpenFours]) : null
+    if (myOpenFours.length > 0) {
+      return myOpenFours[Math.floor(Math.random() * myOpenFours.length)]!
+    }
+
+    // 对方活四 / 双端活三叉：必须堵，不深搜、不跑威胁 DFS（防时限耗尽回退随机）
+    const mustReply = listForcedReplies(work, aiPlayer, this.rules, this.neighborRadius)
+    if (mustReply.length > 0) {
+      return mustReply[Math.floor(Math.random() * mustReply.length)]!
+    }
 
     if (this.threatSearchPly > 0) {
       const forced = findForcedWinMove(
@@ -125,7 +131,7 @@ export class MinimaxAgent implements IAgent {
 
     for (const depth of depths) {
       if (this.timedOut()) break
-      const result = this.searchRoot(work, aiPlayer, depth, rootRestrict)
+      const result = this.searchRoot(work, aiPlayer, depth, null)
       if (result) best = result
       await Promise.resolve()
     }
@@ -218,7 +224,7 @@ export class MinimaxAgent implements IAgent {
     }
 
     const player = nextPlayerFromBoard(board)
-    const moves = this.candidatesFor(board, player, null)
+    const moves = this.candidatesFor(board, player)
 
     if (moves.length === 0) {
       return evaluateBoard(board, aiPlayer, this.wins, this.winsCount, this.rules)
@@ -266,16 +272,4 @@ export class MinimaxAgent implements IAgent {
 
 function cloneBoard(board: number[][]): number[][] {
   return board.map((row) => row.slice())
-}
-
-function uniqueMoveList(moves: AiMove[]): AiMove[] {
-  const seen = new Set<string>()
-  const out: AiMove[] = []
-  for (const m of moves) {
-    const k = `${m.row},${m.col}`
-    if (seen.has(k)) continue
-    seen.add(k)
-    out.push(m)
-  }
-  return out
 }

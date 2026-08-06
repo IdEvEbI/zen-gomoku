@@ -142,6 +142,46 @@ describe('regression: zen-gomoku-2026-08-06-09-00-46', () => {
   })
 })
 
+describe('regression: zen-gomoku-2026-08-06-09-14-56 far move', () => {
+  /** 黑 (6,4) 后存在活四必防；(13,11) 为随机废棋 */
+  const afterBlack64: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [6, 7, 2],
+    [8, 6, 1],
+    [4, 5, 2],
+    [9, 5, 1],
+    [6, 8, 2],
+    [8, 5, 1],
+    [8, 9, 2],
+    [7, 5, 1],
+    [6, 5, 2],
+    [10, 4, 1],
+    [11, 3, 2],
+    [6, 4, 1],
+  ]
+
+  it('forced replies are open-four blocks near the fight', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack64)
+    const forced = listForcedReplies(board, 2)
+    expect(forced.some((m) => m.row === 5 && m.col === 3)).toBe(true)
+    expect(forced.some((m) => m.row === 9 && m.col === 7)).toBe(true)
+    expect(forced.some((m) => m.row === 13 && m.col === 11)).toBe(false)
+  })
+
+  it('Tang never plays far random; must block open four', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlack64)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 5; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).not.toBeNull()
+      const ok = (move!.row === 5 && move!.col === 3) || (move!.row === 9 && move!.col === 7)
+      expect(ok).toBe(true)
+    }
+  }, 20_000)
+})
+
 describe('Tang / Minimax threat integration', () => {
   it('Tang blocks open three', async () => {
     const agent = createAgentForDifficulty('tang')

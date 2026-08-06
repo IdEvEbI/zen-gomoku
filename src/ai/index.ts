@@ -18,6 +18,8 @@ export {
   findOpenFourMoves,
   findOpenThreeMoves,
   findForkThreeMoves,
+  listHardForcedReplies,
+  listSoftDefenseCandidates,
   listForcedReplies,
   pickBestForcedReply,
   listThreatCandidates,

@@ -1,107 +1,126 @@
 # Issue 清单与开发路线（Backlog）
 
-## 文档说明与命名
+> **产品决策**：[product-vision.md](../design/product-vision.md)（2026-08-07）。  
+> **棋力**：[strength-roadmap.md](../design/strength-roadmap.md)。  
+> **内容**：[content-sources.md](../design/content-sources.md)。
 
-本文档是项目的 **Issue Backlog**（待办事项清单）。
+## 文档说明
 
-- **Backlog** 含义：在敏捷/看板中指「待办工作列表」——已确认要做、但尚未排进当前迭代的任务池。此处特指「计划在 GitHub 上创建为 Issue 的开发任务」。
-- **为何用此命名**：`issue-backlog` 表示「Issue 的待办清单」，与 `requirements`（需求）、`design`（设计）区分：需求与设计描述「做什么、怎么做」，backlog 则把其拆成可执行、可关闭的单个 Issue，便于排期、认领与追踪。
-- **依据**：本清单由 [功能规格](requirements/functional-spec.md) 与 [技术架构](design/technical-architecture.md) 拆解而来，每个 Issue 可对应到 F-REQ 编号或架构模块。
-
----
-
-## 如何使用
-
-1. 在 GitHub 仓库 **Issues** 中点击 **New issue**。
-2. 从下表复制 **标题** 和 **描述** 到新 Issue；描述中可注明对应 F-REQ 或模块。
-3. 可选：设置 **Labels**（如 `enhancement`、`game-logic`、`ui`、`documentation`）、**Milestone**（见文末）。
-4. 开发时从对应 Issue 建分支（如 `feature/board-renderer`），PR 合并时在描述中写 `Closes #<Issue 编号>`。
-5. **Issue 编号**：Backlog 表格中的 #1、#2… 为文档内序号；GitHub 上的 Issue 编号由仓库全局递增（如 #17、#18），不会与之一一对应。PR 中请使用**实际创建的 GitHub Issue 编号**（如 `Closes #17`）。创建 Issue 时可在描述中注明「Backlog §1.1 项 1」便于对照。
+- 本文是「计划创建 / 已创建 GitHub Issue」的待办池。
+- Backlog 内 **§编号** 与 GitHub Issue **#编号** 不必一一对应；PR 请写实际 `#n`。
+- **当前优先级**：棋力 VCF/VCT → 四级人设 → 打谱/练习 → 小程序壳 →  
+  人人与段位 → ML 如来。
 
 ---
 
-## 一、v0.1 基础对局（P0）
+## 里程碑总览
 
-对应功能规格 2.1 核心玩法、2.2 多端与交互；对应架构展示层 + 逻辑层 + 状态层。
+| Milestone               | 窗口（约） | 交付                                                   |
+| ----------------------- | ---------- | ------------------------------------------------------ |
+| **M1 棋力与练习（H5）** | 0～3 月    | VCF/VCT、四级人设、26 开局打谱、练习雏形、公开引擎评测 |
+| **M2 小程序壳**         | ~3 月节点  | 微信+手机号登录、人机/打谱、音频、激励视频（插屏关）   |
+| **M3 人人与段位**       | ~6 月      | 房间+匹配、观战、断线重连、排位段位（好友不计）        |
+| **M4 增长与 IP**        | 上线后     | 广告迭代、软著/专利（门禁后）                          |
+| **M5 如来与论文**       | 产品稳定后 | ONNX + 如来佛；论文（不赶工）                          |
 
-### 1.1 棋盘与渲染（Core / Renderer）
-
-| #   | 标题                             | 描述                                                                                                                                                                                                         | 对应                 |
-| --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
-| 1   | **feat: 15×15 棋盘 Canvas 绘制** | 在 `src/renderer/` 实现：使用 Canvas 2D 绘制 15×15 格线，支持响应式尺寸。`scale = min(containerWidth, containerHeight) / 15`，逻辑尺寸 × scale 得到像素坐标。暴露 `drawBoard()`、`clear()`。可先写死 15×15。 | F-REQ-001, F-REQ-007 |
-| 2   | **feat: 坐标换算与落点映射**     | 在 `src/renderer/` 或 `src/core/` 实现：`pixelToLogical(x, y)`、`logicalToPixel(row, col)`，依赖容器与 scale。点击/触摸坐标 → 减偏移、除 scale → 四舍五入到最近交点 → (row, col)。供绘制与点击判定共用。     | 架构 2.2、2.3        |
-| 3   | **feat: 棋子绘制（黑/白）**      | 在 `src/renderer/` 暴露 `drawPiece(row, col, color)`，在交点绘制黑/白圆形。数据来源为 Pinia store 的 `board`，渲染层不持有状态，仅根据当前状态重绘。                                                         | F-REQ-002            |
-
-### 1.2 游戏逻辑与状态（Core / Stores）
-
-| #   | 标题                                  | 描述                                                                                                                                                                                                                                         | 对应                           |
-| --- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| 4   | **feat: 棋盘状态与落子逻辑（Pinia）** | 在 `src/stores/` 实现 `useGameStore`：状态含 `board: number[][]`（0 空 1 黑 2 白）、`currentPlayer`、`history`、`status`。落子前校验空位与当前玩家；非法落子不写 `history`，返回或派发提示。落子时 push `history` 并更新 `board`、切换玩家。 | F-REQ-002, F-REQ-004；架构 3.1 |
-| 5   | **feat: 胜负判定**                    | 在 `src/core/` 实现：给定棋盘与最后落子位置，沿横、竖、两斜四向检测五子连珠，返回赢家或 null。无禁手规则。与 store 集成：落子后调用，若返回赢家则更新 `status` 结束对局。需单元测试覆盖。                                                    | F-REQ-003                      |
-| 6   | **feat: 对局结束与重新开始**          | 一方获胜后展示结果（文案或简单弹层），提供「重新开始」清空棋盘并重置 store 状态。和棋逻辑可选（棋盘满且无五连）。                                                                                                                            | F-REQ-004                      |
-
-### 1.3 交互与多端（View 绑定）
-
-| #   | 标题                           | 描述                                                                                                                                                                                                | 对应                 |
-| --- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| 7   | **feat: 鼠标与触摸落子统一**   | 在棋盘容器上统一监听 `pointerdown`（或分别 `mousedown` + `touchstart`），将事件坐标传入同一套「物理坐标 → (row,col)」逻辑，再调用 store 落子。仅允许有效格点落子。PC / Mobile H5 / 微信内一致行为。 | F-REQ-005, F-REQ-006 |
-| 8   | **feat: 响应式布局与棋盘适配** | 随视口或容器宽高变化，重新计算 scale 并重绘棋盘；竖屏/横屏下均可正常对局。与 Issue 1 的响应式尺寸配合验收。                                                                                         | F-REQ-007            |
+历史 Milestone（v0.1～v0.3 基础对局/棋谱/AI）已在 `develop` 交付，  
+本节不再展开；旧表见 git 历史。
 
 ---
 
-## 二、v0.2 棋谱与复盘（P1）
+## 已关闭 / 已合入（近期）
 
-对应功能规格 2.4 棋谱与复盘；架构状态层 `history` 与复盘索引。
+| GitHub                                                                                                           | 说明                             |
+| ---------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| [#66](https://github.com/IdEvEbI/zen-gomoku/issues/66) / PR [#68](https://github.com/IdEvEbI/zen-gomoku/pull/68) | 唐僧威胁搜索 + 形分 + rootPolicy |
+| [#54](https://github.com/IdEvEbI/zen-gomoku/issues/54)                                                           | 中国规则禁手 + 规则切换          |
+| [#58](https://github.com/IdEvEbI/zen-gomoku/issues/58)                                                           | 老师棋谱导出                     |
+| [#64](https://github.com/IdEvEbI/zen-gomoku/issues/64)                                                           | 活三必应                         |
+| [#51](https://github.com/IdEvEbI/zen-gomoku/issues/51)                                                           | 悔棋                             |
 
-| #   | 标题                     | 描述                                                                                                                                                                   | 对应                 |
-| --- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| 9   | **feat: 保存与加载棋谱** | 对局可导出为 SGF 或项目自定义 JSON（如 `{ moves: [{r,c,player}] }`）；从文件/存储加载并恢复 `board` 与 `history`。存储通过适配层抽象（Web：localStorage 或后端 API）。 | F-REQ-008, F-REQ-009 |
-| 10  | **feat: 复盘回放**       | 按步数回放：使用 `displayHistoryIndex`，渲染时只绘制 `history.slice(0, displayHistoryIndex)` 的棋子。支持前进/后退/暂停，不修改 `history` 本身。                       | F-REQ-010；架构 3.2  |
-
----
-
-## 三、v0.3 AI 与体验（可选）
-
-> **状态（2026-08-04）**：项 11～12 与相关体验 Issue 已合入 `develop`；项 13 为本轮文档同步（#49）。下文「四、后续」中 Minimax 亦已作为 Phase 2 交付，见 [ai-agents.md](../design/ai-agents.md)。
-
-对应功能规格 2.3 AI Phase 1、非功能中的体验；架构 AI 层。
-
-| #   | 标题                               | 描述                                                                                                                                                                      | 对应                      |
-| --- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
-| 11  | **feat: AI 接口与随机/规则 Agent** | 定义 `IAgent.getNextMove(board): Promise<{ row, col } \| null>`。实现 `src/ai/RandomAgent.ts`（或简单规则），人机对战时由 store 调用当前 Agent 获取落子并写入 `history`。 | F-REQ 2.3 Phase 1；架构 4 |
-| 12  | **feat: 落子反馈（音效/动效）**    | 落子时轻量动效（如缩放）或短音效；资源放 `src/assets`，按需加载。可选。                                                                                                   | 非功能体验                |
-| 13  | **docs: 同步需求与设计文档**       | 根据已实现功能更新 `docs/requirements/functional-spec.md` 与 `docs/design/technical-architecture.md`（若有偏差），补充规则说明、模块职责与接口约定。                      | 文档维护                  |
+开放中的训练仓：[#60](https://github.com/IdEvEbI/zen-gomoku/issues/60)（zen-gomoku-ml）→  
+排入 **M5**，不挡 M1。
 
 ---
 
-## 四、后续（Backlog 保留）
+## M1 — 棋力与练习（H5）· 当前主战场
 
-> **AlphaZero 风格路线（2026-08-05）**：设计见 [alphazero-lite.md](../design/alphazero-lite.md)。已定：独立训练仓；**自由 + 禁手两套规则并存**；**两个模型各训各用**。棋力分层与「纯模仿降为过渡」见 [strength-roadmap.md](../design/strength-roadmap.md)。R0 [#54](https://github.com/IdEvEbI/zen-gomoku/issues/54)、R1 [#58](https://github.com/IdEvEbI/zen-gomoku/issues/58)（已关）；R2 [#60](https://github.com/IdEvEbI/zen-gomoku/issues/60)。
-
-| #   | 标题                                | 描述                                                                                                                                                                                                                    | 对应                 |
-| --- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| —   | **feat: Minimax + Alpha-Beta AI**   | ~~实现 Minimax~~ — 已合入（见 [ai-agents.md](../design/ai-agents.md)）。                                                                                                                                                | Phase 2（已完成）    |
-| —   | **feat: 中国规则禁手 + 规则切换**   | 三三 / 四四 / 长连（仅黑）；与自由模式并存；规格 + 单测 + AI 走法过滤；禁手红叉。 → **[#54](https://github.com/IdEvEbI/zen-gomoku/issues/54)**                                                                          | alphazero-lite R0    |
-| —   | **feat: 老师棋谱导出（双规则）**    | **唐僧 vs 唐僧**批量互打；自由/禁手分套导出（带 `rules`）；开局扰动 + 可选花月/浦月等种子。 → **[#58](https://github.com/IdEvEbI/zen-gomoku/issues/58)**                                                                | alphazero-lite R1    |
-| —   | **chore: 新建 zen-gomoku-ml**       | 独立训练仓；`rules` 参数化；先自由后禁手两套模仿模型与 ONNX。 → **[#60](https://github.com/IdEvEbI/zen-gomoku/issues/60)**                                                                                              | alphazero-lite R2    |
-| —   | **feat: AlphaZeroAgent 按规则加载** | 本仓按当前规则加载对应 ONNX；人机可选；不上训练。                                                                                                                                                                       | alphazero-lite R3    |
-| —   | **feat: 自对弈闭环（可选）**        | 两套规则各自自对弈 + 擂台；产物回灌本仓。                                                                                                                                                                               | alphazero-lite R4    |
-| —   | **feat: 悔棋**                      | 从 `history` pop；人人 1 手、人机人+AI；恢复 board / 行棋方 / 终局状态。 → **[#51](https://github.com/IdEvEbI/zen-gomoku/issues/51)**                                                                                   | 架构 3.1             |
-| —   | **fix: 活三必应（猪八戒/沙和尚）**  | 开局软随机 / Top-K 失误不得漏堵活三；`URGENT_THREAT_SCORE` 门槛 + 攻防累加评分；单测覆盖斜向活三。 → **[#64](https://github.com/IdEvEbI/zen-gomoku/issues/64)**                                                         | AI 体验 / 棋力       |
-| —   | **feat: 唐僧威胁搜索 + 形分**       | P0：威胁模块 + 评估形分 + 单测；规格 [tang-seng-strength.md](../design/tang-seng-strength.md)；策略 [strength-roadmap.md](../design/strength-roadmap.md)。 → **[#66](https://github.com/IdEvEbI/zen-gomoku/issues/66)** | 棋力 P0              |
-| —   | **feat: 小程序/小游戏适配**         | 逻辑层复用 `src/core/`；视图与存储通过适配层对接小程序 setData / Canvas / 本地存储或云开发。                                                                                                                            | F-REQ-011, F-REQ-012 |
+| #    | GitHub                                                 | 标题                         | 描述                                   |
+| ---- | ------------------------------------------------------ | ---------------------------- | -------------------------------------- |
+| M1.1 | [#69](https://github.com/IdEvEbI/zen-gomoku/issues/69) | **feat: 完整 VCF 求解器**    | 连续冲四杀/防；根优先；单测 + 回归     |
+| M1.2 | [#70](https://github.com/IdEvEbI/zen-gomoku/issues/70) | **feat: VCT 威胁搜索**       | 连续威胁取胜/防守；唐僧默认最强        |
+| M1.3 | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71) | **feat: 四级人设重做**       | 沙=噪声；猪守；悟攻；唐均衡最强        |
+| M1.4 | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72) | **feat: Agent 预留如来佛**   | `rulai` 占位；无模型不可选             |
+| M1.5 | [#73](https://github.com/IdEvEbI/zen-gomoku/issues/73) | **feat: 26 开局打谱 UI**     | 坐标+续着+原创讲解；见 content-sources |
+| M1.6 | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) | **feat: VCF/VCT 练习题包**   | JSON 题包 + 求解器验题 CI              |
+| M1.7 | [#75](https://github.com/IdEvEbI/zen-gomoku/issues/75) | **docs/chore: 引擎公开评测** | 唐僧 vs gobang / Rapfi                 |
+| M1.8 | [#76](https://github.com/IdEvEbI/zen-gomoku/issues/76) | **feat: 音频（H5）**         | BGM 可关 + 落子音效                    |
 
 ---
 
-## 建议 Milestone 与 Labels
+## M2 — 微信小程序壳（~3 月对外）
 
-| Milestone             | 包含 Issue | 说明                                 |
-| --------------------- | ---------- | ------------------------------------ |
-| **v0.1 - 基础对局**   | 1～8       | 棋盘、落子、胜负、重新开始、多端交互 |
-| **v0.2 - 棋谱与复盘** | 9～10      | 保存/加载、回放                      |
-| **v0.3 - AI 与体验**  | 11～13     | AI Phase 1、动效/音效、文档同步      |
-| **Backlog**           | 四中项     | 按需创建 Issue                       |
+| #    | 标题                             | 描述                                                       | 对应       |
+| ---- | -------------------------------- | ---------------------------------------------------------- | ---------- |
+| M2.1 | **feat: 小程序工程与核心复用**   | 逻辑复用 `src/core` / `src/ai`；视图适配；构建与发布流水线 | F-REQ-011  |
+| M2.2 | **feat: 微信登录 + 手机号**      | 无游客；会话与资料存储（云开发或自建）                     | product §2 |
+| M2.3 | **feat: 人机 / 打谱 / 练习迁端** | M1 能力在小程序可玩                                        | M1 依赖    |
+| M2.4 | **feat: 激励视频广告（可选）**   | 插屏**默认关**；激励换悔棋/皮肤等；可关广告体验开关        | product §2 |
+| M2.5 | **chore: 合规文案与隐私**        | 隐私政策、未成年人与广告说明；无集团/学院导流话术          | product §5 |
 
-**Labels 建议**：`enhancement`（功能）、`game-logic`（规则/状态）、`ui`（渲染/交互）、`documentation`（文档）、`good first issue`（如 1、2、5）。
+---
 
-按上述顺序创建 Issue 并完成，即可与功能规格、技术架构保持一致；后续新需求可继续在本文档「四、后续」或新章节追加，再在 GitHub 建对应 Issue。
+## M3 — 人人在线与段位（~6 月）
+
+| #    | 标题                           | 描述                                                       | 对应       |
+| ---- | ------------------------------ | ---------------------------------------------------------- | ---------- |
+| M3.1 | **feat: 房间（邀请码）+ 匹配** | 自建 Node 或云开发；状态机清晰                             | product §2 |
+| M3.2 | **feat: 观战**                 | 只读同步；延迟与权限                                       | product §2 |
+| M3.3 | **feat: 断线重连**             | 短断续局；超时判负规则文档化                               | product §2 |
+| M3.4 | **feat: 排位段位系统**         | **仅排位计分**；好友局不计；体感偏象棋段位；公式另开设计页 | product §2 |
+| M3.5 | **feat: 禁手设置（产品默认）** | 默认自由；设置开禁手；人机/人人一致                        | product §2 |
+
+---
+
+## M4 — 增长与知识产权
+
+| #    | 标题                      | 描述                                                       | 对应       |
+| ---- | ------------------------- | ---------------------------------------------------------- | ---------- |
+| M4.1 | **chore: 软著材料**       | **数科院主体门禁通过后**再填报；个人仓库与职务成果口径一致 | product §5 |
+| M4.2 | **chore: 专利可行性评估** | 威胁/双规则训练等是否具备权利要求；不硬凑                  | product §5 |
+| M4.3 | **feat: 广告与留存迭代**  | 在不影响对局的前提下调激励点；数据复盘                     | product §2 |
+
+---
+
+## M5 — 如来佛与论文（不挡上线）
+
+| #    | GitHub                                                 | 标题                     | 描述                               |
+| ---- | ------------------------------------------------------ | ------------------------ | ---------------------------------- |
+| M5.1 | [#60](https://github.com/IdEvEbI/zen-gomoku/issues/60) | **chore: zen-gomoku-ml** | 强老师 + 自对弈；已挂 Milestone M5 |
+| M5.2 | （待开）                                               | **feat: 如来佛 Agent**   | ONNX + 唐僧搜索                    |
+| M5.3 | （待开）                                               | **docs: 论文大纲**       | 数科院第一单位（门禁后）；不赶工   |
+
+---
+
+## 建议 Labels
+
+`engine`（VCF/VCT）、`ai-persona`、`practice`、`miniprogram`、`multiplayer`、  
+`rating`、`compliance`、`documentation`、`ml`
+
+---
+
+## 如何开 Issue
+
+1. 从本表复制标题与描述 → GitHub New Issue。
+2. Milestone 选 M1～M5（仓库已建）。
+3. 开发分支 `feature/...`，PR 写 `Closes #n`。
+4. **下一刀建议**：从 [#69](https://github.com/IdEvEbI/zen-gomoku/issues/69) VCF 开工。
+
+---
+
+## 修订记录
+
+| 日期       | 说明                              |
+| ---------- | --------------------------------- |
+| （历史）   | v0.1～v0.3 与早期 Backlog         |
+| 2026-08-07 | 按产品愿景重排为 M1～M5；棋力优先 |

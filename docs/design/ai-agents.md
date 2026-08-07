@@ -81,7 +81,7 @@ interface IAgent {
 | 1    | 沙和尚 | **明显更弱** | 启发 Top-K 抽样；**必应**一步胜/`listForcedReplies`；从不在全盘瞎下 |
 | 2    | 猪八戒 | **≈ 启发**   | `HeuristicAgent`（形分 + 必应，0 层搜索）                           |
 | 3    | 孙悟空 | **明显更强** | Minimax + α-β，浅深度；共用威胁候选排序                             |
-| 4    | 唐僧   | **再强一档** | 更深搜索 + 短威胁 DFS + 威胁优先候选；硬时限                        |
+| 4    | 唐僧   | **再强一档** | 更深搜索 + **VCF** + 威胁优先候选；硬时限                           |
 
 默认等级建议：**猪八戒**（与当前人机体感接近，便于对比）。
 
@@ -94,12 +94,12 @@ interface IAgent {
 
 ### 3.2 已定参数（#44 + #66）
 
-| 等级   | Agent             | 关键参数                                                                                          |
-| ------ | ----------------- | ------------------------------------------------------------------------------------------------- |
-| 沙和尚 | `ShaHeshangAgent` | Top-K=`4`，`bestMoveChance=0.55`；必应一步胜/`listForcedReplies`；无全盘随机                      |
-| 猪八戒 | `HeuristicAgent`  | 0 层赢法启发 + 形分；必应同上                                                                     |
-| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`candidateLimit=12`，`timeLimitMs=180`；威胁候选优先；无威胁 DFS                    |
-| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + 迭代加深，`candidateLimit=16`，`timeLimitMs=1000`，`threatSearchPly=8`，软根含对杀 |
+| 等级   | Agent             | 关键参数                                                                                                        |
+| ------ | ----------------- | --------------------------------------------------------------------------------------------------------------- |
+| 沙和尚 | `ShaHeshangAgent` | Top-K=`4`，`bestMoveChance=0.55`；必应一步胜/`listForcedReplies`；无全盘随机                                    |
+| 猪八戒 | `HeuristicAgent`  | 0 层赢法启发 + 形分；必应同上                                                                                   |
+| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`candidateLimit=12`，`timeLimitMs=180`；威胁候选优先；无威胁 DFS                                  |
+| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + 迭代加深，`candidateLimit=16`，`timeLimitMs=1000`，`vcfMaxPly=12`，`vcfBudgetMs=400`，软根含对杀 |
 
 默认等级：**猪八戒**。切换等级仅影响后续 AI 手数（不强制重开）。
 
@@ -113,13 +113,13 @@ interface IAgent {
 
 ### 4.2 算法骨架
 
-1. **根节点**：由 `rootPolicy.planRootPhase` 统一决策——一步胜 / 硬必防 / 己方活四 / 叉对杀抢攻 / 短威胁 DFS；**活三（可成活四）直接兼攻最优挡**；其余软威胁「挡∪攻」αβ + 防守底线。
+1. **根节点**：由 `rootPolicy.planRootPhase` 统一决策——一步胜 / 硬必防 / 己方活四 / 叉对杀抢攻；**活三（可成活四）直接兼攻最优挡**；无软威胁时深层 **VCF**（[vcf.md](./vcf.md)）；其余软威胁「挡∪攻」αβ + 防守底线。
 2. **走法生成**：`listThreatCandidates`（胜/硬软防守/冲四/叉）优先，再 `listOrderedCandidates` 启发补齐；威胁点截断前必留。
 3. **递归**：交替落子；α-β 剪枝；触达深度或终局停止；层内同样威胁优先。
 4. **叶子评估**：赢法计数分 + 形分（冲四/活三数量加权）。
 5. **终局**：己方五连 → +∞ 档；对方五连 → −∞ 档。
 
-模块：`src/ai/threats.ts`（形定义与强迫着法，见 [tang-seng-strength.md](./tang-seng-strength.md)）。
+模块：`src/ai/threats.ts`、`src/ai/vcf.ts`（见 [tang-seng-strength.md](./tang-seng-strength.md)、[vcf.md](./vcf.md)）。
 
 ### 4.3 与现版启发的关系
 
@@ -127,7 +127,7 @@ interface IAgent {
 次优抽样 + 必应威胁     → 沙和尚
 Heuristic + 形分        → 猪八戒（基准）
 形分评估 + 浅搜         → 孙悟空
-形分评估 + 深搜 + 威胁DFS → 唐僧
+形分评估 + 深搜 + VCF → 唐僧
 ```
 
 同一套评估函数贯穿 Phase 1～2，降低「搜索更深反而棋风突变」的风险。
@@ -183,19 +183,21 @@ Phase 3（预留）：`AlphaZeroAgent`，仍实现 `IAgent`，与本文四级正
 
 - [x] `threats` 单测：冲四必挡、活三必应、一步胜优先
 - [x] 唐僧对活三 / 活四强迫局面选出正确点
-- [x] 唐僧参数：depth 6 / 1000ms / candidate 16 / threatSearchPly 8；软根含对杀
+- [x] 唐僧参数：depth 6 / 1000ms / candidate 16 / vcfMaxPly 12 / vcfBudgetMs 400；软根含对杀
 - [x] 沙/猪复用 `listForcedReplies`；悟空参数未升
 
 ---
 
 ## 修订记录
 
-| 日期       | 说明                                                  |
-| ---------- | ----------------------------------------------------- |
-| 2026-08-04 | 初稿：记录 Heuristic 现状与四级 + Minimax 设计契约    |
-| 2026-08-04 | 实现回填：Sha/Zhu/Wukong/Tang 参数与文件表            |
-| 2026-08-04 | 沙和尚去掉全盘随机：改为次优抽样 + 必应四连           |
-| 2026-08-04 | 文档同步：标注已上线；补充先后手 humanFirst（#49）    |
-| 2026-08-05 | 链到 alphazero-lite 草案（禁手 + 小模型，未开发）     |
-| 2026-08-06 | #66：威胁模块 + 形分；唐僧 depth/时限/threatSearchPly |
-| 2026-08-06 | 三刀调优：软根对杀、叶子活三/叉形分、唐僧 6×1000ms    |
+| 日期       | 说明                                                   |
+| ---------- | ------------------------------------------------------ |
+| 2026-08-04 | 初稿：记录 Heuristic 现状与四级 + Minimax 设计契约     |
+| 2026-08-04 | 实现回填：Sha/Zhu/Wukong/Tang 参数与文件表             |
+| 2026-08-04 | 沙和尚去掉全盘随机：改为次优抽样 + 必应四连            |
+| 2026-08-04 | 文档同步：标注已上线；补充先后手 humanFirst（#49）     |
+| 2026-08-05 | 链到 alphazero-lite 草案（禁手 + 小模型，未开发）      |
+| 2026-08-06 | #66：威胁模块 + 形分；唐僧 depth/时限/threatSearchPly  |
+| 2026-08-06 | 三刀调优：软根对杀、叶子活三/叉形分、唐僧 6×1000ms     |
+| 2026-08-07 | #69：`vcf.ts`；唐僧 `vcfMaxPly=12` / `vcfBudgetMs=400` |
+| 2026-08-07 | 链到 [vcf.md](./vcf.md)；根相位描述与实现对齐          |

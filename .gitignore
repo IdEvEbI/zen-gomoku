@@ -15,6 +15,9 @@ dist-ssr
 # 老师棋谱批量导出产物（本地生成，不入库）
 data/teacher/
 
+# 本地临时目录（正式测试棋谱用 fixtures/records/）
+tmp/
+
 # Husky (internal scripts, recreated on npm install)
 .husky/_
 

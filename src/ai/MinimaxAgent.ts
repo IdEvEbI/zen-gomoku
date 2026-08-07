@@ -2,7 +2,7 @@
  * Minimax + Alpha-Beta
  * - 叶子：赢法启发 + 形分
  * - 根节点策略：`rootPolicy`（短路 / 软根对杀候选 / 防守底线）
- * - 唐僧：迭代加深 + 短威胁 DFS；时限内返回当前最佳
+ * - 唐僧：迭代加深 + VCF；时限内返回当前最佳
  */
 
 import { checkWinner } from '../core'
@@ -31,9 +31,13 @@ export interface MinimaxAgentOptions {
   boardSize?: number
   /** 是否迭代加深（时限内尽量加深） */
   iterativeDeepening?: boolean
-  /** 根节点短威胁 DFS 半步上限；0 关闭 */
+  /** 根节点 VCF 半步上限；0 关闭 */
+  vcfMaxPly?: number
+  /** VCF 最多占用的时限（ms）；0 表示不单独截断 */
+  vcfBudgetMs?: number
+  /** @deprecated 使用 vcfMaxPly */
   threatSearchPly?: number
-  /** 短威胁 DFS 最多占用的时限（ms）；0 表示不单独截断 */
+  /** @deprecated 使用 vcfBudgetMs */
   threatSearchBudgetMs?: number
   /** 软威胁根候选上限（挡点 + 进攻） */
   softRootLimit?: number
@@ -48,8 +52,8 @@ export class MinimaxAgent implements IAgent {
   private readonly candidateLimit: number
   private readonly neighborRadius: number
   private readonly iterativeDeepening: boolean
-  private readonly threatSearchPly: number
-  private readonly threatSearchBudgetMs: number
+  private readonly vcfMaxPly: number
+  private readonly vcfBudgetMs: number
   private readonly softRootLimit: number
   private readonly boardSize: number
   private readonly rules: RuleSetId
@@ -64,8 +68,8 @@ export class MinimaxAgent implements IAgent {
     this.candidateLimit = options.candidateLimit ?? 12
     this.neighborRadius = options.neighborRadius ?? DEFAULT_NEIGHBOR_RADIUS
     this.iterativeDeepening = options.iterativeDeepening ?? false
-    this.threatSearchPly = options.threatSearchPly ?? 0
-    this.threatSearchBudgetMs = options.threatSearchBudgetMs ?? 250
+    this.vcfMaxPly = options.vcfMaxPly ?? options.threatSearchPly ?? 0
+    this.vcfBudgetMs = options.vcfBudgetMs ?? options.threatSearchBudgetMs ?? 250
     this.softRootLimit = options.softRootLimit ?? 16
     this.boardSize = options.boardSize ?? 15
     this.rules = options.rules ?? DEFAULT_RULE_SET
@@ -95,17 +99,15 @@ export class MinimaxAgent implements IAgent {
 
     const work = board.map((row) => row.slice())
 
-    const threatBudgetEnd =
-      this.threatSearchBudgetMs > 0
-        ? Math.min(this.deadline, Date.now() + this.threatSearchBudgetMs)
-        : this.deadline
+    const vcfBudgetEnd =
+      this.vcfBudgetMs > 0 ? Math.min(this.deadline, Date.now() + this.vcfBudgetMs) : this.deadline
 
     const phase = planRootPhase(work, aiPlayer, {
       rules: this.rules,
       radius: this.neighborRadius,
       softRootLimit: this.softRootLimit,
-      threatSearchPly: this.threatSearchPly,
-      shouldAbortThreat: () => Date.now() >= threatBudgetEnd || this.timedOut(),
+      vcfMaxPly: this.vcfMaxPly,
+      shouldAbortVcf: () => Date.now() >= vcfBudgetEnd || this.timedOut(),
     })
 
     if (phase.type === 'terminal') return phase.move

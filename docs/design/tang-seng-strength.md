@@ -3,23 +3,23 @@
 > **仓库**：zen-gomoku。古典增强路径；**不要**指望 zen-gomoku-ml 的 ONNX 模仿短期替代唐僧。  
 > **实现 PR**：[\#68](https://github.com/IdEvEbI/zen-gomoku/pull/68)（威胁 / 形分 / 根策略迭代）。相关总览见 [ai-agents.md](./ai-agents.md)、路线图 [strength-roadmap.md](./strength-roadmap.md)。
 
-| 项       | 内容                                                               |
-| -------- | ------------------------------------------------------------------ |
-| 状态     | **已落地**（`feature/tang-threat-search` → PR \#68）               |
-| 目标     | 认真下也很难赢「唐僧」；freestyle；H5 有硬时限仍可玩               |
-| 非目标   | 数学「无敌」；完整职业 VCF/VCT 引擎；本阶段神经网络当唐僧          |
-| 能力边界 | 短威胁 DFS ≈ 浅层冲四强迫；**不是**完整 VCT；无置换表 / 无持久计划 |
+| 项       | 内容                                                                                             |
+| -------- | ------------------------------------------------------------------------------------------------ |
+| 状态     | **已落地**（`feature/tang-threat-search` → PR \#68）                                             |
+| 目标     | 认真下也很难赢「唐僧」；freestyle；H5 有硬时限仍可玩                                             |
+| 非目标   | 数学「无敌」；完整职业 VCF/VCT 引擎；本阶段神经网络当唐僧                                        |
+| 能力边界 | **VCF**（详见 [vcf.md](./vcf.md)）；短威胁 DFS 已由 VCF 接替根路径；**不是**完整 VCT；无持久计划 |
 
 ---
 
 ## 1. 四级难度（与代码一致）
 
-| 等级   | 实现              | 参数（`difficulty.ts`）                                                                                                         |
-| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 沙和尚 | `ShaHeshangAgent` | Top-K + `listForcedReplies` 必应                                                                                                |
-| 猪八戒 | `HeuristicAgent`  | 赢法启发 + 形分；`listForcedReplies`                                                                                            |
-| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`timeLimitMs=180`，`candidateLimit=12`；无威胁 DFS                                                                |
-| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + ID，`timeLimitMs=1000`，`candidateLimit=16`，`threatSearchPly=8`，`threatSearchBudgetMs=280`，`softRootLimit=16` |
+| 等级   | 实现              | 参数（`difficulty.ts`）                                                                                           |
+| ------ | ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 沙和尚 | `ShaHeshangAgent` | Top-K + `listForcedReplies` 必应                                                                                  |
+| 猪八戒 | `HeuristicAgent`  | 赢法启发 + 形分；`listForcedReplies`                                                                              |
+| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`timeLimitMs=180`，`candidateLimit=12`；无威胁 DFS                                                  |
+| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + ID，`timeLimitMs=1000`，`candidateLimit=16`，`vcfMaxPly=12`，`vcfBudgetMs=400`，`softRootLimit=16` |
 
 开局：`openingBook.ts`（花月/浦月/斜二等 + 八对称）——改善开局单调，**不**解决中盘战术洞。
 
@@ -28,20 +28,23 @@
 ## 2. 模块职责（架构）
 
 ```txt
-difficulty.ts          → 创建 → Agent
+difficulty.ts          → 配置 → Agent
 MinimaxAgent.ts        → αβ / 时限 / 候选展开（不堆根特例）
 rootPolicy.ts          → 根相位：何时短路、搜什么、如何与防守底线合并
-threats.ts             → 形检测、硬/软防、择优、短威胁 DFS
+threats.ts             → 形检测、硬/软防、择优
+vcf.ts                 → VCF 求解（连续冲四；守方只堵胜点）→ 详见 vcf.md
 evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 ```
 
-| 路径                     | 职责                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------- |
-| `src/ai/threats.ts`      | 胜 / 冲四 / 活四端 / 活三 / 叉；硬软防；`scoreForcedReply`；`findForcedWinMove` |
-| `src/ai/rootPolicy.ts`   | `planRootPhase` / `pickForkRaceMove` / `resolveSearchWithDefenseFloor`          |
-| `src/ai/MinimaxAgent.ts` | 迭代加深 αβ；调用 rootPolicy；超时返回当前最佳                                  |
-| `src/ai/evaluate.ts`     | `evaluateBoard` / `scoreEmptyCell` 形分（叶子不算叉，控 NPS）                   |
-| `src/ai/threats.test.ts` | 形与棋谱回归（漏防 / 抢攻纪律）                                                 |
+| 路径                     | 职责                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------ |
+| `src/ai/threats.ts`      | 胜 / 冲四 / 活四端 / 活三 / 叉；硬软防；`scoreForcedReply`；遗留 `findForcedWinMove` |
+| `src/ai/vcf.ts`          | 见 [vcf.md](./vcf.md)：`findVcfMove` / `findVcfDefense` / `vcfExists`                |
+| `src/ai/rootPolicy.ts`   | `planRootPhase` / `pickForkRaceMove` / `resolveSearchWithDefenseFloor`               |
+| `src/ai/MinimaxAgent.ts` | 迭代加深 αβ；调用 rootPolicy；超时返回当前最佳                                       |
+| `src/ai/evaluate.ts`     | `evaluateBoard` / `scoreEmptyCell` 形分（叶子不算叉，控 NPS）                        |
+| `src/ai/threats.test.ts` | 形与棋谱回归（漏防 / 抢攻纪律）                                                      |
+| `src/ai/vcf.test.ts`     | VCF 单元与对照局面                                                                   |
 
 ---
 
@@ -52,12 +55,17 @@ evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 1. **己方一步胜** → terminal
 2. **硬必防**（对方下一步可成五）→ `pickBestForcedReply` → terminal
 3. **己方活四（可成活四点）** → terminal
-4. **叉对杀抢攻**（`pickForkRaceMove`）：双方有叉、盘上无对方活三端，且己方最强叉杀伤**严格大于**对方 → terminal
-5. **短威胁 DFS**（`findForcedWinMove`，唐僧 ply≤8，预算约 280ms）→ 命中则 terminal
+4. **己方双胜点快路径**（冲四着落子后胜点≥2 / 直接胜）→ terminal
+5. **叉对杀抢攻**（`pickForkRaceMove`）→ terminal
 6. **软威胁**
-   - 对方有**可成活四**（活三端）：**直接** `pickBestForcedReply`（兼攻 + 压迫加权）→ terminal
-   - 否则（叉 / 冲四软防）：受限 αβ（`listSoftRootCandidates` = 兼攻优先的挡∪攻）+ `resolveSearchWithDefenseFloor`
-7. 无软威胁 → 全盘候选 αβ
+   - 对方有**可成活四**（活三端）：**直接** `pickBestForcedReply` → terminal
+   - 否则（叉 / 冲四软防）：受限 αβ + `resolveSearchWithDefenseFloor`
+7. **无软威胁时**：深层己方 VCF（`findVcfMove`，ply≤12，预算约 400ms）→  
+   对方 VCF 必防（`findVcfDefense`）→ terminal（算法见 [vcf.md](./vcf.md)）
+8. 否则全盘候选 αβ
+
+> **已知**：步骤 6 的软活三挡优先于步骤 7 的己方 VCF；对杀题上可能「先挡再杀」。  
+> 调优先级放在 VCT/根策略后续切片。
 
 ### 3.1 防守底线（`resolveSearchWithDefenseFloor`）
 
@@ -109,14 +117,14 @@ evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 
 ## 6. 已知局限与后续（本文不展开实现）
 
-| 主题            | 说明                                                  |
-| --------------- | ----------------------------------------------------- |
-| 浅 VCF → 真 VCF | 现 DFS 已偏冲四强迫；可加长 ply/预算、置换表          |
-| VCT             | 系统活三强迫树；与娱乐性/时限需产品权衡               |
-| 阵型/中盘计划   | 现以威胁表 + 浅 αβ 为主，无持久「主线」               |
-| Web Worker      | 深搜时保 UI 流畅；Store 仍不持搜索树                  |
-| 禁手规则威胁    | 依赖 forbidden-moves；另切片                          |
-| ML / AlphaZero  | 训练仓实验「第五对手」，**不是**唐僧替代路径（见 §9） |
+| 主题           | 说明                                                      |
+| -------------- | --------------------------------------------------------- |
+| VCF 深化       | 见 [vcf.md](./vcf.md)；根上 VCF 优先于软挡；加长 ply/预算 |
+| VCT            | 系统活三强迫树；与娱乐性/时限需产品权衡                   |
+| 阵型/中盘计划  | 现以威胁表 + 浅 αβ 为主，无持久「主线」                   |
+| Web Worker     | 深搜时保 UI 流畅；Store 仍不持搜索树                      |
+| 禁手规则威胁   | 依赖 forbidden-moves；另切片                              |
+| ML / AlphaZero | 训练仓实验「第五对手」，**不是**唐僧替代路径（见 §9）     |
 
 ---
 
@@ -136,3 +144,4 @@ evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 | 2026-08-06 | 初稿：交接规格（威胁 + 评估 + 参数）                                  |
 | 2026-08-06 | 实现落地：`threats` + 形分 + 唐僧参数                                 |
 | 2026-08-07 | 根策略 `rootPolicy`；凶棋风与对杀纪律；文档改为与代码对齐的已落地规格 |
+| 2026-08-07 | #69 VCF：链到 [vcf.md](./vcf.md)；记录软挡优先于己方 VCF 的已知缺口   |

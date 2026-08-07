@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 2,
+      "c": 7,
+      "player": 1,
+      "site": "h13"
+    },
+    {
+      "r": 0,
+      "c": 7,
+      "player": 2,
+      "site": "h15"
+    },
+    {
+      "r": 3,
+      "c": 7,
+      "player": 1,
+      "site": "h12"
+    },
+    {
+      "r": 1,
+      "c": 8,
+      "player": 2,
+      "site": "i14"
+    },
+    {
+      "r": 2,
+      "c": 8,
+      "player": 1,
+      "site": "i13"
+    },
+    {
+      "r": 2,
+      "c": 10,
+      "player": 2,
+      "site": "k13"
+    },
+    {
+      "r": 3,
+      "c": 8,
+      "player": 1,
+      "site": "i12"
+    },
+    {
+      "r": 3,
+      "c": 9,
+      "player": 2,
+      "site": "j12"
+    },
+    {
+      "r": 4,
+      "c": 8,
+      "player": 1,
+      "site": "i11"
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 2,
+      "site": "j10"
+    },
+    {
+      "r": 4,
+      "c": 7,
+      "player": 1,
+      "site": "h11"
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 2,
+      "site": "j9"
+    },
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1,
+      "site": "h8"
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 2,
+      "site": "f9"
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 1,
+      "site": "g8"
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 2,
+      "site": "f10"
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1,
+      "site": "g7"
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 2,
+      "site": "f7"
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 1,
+      "site": "g6"
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 2,
+      "site": "g5"
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 1,
+      "site": "h7"
+    },
+    {
+      "r": 11,
+      "c": 7,
+      "player": 2,
+      "site": "h4"
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1,
+      "site": "h6"
+    },
+    {
+      "r": 9,
+      "c": 4,
+      "player": 2,
+      "site": "e6"
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/zhongjiti/127.html",
+    "title": "VCF取胜百题002",
+    "siteMoves": "h13h15h12i14i13k13i12j12i11j10h11j9h8f9g8f10g7f7g6g5h7h4h6e6",
+    "note": "站点坐标 a-o / 1底-15顶；本仓 r=15-n,c=a..o。"
+  }
+}

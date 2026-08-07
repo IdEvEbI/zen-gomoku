@@ -86,6 +86,10 @@
 | **内容增长** | 人工精选 50 题冷启动 → 求解器批量生成 → 人工抽检                                                           |
 | **版权**     | 不爬商业题图/答案入库；难度曲线可对照公开站，题目自造                                                      |
 
+**对照导入**：`npm run import:wuziqi123`（说明见  
+[puzzle-import.md](../development/puzzle-import.md)）；精选棋谱归档  
+[`fixtures/records/`](../../fixtures/records/README.md)。引擎规格见 [vcf.md](./vcf.md)。
+
 学堂交互（落子才过、提示限次、激励视频）见 [teaching.md](./teaching.md)；  
 载体 Issue [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)。
 
@@ -109,3 +113,4 @@
 | ---------- | ------------------------------------------- |
 | 2026-08-07 | 初稿：26 开局索引 + 黑石澄清 + 题库合规策略 |
 | 2026-08-07 | 衔接学堂闯关与 #74 题包格式扩展             |
+| 2026-08-07 | 链到 puzzle-import / fixtures / vcf.md      |

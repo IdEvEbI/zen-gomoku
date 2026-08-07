@@ -28,6 +28,14 @@ export {
   listThreatCandidates,
   findForcedWinMove,
 } from './threats'
+export {
+  findVcfMove,
+  hasVcf,
+  vcfExists,
+  findVcfDefense,
+  DEFAULT_VCF_MAX_PLY,
+  type VcfOptions,
+} from './vcf'
 export { RandomAgent } from './RandomAgent'
 export { HeuristicAgent } from './HeuristicAgent'
 export { ShaHeshangAgent } from './ShaHeshangAgent'

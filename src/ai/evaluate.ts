@@ -19,11 +19,11 @@ export const CRITICAL_THREAT_SCORE = Math.min(OPPONENT_SCORE[4]!, SELF_SCORE[4]!
 /** 活三/冲三档：亦必须应手，禁止软随机漏堵 */
 export const URGENT_THREAT_SCORE = Math.min(OPPONENT_SCORE[3]!, SELF_SCORE[3]!)
 
-/** 形分：冲四接近/超过四连档；可成活四（活三端）显著高于「赢法 2 子」 */
-export const SHAPE_SELF_FOUR = 12_000
-export const SHAPE_SELF_OPEN_THREE = 2_800
-export const SHAPE_OPP_FOUR = 10_000
-export const SHAPE_OPP_OPEN_THREE = 2_200
+/** 形分：冲四接近/超过四连档；可成活四（活三端）显著高于「赢法 2 子」；进攻略重以利边消边造 */
+export const SHAPE_SELF_FOUR = 18_000
+export const SHAPE_SELF_OPEN_THREE = 5_200
+export const SHAPE_OPP_FOUR = 11_000
+export const SHAPE_OPP_OPEN_THREE = 2_600
 /** 双杀叉：根节点启发用；叶子评估不算（控 NPS） */
 export const SHAPE_SELF_FORK = 45_000
 export const SHAPE_OPP_FORK = 70_000

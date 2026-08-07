@@ -11,7 +11,9 @@ import {
   listForcedReplies,
   pickBestForcedReply,
   findForcedWinMove,
+  measureAttackLethality,
 } from './threats'
+import { pickForkRaceMove, planRootPhase, resolveSearchWithDefenseFloor } from './rootPolicy'
 import { MinimaxAgent } from './MinimaxAgent'
 import { createAgentForDifficulty } from './difficulty'
 
@@ -225,14 +227,12 @@ describe('regression: zen-gomoku-2026-08-06-09-25-18 double open-four', () => {
     expect(soft.some((m) => m.row === 6 && m.col === 8)).toBe(false)
   })
 
-  it('pickBestForcedReply prefers (7,3) over weak forks like (10,6)', () => {
+  it('pickBestForcedReply prefers lower residual dual-kill over fewer forks', () => {
     const board = emptyBoard()
     apply(board, afterBlack84)
     const soft = listSoftDefenseCandidates(board, 2)
     const best = pickBestForcedReply(board, 2, soft)
-    expect(best).not.toBeNull()
-    expect(best!.row).toBe(7)
-    expect(best!.col).toBe(3)
+    expect(best).toEqual({ row: 7, col: 6 })
   })
 
   it('Tang searches soft root (defense ∪ attack); never plays rush-only (6,8)', async () => {
@@ -355,6 +355,188 @@ describe('regression: zen-gomoku-2026-08-07-01-49-53 multi open-four ends', () =
       expect(move!.row === 5 && move!.col === 6).toBe(false)
       const ok = (move!.row === 7 && move!.col === 4) || (move!.row === 7 && move!.col === 8)
       expect(ok).toBe(true)
+    }
+  }, 30_000)
+
+  it('live-three soft is terminal 兼攻挡 (planRootPhase)', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack76)
+    const phase = planRootPhase(board, 2, { threatSearchPly: 8 })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(
+        (phase.move.row === 7 && phase.move.col === 4) ||
+          (phase.move.row === 7 && phase.move.col === 8)
+      ).toBe(true)
+    }
+  })
+})
+
+describe('regression: zen-gomoku-2026-08-07-02-28-11 junction fork', () => {
+  /** 黑 (9,7) 后叉点 (7,9)/(8,7)/(10,6)；堵 (7,9) 放过 (8,7) 双活四，数手内崩 */
+  const afterBlack97: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [7, 5, 2],
+    [8, 6, 1],
+    [6, 8, 2],
+    [8, 8, 1],
+    [6, 6, 2],
+    [9, 7, 1],
+  ]
+
+  it('pickBest blocks junction (8,7), not peripheral (7,9)/(10,6)', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack97)
+    const soft = listSoftDefenseCandidates(board, 2)
+    expect(soft.some((m) => m.row === 8 && m.col === 7)).toBe(true)
+    const best = pickBestForcedReply(board, 2, soft)
+    expect(best).toEqual({ row: 8, col: 7 })
+  })
+
+  it('Tang plays (8,7) at the fork junction', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlack97)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 5; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).toEqual({ row: 8, col: 7 })
+    }
+  }, 30_000)
+
+  it('does not race when opp junction fork is sharper', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack97)
+    expect(pickForkRaceMove(board, 2)).toBeNull()
+    expect(planRootPhase(board, 2, { threatSearchPly: 8 }).type).toBe('search')
+  })
+})
+
+describe('style: fork race when own attack is not weaker', () => {
+  /** 02-28 局面上白先占 (8,5)，黑枢纽叉降为普通杀伤 → 白应抢攻 */
+  const raceBoard: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [7, 5, 2],
+    [8, 6, 1],
+    [6, 8, 2],
+    [8, 8, 1],
+    [6, 6, 2],
+    [9, 7, 1],
+    [8, 5, 2],
+  ]
+
+  it('pickForkRaceMove seizes own fork', () => {
+    const board = emptyBoard()
+    apply(board, raceBoard)
+    expect(findOpenFourMoves(board, 1)).toEqual([])
+    expect(findForkThreeMoves(board, 1).length).toBeGreaterThan(0)
+    expect(findForkThreeMoves(board, 2).length).toBeGreaterThan(0)
+    const race = pickForkRaceMove(board, 2)
+    expect(race).not.toBeNull()
+    const ownL = measureAttackLethality(board, 2, race!)
+    let oppBest = 0
+    for (const f of findForkThreeMoves(board, 1)) {
+      oppBest = Math.max(oppBest, measureAttackLethality(board, 1, f))
+    }
+    expect(ownL).toBeGreaterThanOrEqual(oppBest)
+    expect(ownL).toBeGreaterThanOrEqual(2000)
+  })
+
+  it('planRootPhase terminals on race move', () => {
+    const board = emptyBoard()
+    apply(board, raceBoard)
+    const phase = planRootPhase(board, 2, { threatSearchPly: 8 })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(
+        findForkThreeMoves(board, 2).some(
+          (m) => m.row === phase.move.row && m.col === phase.move.col
+        )
+      ).toBe(true)
+    }
+  })
+})
+
+describe('regression: zen-gomoku-2026-08-07-03-19-46 equal-fork race blunder', () => {
+  /** 黑 (8,9) 后双方叉杀伤持平；抢 (6,7) 放过 (8,10)，应先挡 */
+  const afterBlack89: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [6, 8, 2],
+    [8, 8, 1],
+    [6, 6, 2],
+    [8, 9, 1],
+  ]
+
+  it('equal lethality does not race; blocks (8,10)', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack89)
+    expect(pickForkRaceMove(board, 2)).toBeNull()
+    const soft = listSoftDefenseCandidates(board, 2)
+    const best = pickBestForcedReply(board, 2, soft)
+    expect(best).toEqual({ row: 8, col: 10 })
+    const phase = planRootPhase(board, 2, { threatSearchPly: 8 })
+    expect(phase.type).toBe('search')
+  })
+
+  it('Tang blocks (8,10), does not race (6,7)', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlack89)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 5; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).toEqual({ row: 8, col: 10 })
+    }
+  }, 30_000)
+})
+
+describe('regression: zen-gomoku-2026-08-07-03-36-44 dual-OF skip fork', () => {
+  /** 唐僧先手；搜到己方双活四点 (10,10)/(8,10) 时不得越过对方残留叉 */
+  const beforeTang1010: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [8, 6, 2],
+    [6, 6, 1],
+    [8, 8, 2],
+    [8, 7, 1],
+    [9, 7, 2],
+    [7, 5, 1],
+    [7, 8, 2],
+    [6, 8, 1],
+    [6, 5, 2],
+    [7, 9, 1],
+    [5, 7, 2],
+    [6, 7, 1],
+    [10, 6, 2],
+    [12, 4, 1],
+    [9, 5, 2],
+    [9, 6, 1],
+    [11, 7, 2],
+    [12, 8, 1],
+    [10, 8, 2],
+    [9, 9, 1],
+    [11, 8, 2],
+    [9, 8, 1],
+    [6, 9, 2],
+    [11, 9, 1],
+    [10, 9, 2],
+    [10, 7, 1],
+    [11, 6, 2],
+  ]
+
+  it('resolveFloor rejects (10,10) when opp forks remain', () => {
+    const board = emptyBoard()
+    apply(board, beforeTang1010)
+    const floor = listSoftDefenseCandidates(board, 1)
+    expect(floor.some((m) => m.row === 9 && m.col === 10)).toBe(true)
+    const resolved = resolveSearchWithDefenseFloor(board, 1, { row: 10, col: 10 }, floor)
+    expect(resolved).toEqual({ row: 9, col: 10 })
+  })
+
+  it('Tang blocks (9,10), not own-fork (10,10)', async () => {
+    const board = emptyBoard()
+    apply(board, beforeTang1010)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 5; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).toEqual({ row: 9, col: 10 })
     }
   }, 30_000)
 })

@@ -319,26 +319,46 @@ export function listForcedReplies(
 }
 
 /**
- * 堵完后对方残留双活四威胁的「严重度」：叉点数、下一手最多可造活四数、活四总和。
+ * 堵完后对方残留叉的严重度。
+ * 关键键是「最狠的残留叉」落下后的双胜杀伤（ofDualSum），不是叉的个数——
+ * 少留一个叉但放过 (8,7) 这类双活四叉，会立刻崩盘。
  */
 function remainingForkSeverity(
   board: number[][],
   attacker: AiPlayer,
   rules: RuleSetId,
   radius: number
-): { forks: number; maxOF: number; sumOF: number; openLeft: number } {
+): {
+  forks: number
+  maxOF: number
+  sumOF: number
+  openLeft: number
+  maxDual: number
+  maxWins: number
+} {
   const forks = findForkThreeMoves(board, attacker, rules, radius)
   let maxOF = 0
   let sumOF = 0
+  let maxDual = 0
+  let maxWins = 0
   for (const f of forks) {
     board[f.row]![f.col] = attacker
-    const n = findOpenFourMoves(board, attacker, rules, radius).length
+    const ofs = findOpenFourMoves(board, attacker, rules, radius)
+    const wins = findWinningMoves(board, attacker, rules, radius).length
+    let dual = 0
+    for (const e of ofs) {
+      board[e.row]![e.col] = attacker
+      dual += findWinningMoves(board, attacker, rules, radius).length
+      board[e.row]![e.col] = 0
+    }
     board[f.row]![f.col] = 0
-    maxOF = Math.max(maxOF, n)
-    sumOF += n
+    maxOF = Math.max(maxOF, ofs.length)
+    sumOF += ofs.length
+    maxDual = Math.max(maxDual, dual)
+    maxWins = Math.max(maxWins, wins)
   }
   const openLeft = findOpenFourMoves(board, attacker, rules, radius).length
-  return { forks: forks.length, maxOF, sumOF, openLeft }
+  return { forks: forks.length, maxOF, sumOF, openLeft, maxDual, maxWins }
 }
 
 /**
@@ -375,9 +395,60 @@ function isOwnAttackPoint(
 }
 
 /**
+ * 落子后己方叉/活四杀伤（越大越犀利）。
+ * 若落子后对方已有胜点则返回负值（不能抢攻）。
+ */
+export function measureAttackLethality(
+  board: number[][],
+  toPlay: AiPlayer,
+  move: AiMove,
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS
+): number {
+  if (board[move.row]![move.col] !== 0) return Number.NEGATIVE_INFINITY
+  const opp = other(toPlay)
+  board[move.row]![move.col] = toPlay
+  const oppWins = findWinningMoves(board, opp, rules, radius).length
+  if (oppWins > 0) {
+    board[move.row]![move.col] = 0
+    return Number.NEGATIVE_INFINITY
+  }
+  const ofs = findOpenFourMoves(board, toPlay, rules, radius)
+  let dual = 0
+  for (const e of ofs) {
+    board[e.row]![e.col] = toPlay
+    dual += findWinningMoves(board, toPlay, rules, radius).length
+    board[e.row]![e.col] = 0
+  }
+  const ofCount = ofs.length
+  board[move.row]![move.col] = 0
+  return dual * 1_000 + ofCount * 10
+}
+
+/**
+ * 落子后己方持续压迫（活三数、残余杀伤），用于同档防守下偏「边消边造」。
+ * 量级远小于 ofDualSum/maxDual，不会用进攻换漏防。
+ */
+function ownPressureBonus(
+  board: number[][],
+  toPlay: AiPlayer,
+  move: AiMove,
+  rules: RuleSetId,
+  radius: number
+): number {
+  const L = measureAttackLethality(board, toPlay, move, rules, radius)
+  if (!Number.isFinite(L) || L < 0) return 0
+  board[move.row]![move.col] = toPlay
+  const openThrees = findOpenThreeMoves(board, toPlay, rules, radius).length
+  const fours = findFourThreatMoves(board, toPlay, rules, radius).length
+  board[move.row]![move.col] = 0
+  return Math.min(400, L / 25) + openThrees * 12 + fours * 20
+}
+
+/**
  * 必防点评分（越小越好）。
- * - 有双杀叉时：按残留叉严重度，兼攻只作微弱决胜（防己方冲四点压过更优挡点）
- * - 仅活三端时：残留可成活四双胜杀伤为主，兼攻权重大（挡兼自己的叉，如 (7,4)）
+ * - 有双杀叉时：残留叉杀伤优先；同杀伤下强偏兼攻
+ * - 活三端时：残留双胜杀伤为主；兼攻 + 落子后己方压迫（边消边造）
  */
 export function scoreForcedReply(
   board: number[][],
@@ -390,28 +461,41 @@ export function scoreForcedReply(
   const opp = other(toPlay)
   const forkMode = findForkThreeMoves(board, opp, rules, radius).length > 0
   const own = isOwnAttackPoint(board, toPlay, move, rules, radius)
+  const pressure = ownPressureBonus(board, toPlay, move, rules, radius)
 
   board[move.row]![move.col] = toPlay
   const s = remainingForkSeverity(board, opp, rules, radius)
   const ofDualSum = remainingOpenFourDualSum(board, opp, rules, radius)
   board[move.row]![move.col] = 0
 
-  const defense =
-    s.forks * 1_000_000 + ofDualSum * 10_000 + s.openLeft * 1_000 + s.maxOF * 100 + s.sumOF * 10
-
   if (forkMode) {
+    const defense =
+      (s.maxWins >= 2 ? s.maxWins * 10_000_000 : 0) +
+      s.maxDual * 1_000_000 +
+      s.maxOF * 10_000 +
+      (s.maxWins > 0 ? s.maxWins * 1_000 : 0) +
+      ofDualSum * 100 +
+      s.openLeft * 50 +
+      s.forks * 10 +
+      s.sumOF
     const tie =
       move.row +
       move.col / 100 -
-      (own.fork ? 0.05 : 0) -
-      (own.openFour ? 0.03 : 0) -
-      (own.four ? 0.01 : 0)
+      (own.fork ? 2_000 : 0) -
+      (own.openFour ? 1_000 : 0) -
+      (own.four ? 100 : 0) -
+      pressure
     return defense + tie
   }
 
-  // 活三端：兼攻可跨过坐标决胜（典型：同行两端优于边线活三端）
+  const defense = ofDualSum * 10_000 + s.openLeft * 1_000 + s.maxOF * 100 + s.sumOF * 10 + s.forks
   const tie =
-    -(own.fork ? 50 : 0) - (own.openFour ? 30 : 0) - (own.four ? 10 : 0) + move.row + move.col / 100
+    -(own.fork ? 200 : 0) -
+    (own.openFour ? 120 : 0) -
+    (own.four ? 40 : 0) -
+    pressure +
+    move.row +
+    move.col / 100
   return defense + tie
 }
 
@@ -457,7 +541,7 @@ export function listThreatCandidates(
 }
 
 /**
- * 软威胁局面的根搜索候选：全部软挡点 + 己方进攻（活四/叉/冲四），堵点优先且总数封顶。
+ * 软威胁局面的根搜索候选：兼攻点优先，再软挡、再纯进攻；软挡点必须保留。
  * 无软威胁时返回 []（调用方走全盘搜索）。
  */
 export function listSoftRootCandidates(
@@ -474,11 +558,14 @@ export function listSoftRootCandidates(
     ...findForkThreeMoves(board, toPlay, rules, radius),
     ...findFourThreatMoves(board, toPlay, rules, radius),
   ])
-  const out = uniqueMoves([...soft, ...attacks])
-  if (out.length <= limit) return out
-  // 软挡点必须保留
+  const atkKeys = new Set(attacks.map(moveKey))
+  const both = soft.filter((m) => atkKeys.has(moveKey(m)))
+  const softOnly = soft.filter((m) => !atkKeys.has(moveKey(m)))
   const softKeys = new Set(soft.map(moveKey))
-  const rest = out.filter((m) => !softKeys.has(moveKey(m)))
+  const atkOnly = attacks.filter((m) => !softKeys.has(moveKey(m)))
+  const ordered = uniqueMoves([...both, ...softOnly, ...atkOnly])
+  if (ordered.length <= limit) return ordered
+  const rest = ordered.filter((m) => !softKeys.has(moveKey(m)))
   return uniqueMoves([...soft, ...rest.slice(0, Math.max(0, limit - soft.length))])
 }
 

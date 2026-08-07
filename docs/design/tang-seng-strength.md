@@ -39,7 +39,7 @@
 | 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`timeLimitMs=180`，`candidateLimit=12`            |
 | 唐僧   | `MinimaxAgent`    | `maxDepth=4` + 迭代加深，`timeLimitMs=350`，`candidateLimit=10` |
 
-**已落地（三刀调优后）**：唐僧 `maxDepth=6`，`timeLimitMs=1000`，`candidateLimit=16`；软威胁根候选含对杀；叶子含可成活四形分。
+**已落地（三刀 + 根策略 + 凶棋风）**：唐僧 `maxDepth=6`，`timeLimitMs=1000`；根决策在 `rootPolicy.ts`（硬短路 / 叉对杀抢攻 / **活三兼攻直挡** / 软威胁 αβ）；叶子进攻形分略重。
 
 开局：`openingBook.ts`（花月/浦月等）+ 对称 + 人机/教师 mixed 随机——**已解决开局单调**，不解决中盘战术洞。
 
@@ -172,6 +172,7 @@
 | 路径                                              | 动作                             |
 | ------------------------------------------------- | -------------------------------- |
 | `src/ai/threats.ts`                               | **新增** 威胁检测 / 强迫着法     |
+| `src/ai/rootPolicy.ts`                            | **新增** 根节点相位 / 防守底线   |
 | `src/ai/threats.test.ts`                          | **新增**                         |
 | `src/ai/evaluate.ts`                              | **改** 形分                      |
 | `src/ai/MinimaxAgent.ts`                          | **改** 根节点排序 + 可选威胁 DFS |

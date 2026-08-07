@@ -1,8 +1,8 @@
 /**
  * Minimax + Alpha-Beta
- * - 叶子用赢法启发 + 形分评估
- * - 根节点：一步胜 / 硬必防短路；软威胁时「挡∪攻」受限搜索；否则威胁 DFS + 全盘 αβ
- * - 唐僧：迭代加深 + 短威胁 DFS；硬时限内返回当前最佳（不回退随机）
+ * - 叶子：赢法启发 + 形分
+ * - 根节点策略：`rootPolicy`（短路 / 软根对杀候选 / 防守底线）
+ * - 唐僧：迭代加深 + 短威胁 DFS；时限内返回当前最佳
  */
 
 import { checkWinner } from '../core'
@@ -16,17 +16,8 @@ import {
   WIN_SCORE,
   DEFAULT_NEIGHBOR_RADIUS,
 } from './evaluate'
-import {
-  findForcedWinMove,
-  findOpenFourMoves,
-  findWinningMoves,
-  listHardForcedReplies,
-  listSoftDefenseCandidates,
-  listSoftRootCandidates,
-  listThreatCandidates,
-  pickBestForcedReply,
-  scoreForcedReply,
-} from './threats'
+import { listThreatCandidates } from './threats'
+import { planRootPhase, resolveSearchWithDefenseFloor } from './rootPolicy'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
 export interface MinimaxAgentOptions {
@@ -104,66 +95,20 @@ export class MinimaxAgent implements IAgent {
 
     const work = board.map((row) => row.slice())
 
-    // 1) 己方一步胜
-    const instant = findWinningMoves(work, aiPlayer, this.rules, this.neighborRadius)
-    if (instant.length > 0) {
-      return instant[Math.floor(Math.random() * instant.length)]!
-    }
+    const threatBudgetEnd =
+      this.threatSearchBudgetMs > 0
+        ? Math.min(this.deadline, Date.now() + this.threatSearchBudgetMs)
+        : this.deadline
 
-    // 2) 硬必防：对方下一步可胜（≥2 点时局面已负，仍堵一点以免假动作）
-    const hard = listHardForcedReplies(work, aiPlayer, this.rules, this.neighborRadius)
-    if (hard.length > 0) {
-      return pickBestForcedReply(work, aiPlayer, hard, this.rules, this.neighborRadius) ?? hard[0]!
-    }
+    const phase = planRootPhase(work, aiPlayer, {
+      rules: this.rules,
+      radius: this.neighborRadius,
+      softRootLimit: this.softRootLimit,
+      threatSearchPly: this.threatSearchPly,
+      shouldAbortThreat: () => Date.now() >= threatBudgetEnd || this.timedOut(),
+    })
 
-    // 3) 己方活四抢攻
-    const myOpenFours = findOpenFourMoves(work, aiPlayer, this.rules, this.neighborRadius)
-    if (myOpenFours.length > 0) {
-      return myOpenFours[Math.floor(Math.random() * myOpenFours.length)]!
-    }
-
-    // 4) 短威胁 DFS（冲四逼胜），单独预算，软/全盘局面都可跑
-    if (this.threatSearchPly > 0 && !this.timedOut()) {
-      const budgetEnd =
-        this.threatSearchBudgetMs > 0
-          ? Math.min(this.deadline, Date.now() + this.threatSearchBudgetMs)
-          : this.deadline
-      const forced = findForcedWinMove(
-        work,
-        aiPlayer,
-        this.threatSearchPly,
-        this.rules,
-        () => Date.now() >= budgetEnd || this.timedOut(),
-        this.neighborRadius
-      )
-      if (forced) return forced
-    }
-
-    // 5) 软威胁根候选：
-    //    - 对方可成活四（活三端）：只搜挡点（可并己方活四），避免「对杀漏挡」
-    //    - 叉 / 冲四：挡点 ∪ 己方进攻（对杀）
-    const oppOpenFourEnds = findOpenFourMoves(
-      work,
-      aiPlayer === 1 ? 2 : 1,
-      this.rules,
-      this.neighborRadius
-    )
-    const soft = listSoftDefenseCandidates(work, aiPlayer, this.rules, this.neighborRadius)
-    let rootRestrict: AiMove[] | null = null
-    if (oppOpenFourEnds.length > 0) {
-      rootRestrict = uniqueMoves([
-        ...oppOpenFourEnds,
-        ...findOpenFourMoves(work, aiPlayer, this.rules, this.neighborRadius),
-      ])
-    } else if (soft.length > 0) {
-      rootRestrict = listSoftRootCandidates(
-        work,
-        aiPlayer,
-        this.softRootLimit,
-        this.rules,
-        this.neighborRadius
-      )
-    }
+    if (phase.type === 'terminal') return phase.move
 
     let best: AiMove | null = null
     const depths = this.iterativeDeepening
@@ -172,40 +117,21 @@ export class MinimaxAgent implements IAgent {
 
     for (const depth of depths) {
       if (this.timedOut()) break
-      const result = this.searchRoot(work, aiPlayer, depth, rootRestrict)
+      const result = this.searchRoot(work, aiPlayer, depth, phase.restrict)
       if (result) best = result
       await Promise.resolve()
     }
 
-    if (best) {
-      // 软威胁：搜索结果若比启发挡点更差，改用 pickBest（活三端 / 双杀叉均适用）
-      const heurPool = oppOpenFourEnds.length > 0 ? oppOpenFourEnds : soft.length > 0 ? soft : null
-      if (heurPool && heurPool.length > 0) {
-        const heur = pickBestForcedReply(work, aiPlayer, heurPool, this.rules, this.neighborRadius)
-        if (heur) {
-          const searchScore = scoreForcedReply(
-            work,
-            aiPlayer,
-            best,
-            this.rules,
-            this.neighborRadius
-          )
-          const heurScore = scoreForcedReply(work, aiPlayer, heur, this.rules, this.neighborRadius)
-          if (searchScore > heurScore) return heur
-        }
-      }
-      return best
-    }
-    if (oppOpenFourEnds.length > 0) {
-      return (
-        pickBestForcedReply(work, aiPlayer, oppOpenFourEnds, this.rules, this.neighborRadius) ??
-        oppOpenFourEnds[0]!
-      )
-    }
-    if (soft.length > 0) {
-      return pickBestForcedReply(work, aiPlayer, soft, this.rules, this.neighborRadius) ?? soft[0]!
-    }
-    // 无软威胁且搜索未出结果：邻近启发第一手，禁止全盘随机
+    const resolved = resolveSearchWithDefenseFloor(
+      work,
+      aiPlayer,
+      best,
+      phase.defenseFloor,
+      this.rules,
+      this.neighborRadius
+    )
+    if (resolved) return resolved
+
     const near = listNeighborCandidates(work, this.neighborRadius, aiPlayer, this.rules)
     return near[0] ?? empty[0] ?? null
   }
@@ -295,7 +221,7 @@ export class MinimaxAgent implements IAgent {
     }
 
     const player = nextPlayerFromBoard(board)
-    const moves = this.candidatesFor(board, player)
+    const moves = this.candidatesFor(board, player, null)
 
     if (moves.length === 0) {
       return evaluateBoard(board, aiPlayer, this.wins, this.winsCount, this.rules)
@@ -343,16 +269,4 @@ export class MinimaxAgent implements IAgent {
 
 function cloneBoard(board: number[][]): number[][] {
   return board.map((row) => row.slice())
-}
-
-function uniqueMoves(moves: AiMove[]): AiMove[] {
-  const seen = new Set<string>()
-  const out: AiMove[] = []
-  for (const m of moves) {
-    const k = `${m.row},${m.col}`
-    if (seen.has(k)) continue
-    seen.add(k)
-    out.push(m)
-  }
-  return out
 }

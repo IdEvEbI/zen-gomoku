@@ -113,7 +113,7 @@ interface IAgent {
 
 ### 4.2 算法骨架
 
-1. **根节点**：一步胜 → **硬必防**（对方下一步可胜，短路）→ 己方活四 → 短威胁 DFS（有预算）→ **软威胁时「挡∪攻」受限 αβ** → 否则全盘搜索；超时返回当前最佳（不回退随机）。
+1. **根节点**：由 `rootPolicy.planRootPhase` 统一决策——一步胜 / 硬必防 / 己方活四 / 叉对杀抢攻 / 短威胁 DFS；**活三（可成活四）直接兼攻最优挡**；其余软威胁「挡∪攻」αβ + 防守底线。
 2. **走法生成**：`listThreatCandidates`（胜/硬软防守/冲四/叉）优先，再 `listOrderedCandidates` 启发补齐；威胁点截断前必留。
 3. **递归**：交替落子；α-β 剪枝；触达深度或终局停止；层内同样威胁优先。
 4. **叶子评估**：赢法计数分 + 形分（冲四/活三数量加权）。
@@ -158,10 +158,11 @@ Heuristic + 形分        → 猪八戒（基准）
 | `src/ai/winsTable.ts`       | 赢法表与计数                   |
 | `src/ai/evaluate.ts`        | 共用赢法评估、形分与候选生成   |
 | `src/ai/threats.ts`         | 冲四/活三/必防与短威胁 DFS     |
+| `src/ai/rootPolicy.ts`      | 根节点相位、软根候选、防守底线 |
 | `src/ai/RandomAgent.ts`     | 纯随机                         |
 | `src/ai/ShaHeshangAgent.ts` | 沙和尚（次优抽样 + 必应威胁）  |
 | `src/ai/HeuristicAgent.ts`  | 启发 + 形分（猪八戒）          |
-| `src/ai/MinimaxAgent.ts`    | 搜索 + 威胁优先（悟空 / 唐僧） |
+| `src/ai/MinimaxAgent.ts`    | αβ 搜索（悟空 / 唐僧）         |
 | `src/ai/difficulty.ts`      | 等级枚举、名称、创建对应 Agent |
 
 Phase 3（预留）：`AlphaZeroAgent`，仍实现 `IAgent`，与本文四级正交。

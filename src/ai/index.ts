@@ -24,6 +24,7 @@ export {
   listForcedReplies,
   pickBestForcedReply,
   scoreForcedReply,
+  measureAttackLethality,
   listThreatCandidates,
   findForcedWinMove,
 } from './threats'
@@ -31,6 +32,15 @@ export { RandomAgent } from './RandomAgent'
 export { HeuristicAgent } from './HeuristicAgent'
 export { ShaHeshangAgent } from './ShaHeshangAgent'
 export { MinimaxAgent } from './MinimaxAgent'
+export {
+  planRootPhase,
+  resolveSearchWithDefenseFloor,
+  buildSoftRootRestrict,
+  listAttackCandidates,
+  pickForkRaceMove,
+  type RootPhase,
+  type RootPolicyOptions,
+} from './rootPolicy'
 export {
   createAgentForDifficulty,
   difficultyLabel,

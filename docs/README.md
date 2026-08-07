@@ -17,7 +17,8 @@ docs/
 ├── README.md
 ├── development/
 │   ├── branch-strategy.md
-│   └── feature-workflow.md
+│   ├── feature-workflow.md
+│   └── puzzle-import.md       # 棋谱导入脚本（wuziqi123 等）
 ├── project/
 │   ├── issue-backlog.md
 │   ├── requirements.md
@@ -32,16 +33,20 @@ docs/
     ├── ai-agents.md
     ├── strength-roadmap.md
     ├── tang-seng-strength.md
+    ├── vcf.md                 # VCF 求解器 as-built
     ├── alphazero-lite.md
     └── forbidden-moves.md
 ```
 
+仓库内精选测试棋谱：[`fixtures/records/`](../fixtures/records/README.md)。
+
 ## 开发文档 (development/)
 
-| 文档                                                   | 说明                               |
-| ------------------------------------------------------ | ---------------------------------- |
-| [branch-strategy.md](development/branch-strategy.md)   | 分支策略与 Git 工作流              |
-| [feature-workflow.md](development/feature-workflow.md) | PR 合并后与开始新 Issue 的标准步骤 |
+| 文档                                                   | 说明                                |
+| ------------------------------------------------------ | ----------------------------------- |
+| [branch-strategy.md](development/branch-strategy.md)   | 分支策略与 Git 工作流               |
+| [feature-workflow.md](development/feature-workflow.md) | PR 合并后与开始新 Issue 的标准步骤  |
+| [puzzle-import.md](development/puzzle-import.md)       | 棋谱导入（wuziqi123 等）与 fixtures |
 
 ## 项目文档 (project/)
 
@@ -68,6 +73,7 @@ docs/
 | [ai-agents.md](design/ai-agents.md)                           | AI 算法与四级难度（实现对照）              |
 | [strength-roadmap.md](design/strength-roadmap.md)             | 棋力对标、四级人设重做、VCF/VCT 优先       |
 | [tang-seng-strength.md](design/tang-seng-strength.md)         | 唐僧威胁搜索 as-built                      |
+| [vcf.md](design/vcf.md)                                       | VCF 求解器（连续冲四）as-built             |
 | [alphazero-lite.md](design/alphazero-lite.md)                 | 自由/禁手双模型训练路线（M5）              |
 | [forbidden-moves.md](design/forbidden-moves.md)               | 中国规则禁手规格                           |
 

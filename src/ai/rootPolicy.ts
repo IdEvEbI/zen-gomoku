@@ -7,7 +7,6 @@
 
 import type { AiMove, AiPlayer } from './types'
 import {
-  findForcedWinMove,
   findFourThreatMoves,
   findForkThreeMoves,
   findOpenFourMoves,
@@ -19,6 +18,8 @@ import {
   pickBestForcedReply,
   scoreForcedReply,
 } from './threats'
+import { findVcfDefense, findVcfMove } from './vcf'
+import { checkWinner } from '../core'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
 const NEIGHBOR_RADIUS = 2
@@ -48,8 +49,9 @@ export interface RootPolicyOptions {
   rules?: RuleSetId
   radius?: number
   softRootLimit?: number
-  threatSearchPly?: number
-  shouldAbortThreat?: () => boolean
+  /** VCF 半步上限；0 关闭 */
+  vcfMaxPly?: number
+  shouldAbortVcf?: () => boolean
 }
 
 /**
@@ -184,8 +186,14 @@ export function planRootPhase(
   const rules = options.rules ?? DEFAULT_RULE_SET
   const radius = options.radius ?? NEIGHBOR_RADIUS
   const softRootLimit = options.softRootLimit ?? 16
-  const threatSearchPly = options.threatSearchPly ?? 0
+  const vcfMaxPly = options.vcfMaxPly ?? 0
   const opp = other(toPlay)
+  const vcfOpts = {
+    maxPly: vcfMaxPly,
+    rules,
+    radius,
+    shouldAbort: options.shouldAbortVcf,
+  }
 
   const instant = findWinningMoves(board, toPlay, rules, radius)
   if (instant.length > 0) {
@@ -209,20 +217,20 @@ export function planRootPhase(
     }
   }
 
+  if (vcfMaxPly > 0) {
+    // 快路径：一手造成双胜点（开四/双冲四）直接走，不穷举
+    const quick = findFourThreatMoves(board, toPlay, rules, radius)
+    for (const m of quick) {
+      board[m.row]![m.col] = toPlay
+      const wins = findWinningMoves(board, toPlay, rules, radius).length
+      const won = checkWinner(board, m.row, m.col, rules) === toPlay
+      board[m.row]![m.col] = 0
+      if (won || wins >= 2) return { type: 'terminal', move: m }
+    }
+  }
+
   const race = pickForkRaceMove(board, toPlay, rules, radius)
   if (race) return { type: 'terminal', move: race }
-
-  if (threatSearchPly > 0) {
-    const forced = findForcedWinMove(
-      board,
-      toPlay,
-      threatSearchPly,
-      rules,
-      options.shouldAbortThreat,
-      radius
-    )
-    if (forced) return { type: 'terminal', move: forced }
-  }
 
   const defense = listSoftDefenseCandidates(board, toPlay, rules, radius)
   if (defense.length > 0) {
@@ -236,6 +244,20 @@ export function planRootPhase(
       type: 'search',
       restrict: listSoftRootCandidates(board, toPlay, softRootLimit, rules, radius),
       defenseFloor: defense,
+    }
+  }
+
+  // 无软威胁：深层己方 VCF + 对方 VCF 必防
+  if (vcfMaxPly > 0) {
+    const myVcf = findVcfMove(board, toPlay, vcfOpts)
+    if (myVcf) return { type: 'terminal', move: myVcf }
+
+    if (findFourThreatMoves(board, opp, rules, radius).length > 0) {
+      const vcfBlocks = findVcfDefense(board, toPlay, vcfOpts)
+      if (vcfBlocks.length > 0) {
+        const move = pickBestForcedReply(board, toPlay, vcfBlocks, rules, radius) ?? vcfBlocks[0]!
+        return { type: 'terminal', move }
+      }
     }
   }
 

@@ -24,7 +24,7 @@ export const AI_DIFFICULTY_OPTIONS: readonly AiDifficultyOption[] = [
   { id: 'sha', name: '沙和尚', blurb: '入门，偶尔下次优' },
   { id: 'zhu', name: '猪八戒', blurb: '与现版启发相当' },
   { id: 'wukong', name: '孙悟空', blurb: '会多想两步' },
-  { id: 'tang', name: '唐僧', blurb: '威胁搜索 + 更深' },
+  { id: 'tang', name: '唐僧', blurb: 'VCF + 更深搜索' },
 ] as const
 
 export function createAgentForDifficulty(
@@ -60,8 +60,8 @@ export function createAgentForDifficulty(
         timeLimitMs: 1000,
         candidateLimit: 16,
         iterativeDeepening: true,
-        threatSearchPly: 8,
-        threatSearchBudgetMs: 280,
+        vcfMaxPly: 12,
+        vcfBudgetMs: 400,
         softRootLimit: 16,
         rules,
       })

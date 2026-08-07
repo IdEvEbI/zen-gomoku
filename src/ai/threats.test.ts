@@ -361,7 +361,7 @@ describe('regression: zen-gomoku-2026-08-07-01-49-53 multi open-four ends', () =
   it('live-three soft is terminal 兼攻挡 (planRootPhase)', () => {
     const board = emptyBoard()
     apply(board, afterBlack76)
-    const phase = planRootPhase(board, 2, { threatSearchPly: 8 })
+    const phase = planRootPhase(board, 2, { vcfMaxPly: 8 })
     expect(phase.type).toBe('terminal')
     if (phase.type === 'terminal') {
       expect(
@@ -407,7 +407,7 @@ describe('regression: zen-gomoku-2026-08-07-02-28-11 junction fork', () => {
     const board = emptyBoard()
     apply(board, afterBlack97)
     expect(pickForkRaceMove(board, 2)).toBeNull()
-    expect(planRootPhase(board, 2, { threatSearchPly: 8 }).type).toBe('search')
+    expect(planRootPhase(board, 2, { vcfMaxPly: 8 }).type).toBe('search')
   })
 })
 
@@ -444,7 +444,7 @@ describe('style: fork race when own attack is not weaker', () => {
   it('planRootPhase terminals on race move', () => {
     const board = emptyBoard()
     apply(board, raceBoard)
-    const phase = planRootPhase(board, 2, { threatSearchPly: 8 })
+    const phase = planRootPhase(board, 2, { vcfMaxPly: 8 })
     expect(phase.type).toBe('terminal')
     if (phase.type === 'terminal') {
       expect(
@@ -473,7 +473,7 @@ describe('regression: zen-gomoku-2026-08-07-03-19-46 equal-fork race blunder', (
     const soft = listSoftDefenseCandidates(board, 2)
     const best = pickBestForcedReply(board, 2, soft)
     expect(best).toEqual({ row: 8, col: 10 })
-    const phase = planRootPhase(board, 2, { threatSearchPly: 8 })
+    const phase = planRootPhase(board, 2, { vcfMaxPly: 8 })
     expect(phase.type).toBe('search')
   })
 
@@ -563,7 +563,7 @@ describe('Tang / Minimax threat integration', () => {
       timeLimitMs: 800,
       candidateLimit: 14,
       iterativeDeepening: true,
-      threatSearchPly: 8,
+      vcfMaxPly: 8,
     })
     const board = emptyBoard()
     board[7]![7] = 2

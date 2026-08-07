@@ -1,0 +1,116 @@
+{
+  "title": "VCF取胜百题002（zhongjiti/127）禁手解法",
+  "source": "https://wuziqi123.com/qipu/zhongjiti/127.html",
+  "rules": "renju-cn-v1",
+  "setupMoves": 24,
+  "line": [
+    {
+      "n": 1,
+      "site": "h14",
+      "r": 1,
+      "c": 7,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["h10"]
+    },
+    {
+      "n": 2,
+      "site": "g10",
+      "r": 5,
+      "c": 6,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["g9"]
+    },
+    {
+      "n": 3,
+      "site": "j13",
+      "r": 2,
+      "c": 9,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["k14"]
+    },
+    {
+      "n": 4,
+      "site": "f13",
+      "r": 2,
+      "c": 5,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["g13"]
+    },
+    {
+      "n": 5,
+      "site": "i10",
+      "r": 5,
+      "c": 8,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["i9"]
+    },
+    {
+      "n": 6,
+      "site": "h9",
+      "r": 6,
+      "c": 7,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["h5"]
+    },
+    {
+      "n": 7,
+      "site": "g12",
+      "r": 3,
+      "c": 6,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["e14"]
+    },
+    {
+      "n": 8,
+      "site": "e12",
+      "r": 3,
+      "c": 4,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["f12"]
+    },
+    {
+      "n": 9,
+      "site": "f11",
+      "r": 4,
+      "c": 5,
+      "player": 1,
+      "legal": true,
+      "forbid": null,
+      "win": false,
+      "threatWins": ["d13", "i8"]
+    },
+    {
+      "note": "dual",
+      "dual": ["d13", "i8"],
+      "whiteBlock": "i8",
+      "blackFinish": "d13",
+      "win": true
+    }
+  ],
+  "importFile": "fixtures/records/wuziqi123/zhongjiti-127-renju-solution.json",
+  "howToStudy": "H5 导入该 JSON，规则选「禁手」，用复盘逐步看；或只导入题面 fixtures/records/wuziqi123/zhongjiti-127.json 后自己按手順下。"
+}

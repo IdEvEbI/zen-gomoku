@@ -16,9 +16,13 @@
   棋力对标与四级人设重做
 - **[../design/tang-seng-strength.md](../design/tang-seng-strength.md)** —  
   唐僧威胁搜索 as-built
+- **[../design/vcf.md](../design/vcf.md)** —  
+  VCF 求解器 as-built
 - **[../design/alphazero-lite.md](../design/alphazero-lite.md)** —  
   自由/禁手双模型、独立训练仓
 - **[../design/forbidden-moves.md](../design/forbidden-moves.md)** —  
   中国规则禁手规格
+- **[../development/puzzle-import.md](../development/puzzle-import.md)** —  
+  棋谱导入脚本与 fixtures 约定
 
 本文件仅作入口。

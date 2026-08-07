@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1,
+      "site": "h8"
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2,
+      "site": "h9"
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1,
+      "site": "j8"
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 2,
+      "site": "j9"
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1,
+      "site": "h6"
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2,
+      "site": "h7"
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 1,
+      "site": "j6"
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 2,
+      "site": "i7"
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1,
+      "site": "j7"
+    },
+    {
+      "r": 10,
+      "c": 9,
+      "player": 2,
+      "site": "j5"
+    },
+    {
+      "r": 9,
+      "c": 12,
+      "player": 1,
+      "site": "m6"
+    },
+    {
+      "r": 8,
+      "c": 12,
+      "player": 2,
+      "site": "m7"
+    },
+    {
+      "r": 6,
+      "c": 12,
+      "player": 1,
+      "site": "m9"
+    },
+    {
+      "r": 7,
+      "c": 12,
+      "player": 2,
+      "site": "m8"
+    },
+    {
+      "r": 10,
+      "c": 12,
+      "player": 1,
+      "site": "m5"
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 2,
+      "site": "i5"
+    },
+    {
+      "r": 6,
+      "c": 4,
+      "player": 1,
+      "site": "e9"
+    },
+    {
+      "r": 5,
+      "c": 4,
+      "player": 2,
+      "site": "e10"
+    },
+    {
+      "r": 5,
+      "c": 3,
+      "player": 1,
+      "site": "d10"
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2,
+      "site": "i9"
+    },
+    {
+      "r": 7,
+      "c": 3,
+      "player": 1,
+      "site": "d8"
+    },
+    {
+      "r": 10,
+      "c": 7,
+      "player": 2,
+      "site": "h5"
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/zhongjiti/128.html",
+    "title": "VCF取胜百题001",
+    "siteMoves": "h8h9j8j9h6h7j6i7j7j5m6m7m9m8m5i5e9e10d10i9d8h5",
+    "note": "站点坐标 a-o / 1底-15顶；本仓 r=15-n,c=a..o。"
+  }
+}

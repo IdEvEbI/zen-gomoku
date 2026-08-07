@@ -2,7 +2,7 @@
  * Minimax + Alpha-Beta
  * - 叶子：赢法启发 + 形分
  * - 根节点策略：`rootPolicy`（短路 / 软根对杀候选 / 防守底线）
- * - 唐僧：迭代加深 + VCF；时限内返回当前最佳
+ * - 唐僧：迭代加深 + VCF/VCT；时限内返回当前最佳
  */
 
 import { checkWinner } from '../core'
@@ -35,6 +35,10 @@ export interface MinimaxAgentOptions {
   vcfMaxPly?: number
   /** VCF 最多占用的时限（ms）；0 表示不单独截断 */
   vcfBudgetMs?: number
+  /** 根节点 VCT 半步上限；0 关闭 */
+  vctMaxPly?: number
+  /** VCT 预算（ms）；与 VCF 串在战术时限内 */
+  vctBudgetMs?: number
   /** @deprecated 使用 vcfMaxPly */
   threatSearchPly?: number
   /** @deprecated 使用 vcfBudgetMs */
@@ -54,6 +58,8 @@ export class MinimaxAgent implements IAgent {
   private readonly iterativeDeepening: boolean
   private readonly vcfMaxPly: number
   private readonly vcfBudgetMs: number
+  private readonly vctMaxPly: number
+  private readonly vctBudgetMs: number
   private readonly softRootLimit: number
   private readonly boardSize: number
   private readonly rules: RuleSetId
@@ -70,6 +76,8 @@ export class MinimaxAgent implements IAgent {
     this.iterativeDeepening = options.iterativeDeepening ?? false
     this.vcfMaxPly = options.vcfMaxPly ?? options.threatSearchPly ?? 0
     this.vcfBudgetMs = options.vcfBudgetMs ?? options.threatSearchBudgetMs ?? 250
+    this.vctMaxPly = options.vctMaxPly ?? 0
+    this.vctBudgetMs = options.vctBudgetMs ?? 0
     this.softRootLimit = options.softRootLimit ?? 16
     this.boardSize = options.boardSize ?? 15
     this.rules = options.rules ?? DEFAULT_RULE_SET
@@ -99,8 +107,15 @@ export class MinimaxAgent implements IAgent {
 
     const work = board.map((row) => row.slice())
 
+    const tacticalStart = Date.now()
     const vcfBudgetEnd =
-      this.vcfBudgetMs > 0 ? Math.min(this.deadline, Date.now() + this.vcfBudgetMs) : this.deadline
+      this.vcfBudgetMs > 0
+        ? Math.min(this.deadline, tacticalStart + this.vcfBudgetMs)
+        : this.deadline
+    const vctBudgetEnd =
+      this.vctBudgetMs > 0
+        ? Math.min(this.deadline, tacticalStart + this.vcfBudgetMs + this.vctBudgetMs)
+        : this.deadline
 
     const phase = planRootPhase(work, aiPlayer, {
       rules: this.rules,
@@ -108,6 +123,8 @@ export class MinimaxAgent implements IAgent {
       softRootLimit: this.softRootLimit,
       vcfMaxPly: this.vcfMaxPly,
       shouldAbortVcf: () => Date.now() >= vcfBudgetEnd || this.timedOut(),
+      vctMaxPly: this.vctMaxPly,
+      shouldAbortVct: () => Date.now() >= vctBudgetEnd || this.timedOut(),
     })
 
     if (phase.type === 'terminal') return phase.move

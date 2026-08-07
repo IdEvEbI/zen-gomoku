@@ -36,6 +36,14 @@ export {
   DEFAULT_VCF_MAX_PLY,
   type VcfOptions,
 } from './vcf'
+export {
+  findVctMove,
+  hasVct,
+  vctExists,
+  findVctDefense,
+  DEFAULT_VCT_MAX_PLY,
+  type VctOptions,
+} from './vct'
 export { RandomAgent } from './RandomAgent'
 export { HeuristicAgent } from './HeuristicAgent'
 export { ShaHeshangAgent } from './ShaHeshangAgent'

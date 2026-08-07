@@ -19,6 +19,7 @@ import {
   scoreForcedReply,
 } from './threats'
 import { findVcfDefense, findVcfMove } from './vcf'
+import { findVctDefense, findVctMove } from './vct'
 import { checkWinner } from '../core'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
@@ -52,6 +53,9 @@ export interface RootPolicyOptions {
   /** VCF 半步上限；0 关闭 */
   vcfMaxPly?: number
   shouldAbortVcf?: () => boolean
+  /** VCT 半步上限；0 关闭（#70 仅唐僧开启） */
+  vctMaxPly?: number
+  shouldAbortVct?: () => boolean
 }
 
 /**
@@ -163,9 +167,12 @@ export function resolveSearchWithDefenseFloor(
     const stillOF = findOpenFourMoves(board, opp, rules, radius).length
     const stillFork = findForkThreeMoves(board, opp, rules, radius).length
     const myOF = findOpenFourMoves(board, toPlay, rules, radius).length
+    const myWinThreats = findWinningMoves(board, toPlay, rules, radius).length
     board[searchMove.row]![searchMove.col] = 0
 
     if (stillWin > 0) return floor
+    // 己方冲四：对方必须应一手，可压过「挡叉」底线抢先手（对局 zen-gomoku-2026-08-07）
+    if (myWinThreats > 0) return searchMove
     // 双活四抢攻仅当对方已无活三/叉可兑；留叉抢攻会重复 03-36-44 的 (10,10)/(8,10)
     if (myOF >= 2 && stillOF === 0 && stillFork === 0) return searchMove
     if (stillOF > 0 || stillFork > 0) return floor
@@ -187,12 +194,19 @@ export function planRootPhase(
   const radius = options.radius ?? NEIGHBOR_RADIUS
   const softRootLimit = options.softRootLimit ?? 16
   const vcfMaxPly = options.vcfMaxPly ?? 0
+  const vctMaxPly = options.vctMaxPly ?? 0
   const opp = other(toPlay)
   const vcfOpts = {
     maxPly: vcfMaxPly,
     rules,
     radius,
     shouldAbort: options.shouldAbortVcf,
+  }
+  const vctOpts = {
+    maxPly: vctMaxPly,
+    rules,
+    radius,
+    shouldAbort: options.shouldAbortVct,
   }
 
   const instant = findWinningMoves(board, toPlay, rules, radius)
@@ -217,7 +231,7 @@ export function planRootPhase(
     }
   }
 
-  if (vcfMaxPly > 0) {
+  if (vcfMaxPly > 0 || vctMaxPly > 0) {
     // 快路径：一手造成双胜点（开四/双冲四）直接走，不穷举
     const quick = findFourThreatMoves(board, toPlay, rules, radius)
     for (const m of quick) {
@@ -232,14 +246,37 @@ export function planRootPhase(
   const race = pickForkRaceMove(board, toPlay, rules, radius)
   if (race) return { type: 'terminal', move: race }
 
+  // 己方 VCF；对方 VCF 必防；对方叉/活四软威胁必应 —— 均优先于投机 VCT
+  if (vcfMaxPly > 0) {
+    const myVcf = findVcfMove(board, toPlay, vcfOpts)
+    if (myVcf) return { type: 'terminal', move: myVcf }
+  }
+  if (vcfMaxPly > 0 && findFourThreatMoves(board, opp, rules, radius).length > 0) {
+    const vcfBlocks = findVcfDefense(board, toPlay, vcfOpts)
+    if (vcfBlocks.length > 0) {
+      const move = pickBestForcedReply(board, toPlay, vcfBlocks, rules, radius) ?? vcfBlocks[0]!
+      return { type: 'terminal', move }
+    }
+  }
+
   const defense = listSoftDefenseCandidates(board, toPlay, rules, radius)
-  if (defense.length > 0) {
-    // 活三（可成活四）：直接兼攻最优挡，避免「搜来搜去只剩纯堵」
-    if (findOpenFourMoves(board, opp, rules, radius).length > 0) {
+  const oppOpenFour = findOpenFourMoves(board, opp, rules, radius)
+  const oppForks = findForkThreeMoves(board, opp, rules, radius)
+  if (defense.length > 0 && (oppOpenFour.length > 0 || oppForks.length > 0)) {
+    if (oppOpenFour.length > 0) {
       const move = pickBestForcedReply(board, toPlay, defense, rules, radius) ?? defense[0]!
       return { type: 'terminal', move }
     }
-    // 叉 / 冲四软威胁：仍搜挡∪攻，底线兜住
+    // 对方有叉：若己方能冲四（落子后出现胜点），抢先手压过软挡
+    const myFours = findFourThreatMoves(board, toPlay, rules, radius)
+    for (const m of myFours) {
+      if (board[m.row]![m.col] !== 0) continue
+      board[m.row]![m.col] = toPlay
+      const wins = findWinningMoves(board, toPlay, rules, radius).length
+      const won = checkWinner(board, m.row, m.col, rules) === toPlay
+      board[m.row]![m.col] = 0
+      if (won || wins > 0) return { type: 'terminal', move: m }
+    }
     return {
       type: 'search',
       restrict: listSoftRootCandidates(board, toPlay, softRootLimit, rules, radius),
@@ -247,17 +284,23 @@ export function planRootPhase(
     }
   }
 
-  // 无软威胁：深层己方 VCF + 对方 VCF 必防
-  if (vcfMaxPly > 0) {
-    const myVcf = findVcfMove(board, toPlay, vcfOpts)
-    if (myVcf) return { type: 'terminal', move: myVcf }
+  if (vctMaxPly > 0) {
+    const myVct = findVctMove(board, toPlay, vctOpts)
+    if (myVct) return { type: 'terminal', move: myVct }
+  }
+  if (vctMaxPly > 0) {
+    const vctBlocks = findVctDefense(board, toPlay, vctOpts)
+    if (vctBlocks.length > 0) {
+      const move = pickBestForcedReply(board, toPlay, vctBlocks, rules, radius) ?? vctBlocks[0]!
+      return { type: 'terminal', move }
+    }
+  }
 
-    if (findFourThreatMoves(board, opp, rules, radius).length > 0) {
-      const vcfBlocks = findVcfDefense(board, toPlay, vcfOpts)
-      if (vcfBlocks.length > 0) {
-        const move = pickBestForcedReply(board, toPlay, vcfBlocks, rules, radius) ?? vcfBlocks[0]!
-        return { type: 'terminal', move }
-      }
+  if (defense.length > 0) {
+    return {
+      type: 'search',
+      restrict: listSoftRootCandidates(board, toPlay, softRootLimit, rules, radius),
+      defenseFloor: defense,
     }
   }
 

@@ -3,23 +3,23 @@
 > **仓库**：zen-gomoku。古典增强路径；**不要**指望 zen-gomoku-ml 的 ONNX 模仿短期替代唐僧。  
 > **实现 PR**：[\#68](https://github.com/IdEvEbI/zen-gomoku/pull/68)（威胁 / 形分 / 根策略迭代）。相关总览见 [ai-agents.md](./ai-agents.md)、路线图 [strength-roadmap.md](./strength-roadmap.md)。
 
-| 项       | 内容                                                                                                                             |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 状态     | **已落地**（`feature/tang-threat-search` → PR \#68）                                                                             |
-| 目标     | 认真下也很难赢「唐僧」；freestyle；H5 有硬时限仍可玩                                                                             |
-| 非目标   | 数学「无敌」；完整职业 VCF/VCT 引擎；本阶段神经网络当唐僧                                                                        |
-| 能力边界 | **VCF**（详见 [vcf.md](./vcf.md)）；短威胁 DFS 已由 VCF 接替根路径；**VCT** 设计见 [vct.md](./vct.md)（#70，未实现）；无持久计划 |
+| 项       | 内容                                                                                 |
+| -------- | ------------------------------------------------------------------------------------ |
+| 状态     | **已落地**（`feature/tang-threat-search` → PR \#68）                                 |
+| 目标     | 认真下也很难赢「唐僧」；freestyle；H5 有硬时限仍可玩                                 |
+| 非目标   | 数学「无敌」；完整职业 VCF/VCT 引擎；本阶段神经网络当唐僧                            |
+| 能力边界 | **VCF**（[vcf.md](./vcf.md)）+ **VCT**（[vct.md](./vct.md)，#70 仅唐僧）；无持久计划 |
 
 ---
 
 ## 1. 四级难度（与代码一致）
 
-| 等级   | 实现              | 参数（`difficulty.ts`）                                                                                           |
-| ------ | ----------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 沙和尚 | `ShaHeshangAgent` | Top-K + `listForcedReplies` 必应                                                                                  |
-| 猪八戒 | `HeuristicAgent`  | 赢法启发 + 形分；`listForcedReplies`                                                                              |
-| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`timeLimitMs=180`，`candidateLimit=12`；无威胁 DFS                                                  |
-| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + ID，`timeLimitMs=1000`，`candidateLimit=16`，`vcfMaxPly=12`，`vcfBudgetMs=400`，`softRootLimit=16` |
+| 等级   | 实现              | 参数（`difficulty.ts`）                                                                                                                              |
+| ------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 沙和尚 | `ShaHeshangAgent` | Top-K + `listForcedReplies` 必应                                                                                                                     |
+| 猪八戒 | `HeuristicAgent`  | 赢法启发 + 形分；`listForcedReplies`                                                                                                                 |
+| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`timeLimitMs=180`，`candidateLimit=12`；无威胁 DFS                                                                                     |
+| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + ID，`timeLimitMs=1000`，`candidateLimit=16`，`vcfMaxPly=12`，`vcfBudgetMs=300`，`vctMaxPly=12`，`vctBudgetMs=400`，`softRootLimit=16` |
 
 开局：`openingBook.ts`（花月/浦月/斜二等 + 八对称）——改善开局单调，**不**解决中盘战术洞。
 
@@ -33,6 +33,7 @@ MinimaxAgent.ts        → αβ / 时限 / 候选展开（不堆根特例）
 rootPolicy.ts          → 根相位：何时短路、搜什么、如何与防守底线合并
 threats.ts             → 形检测、硬/软防、择优
 vcf.ts                 → VCF 求解（连续冲四；守方只堵胜点）→ 详见 vcf.md
+vct.ts                 → VCT 求解（冲四+活三+叉；复用 VCF）→ 详见 vct.md
 evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 ```
 
@@ -40,11 +41,13 @@ evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 | ------------------------ | ------------------------------------------------------------------------------------ |
 | `src/ai/threats.ts`      | 胜 / 冲四 / 活四端 / 活三 / 叉；硬软防；`scoreForcedReply`；遗留 `findForcedWinMove` |
 | `src/ai/vcf.ts`          | 见 [vcf.md](./vcf.md)：`findVcfMove` / `findVcfDefense` / `vcfExists`                |
+| `src/ai/vct.ts`          | 见 [vct.md](./vct.md)：`findVctMove` / `findVctDefense` / `vctExists`                |
 | `src/ai/rootPolicy.ts`   | `planRootPhase` / `pickForkRaceMove` / `resolveSearchWithDefenseFloor`               |
 | `src/ai/MinimaxAgent.ts` | 迭代加深 αβ；调用 rootPolicy；超时返回当前最佳                                       |
 | `src/ai/evaluate.ts`     | `evaluateBoard` / `scoreEmptyCell` 形分（叶子不算叉，控 NPS）                        |
 | `src/ai/threats.test.ts` | 形与棋谱回归（漏防 / 抢攻纪律）                                                      |
 | `src/ai/vcf.test.ts`     | VCF 单元与对照局面                                                                   |
+| `src/ai/vct.test.ts`     | VCT 单元与根优先级回归                                                               |
 
 ---
 
@@ -57,15 +60,13 @@ evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 3. **己方活四（可成活四点）** → terminal
 4. **己方双胜点快路径**（冲四着落子后胜点≥2 / 直接胜）→ terminal
 5. **叉对杀抢攻**（`pickForkRaceMove`）→ terminal
-6. **软威胁**
+6. **己方 VCF** → **对方 VCF 必防** → **己方 VCT** → **对方 VCT 必防**（见 [vct.md](./vct.md)）
+7. **软威胁**
    - 对方有**可成活四**（活三端）：**直接** `pickBestForcedReply` → terminal
    - 否则（叉 / 冲四软防）：受限 αβ + `resolveSearchWithDefenseFloor`
-7. **无软威胁时**：深层己方 VCF（`findVcfMove`，ply≤12，预算约 400ms）→  
-   对方 VCF 必防（`findVcfDefense`）→ terminal（算法见 [vcf.md](./vcf.md)）
 8. 否则全盘候选 αβ
 
-> **已知**：步骤 6 的软活三挡优先于步骤 7 的己方 VCF；对杀题上可能「先挡再杀」。  
-> 调优先级放在 VCT/根策略后续切片。
+> **已修（#70）**：强迫杀棋（VCF/VCT）提到软活三挡之前；对方 VCF 必防先于慢 VCT 穷举。
 
 ### 3.1 防守底线（`resolveSearchWithDefenseFloor`）
 
@@ -144,4 +145,5 @@ evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 | 2026-08-06 | 初稿：交接规格（威胁 + 评估 + 参数）                                  |
 | 2026-08-06 | 实现落地：`threats` + 形分 + 唐僧参数                                 |
 | 2026-08-07 | 根策略 `rootPolicy`；凶棋风与对杀纪律；文档改为与代码对齐的已落地规格 |
-| 2026-08-07 | #69 VCF：链到 [vcf.md](./vcf.md)；记录软挡优先于己方 VCF 的已知缺口   |
+| 2026-08-07 | #69 VCF：链到 [vcf.md](./vcf.md)                                      |
+| 2026-08-07 | #70 VCT：仅唐僧；根序杀棋优先于软挡；见 [vct.md](./vct.md)            |

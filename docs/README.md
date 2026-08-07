@@ -34,7 +34,7 @@ docs/
     ├── strength-roadmap.md
     ├── tang-seng-strength.md
     ├── vcf.md                 # VCF 求解器 as-built
-    ├── vct.md                 # VCT 求解器设计草案（#70）
+    ├── vct.md                 # VCT 求解器 as-built（#70）
     ├── alphazero-lite.md
     └── forbidden-moves.md
 ```
@@ -75,7 +75,7 @@ docs/
 | [strength-roadmap.md](design/strength-roadmap.md)             | 棋力对标、四级人设重做、VCF/VCT 优先       |
 | [tang-seng-strength.md](design/tang-seng-strength.md)         | 唐僧威胁搜索 as-built                      |
 | [vcf.md](design/vcf.md)                                       | VCF 求解器（连续冲四）as-built             |
-| [vct.md](design/vct.md)                                       | VCT 求解器设计草案（#70；仅唐僧）          |
+| [vct.md](design/vct.md)                                       | VCT 求解器（#70；仅唐僧）as-built          |
 | [alphazero-lite.md](design/alphazero-lite.md)                 | 自由/禁手双模型训练路线（M5）              |
 | [forbidden-moves.md](design/forbidden-moves.md)               | 中国规则禁手规格                           |
 

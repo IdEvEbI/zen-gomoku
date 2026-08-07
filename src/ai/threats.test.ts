@@ -3,6 +3,7 @@ import {
   findWinningMoves,
   findFourThreatMoves,
   findOpenThreeMoves,
+  findOpenFourMoves,
   findForkThreeMoves,
   listHardForcedReplies,
   listSoftDefenseCandidates,
@@ -311,6 +312,49 @@ describe('regression: zen-gomoku-2026-08-06-09-42-16 dual-four fork', () => {
       const stillKill = findForkThreeMoves(board, 1).some((m) => m.row === 9 && m.col === 4)
       board[move!.row]![move!.col] = 0
       expect(stillKill).toBe(false)
+    }
+  }, 30_000)
+})
+
+describe('regression: zen-gomoku-2026-08-07-01-49-53 multi open-four ends', () => {
+  /** 黑 (7,6) 后多活三端；堵 (5,6) 仍放行第 7 行两端，黑 (7,8) 双胜点成杀 */
+  const afterBlack76: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [6, 7, 2],
+    [8, 6, 1],
+    [6, 8, 2],
+    [8, 5, 1],
+    [8, 4, 2],
+    [7, 5, 1],
+    [6, 4, 2],
+    [9, 5, 1],
+    [6, 5, 2],
+    [6, 6, 1],
+    [5, 5, 2],
+    [7, 6, 1],
+  ]
+
+  it('pickBest prefers row-7 end (7,4)/(7,8) over side (5,6)', () => {
+    const board = emptyBoard()
+    apply(board, afterBlack76)
+    const ends = findOpenFourMoves(board, 1)
+    expect(ends.some((m) => m.row === 5 && m.col === 6)).toBe(true)
+    expect(ends.some((m) => m.row === 7 && m.col === 4)).toBe(true)
+    const best = pickBestForcedReply(board, 2, ends)
+    expect(best).not.toBeNull()
+    expect((best!.row === 7 && best!.col === 4) || (best!.row === 7 && best!.col === 8)).toBe(true)
+  })
+
+  it('Tang blocks a row-7 end, not only (5,6)', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlack76)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 5; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).not.toBeNull()
+      expect(move!.row === 5 && move!.col === 6).toBe(false)
+      const ok = (move!.row === 7 && move!.col === 4) || (move!.row === 7 && move!.col === 8)
+      expect(ok).toBe(true)
     }
   }, 30_000)
 })

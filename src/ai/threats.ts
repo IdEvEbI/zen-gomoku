@@ -342,7 +342,42 @@ function remainingForkSeverity(
 }
 
 /**
- * 堵完后对方残留双活四威胁分数（越小越好）。
+ * 对方每个残留「可成活四」点落下后的胜点总数。
+ */
+function remainingOpenFourDualSum(
+  board: number[][],
+  attacker: AiPlayer,
+  rules: RuleSetId,
+  radius: number
+): number {
+  let sum = 0
+  for (const e of findOpenFourMoves(board, attacker, rules, radius)) {
+    board[e.row]![e.col] = attacker
+    sum += findWinningMoves(board, attacker, rules, radius).length
+    board[e.row]![e.col] = 0
+  }
+  return sum
+}
+
+function isOwnAttackPoint(
+  board: number[][],
+  toPlay: AiPlayer,
+  move: AiMove,
+  rules: RuleSetId,
+  radius: number
+): { fork: boolean; openFour: boolean; four: boolean } {
+  const hit = (ms: AiMove[]) => ms.some((m) => m.row === move.row && m.col === move.col)
+  return {
+    fork: hit(findForkThreeMoves(board, toPlay, rules, radius)),
+    openFour: hit(findOpenFourMoves(board, toPlay, rules, radius)),
+    four: hit(findFourThreatMoves(board, toPlay, rules, radius)),
+  }
+}
+
+/**
+ * 必防点评分（越小越好）。
+ * - 有双杀叉时：按残留叉严重度，兼攻只作微弱决胜（防己方冲四点压过更优挡点）
+ * - 仅活三端时：残留可成活四双胜杀伤为主，兼攻权重大（挡兼自己的叉，如 (7,4)）
  */
 export function scoreForcedReply(
   board: number[][],
@@ -353,22 +388,35 @@ export function scoreForcedReply(
 ): number {
   if (board[move.row]![move.col] !== 0) return Number.POSITIVE_INFINITY
   const opp = other(toPlay)
+  const forkMode = findForkThreeMoves(board, opp, rules, radius).length > 0
+  const own = isOwnAttackPoint(board, toPlay, move, rules, radius)
+
   board[move.row]![move.col] = toPlay
   const s = remainingForkSeverity(board, opp, rules, radius)
+  const ofDualSum = remainingOpenFourDualSum(board, opp, rules, radius)
   board[move.row]![move.col] = 0
-  return (
-    s.forks * 1_000_000 +
-    s.maxOF * 10_000 +
-    s.sumOF * 100 +
-    s.openLeft * 10 +
-    move.row +
-    move.col / 100
-  )
+
+  const defense =
+    s.forks * 1_000_000 + ofDualSum * 10_000 + s.openLeft * 1_000 + s.maxOF * 100 + s.sumOF * 10
+
+  if (forkMode) {
+    const tie =
+      move.row +
+      move.col / 100 -
+      (own.fork ? 0.05 : 0) -
+      (own.openFour ? 0.03 : 0) -
+      (own.four ? 0.01 : 0)
+    return defense + tie
+  }
+
+  // 活三端：兼攻可跨过坐标决胜（典型：同行两端优于边线活三端）
+  const tie =
+    -(own.fork ? 50 : 0) - (own.openFour ? 30 : 0) - (own.four ? 10 : 0) + move.row + move.col / 100
+  return defense + tie
 }
 
 /**
- * 在必防点中选堵完后对方残留双活四威胁最轻的点。
- * 同分按 (row,col) 稳定打破，避免随机抽到仍放行明显杀点的叉。
+ * 在必防点中选评分最优的点（见 scoreForcedReply）。
  */
 export function pickBestForcedReply(
   board: number[][],

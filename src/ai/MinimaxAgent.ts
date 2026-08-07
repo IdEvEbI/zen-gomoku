@@ -18,7 +18,6 @@ import {
 } from './evaluate'
 import {
   findForcedWinMove,
-  findForkThreeMoves,
   findOpenFourMoves,
   findWinningMoves,
   listHardForcedReplies,
@@ -179,14 +178,10 @@ export class MinimaxAgent implements IAgent {
     }
 
     if (best) {
-      // 叉软威胁：搜索结果若比启发挡点更差（残留双杀更重），改用 pickBest
-      const opp = (aiPlayer === 1 ? 2 : 1) as AiPlayer
-      if (
-        oppOpenFourEnds.length === 0 &&
-        soft.length > 0 &&
-        findForkThreeMoves(work, opp, this.rules, this.neighborRadius).length > 0
-      ) {
-        const heur = pickBestForcedReply(work, aiPlayer, soft, this.rules, this.neighborRadius)
+      // 软威胁：搜索结果若比启发挡点更差，改用 pickBest（活三端 / 双杀叉均适用）
+      const heurPool = oppOpenFourEnds.length > 0 ? oppOpenFourEnds : soft.length > 0 ? soft : null
+      if (heurPool && heurPool.length > 0) {
+        const heur = pickBestForcedReply(work, aiPlayer, heurPool, this.rules, this.neighborRadius)
         if (heur) {
           const searchScore = scoreForcedReply(
             work,

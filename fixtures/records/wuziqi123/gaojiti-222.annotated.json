@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1,
+      "site": "h8"
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2,
+      "site": "i9"
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1,
+      "site": "g7"
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 2,
+      "site": "i10"
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1,
+      "site": "j7"
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2,
+      "site": "g8"
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/gaojiti/222.html",
+    "title": "SIRIUS高级VCT习题CH7",
+    "siteMoves": "h8i9g7i10j7g8",
+    "note": "站点坐标 a-o / 1底-15顶；本仓 r=15-n,c=a..o。"
+  }
+}

@@ -94,12 +94,12 @@ interface IAgent {
 
 ### 3.2 已定参数（#44 + #66）
 
-| 等级   | Agent             | 关键参数                                                                                                        |
-| ------ | ----------------- | --------------------------------------------------------------------------------------------------------------- |
-| 沙和尚 | `ShaHeshangAgent` | Top-K=`4`，`bestMoveChance=0.55`；必应一步胜/`listForcedReplies`；无全盘随机                                    |
-| 猪八戒 | `HeuristicAgent`  | 0 层赢法启发 + 形分；必应同上                                                                                   |
-| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`candidateLimit=12`，`timeLimitMs=180`；威胁候选优先；无威胁 DFS                                  |
-| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + 迭代加深，`candidateLimit=16`，`timeLimitMs=1000`，`vcfMaxPly=12`，`vcfBudgetMs=400`，软根含对杀 |
+| 等级   | Agent             | 关键参数                                                                                                                                           |
+| ------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 沙和尚 | `ShaHeshangAgent` | Top-K=`4`，`bestMoveChance=0.55`；必应一步胜/`listForcedReplies`；无全盘随机                                                                       |
+| 猪八戒 | `HeuristicAgent`  | 0 层赢法启发 + 形分；必应同上                                                                                                                      |
+| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`candidateLimit=12`，`timeLimitMs=180`；威胁候选优先；无威胁 DFS                                                                     |
+| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + 迭代加深，`candidateLimit=16`，`timeLimitMs=1000`，`vcfMaxPly=12`，`vcfBudgetMs=300`，`vctMaxPly=12`，`vctBudgetMs=400`，软根含对杀 |
 
 默认等级：**猪八戒**。切换等级仅影响后续 AI 手数（不强制重开）。
 
@@ -113,13 +113,13 @@ interface IAgent {
 
 ### 4.2 算法骨架
 
-1. **根节点**：由 `rootPolicy.planRootPhase` 统一决策——一步胜 / 硬必防 / 己方活四 / 叉对杀抢攻；**活三（可成活四）直接兼攻最优挡**；无软威胁时深层 **VCF**（[vcf.md](./vcf.md)）；其余软威胁「挡∪攻」αβ + 防守底线。
+1. **根节点**：由 `rootPolicy.planRootPhase` 统一决策——一步胜 / 硬必防 / 己方活四 / 叉对杀；**己方 VCF → 对方 VCF 必防 → 己方 VCT → 对方 VCT 必防**（[vct.md](./vct.md)）；再软活三挡 / αβ。
 2. **走法生成**：`listThreatCandidates`（胜/硬软防守/冲四/叉）优先，再 `listOrderedCandidates` 启发补齐；威胁点截断前必留。
 3. **递归**：交替落子；α-β 剪枝；触达深度或终局停止；层内同样威胁优先。
 4. **叶子评估**：赢法计数分 + 形分（冲四/活三数量加权）。
 5. **终局**：己方五连 → +∞ 档；对方五连 → −∞ 档。
 
-模块：`src/ai/threats.ts`、`src/ai/vcf.ts`（见 [tang-seng-strength.md](./tang-seng-strength.md)、[vcf.md](./vcf.md)）。
+模块：`src/ai/threats.ts`、`src/ai/vcf.ts`、`src/ai/vct.ts`（见 [tang-seng-strength.md](./tang-seng-strength.md)）。
 
 ### 4.3 与现版启发的关系
 
@@ -127,7 +127,7 @@ interface IAgent {
 次优抽样 + 必应威胁     → 沙和尚
 Heuristic + 形分        → 猪八戒（基准）
 形分评估 + 浅搜         → 孙悟空
-形分评估 + 深搜 + VCF → 唐僧
+形分评估 + 深搜 + VCF/VCT → 唐僧
 ```
 
 同一套评估函数贯穿 Phase 1～2，降低「搜索更深反而棋风突变」的风险。
@@ -201,3 +201,4 @@ Phase 3（预留）：`AlphaZeroAgent`，仍实现 `IAgent`，与本文四级正
 | 2026-08-06 | 三刀调优：软根对杀、叶子活三/叉形分、唐僧 6×1000ms     |
 | 2026-08-07 | #69：`vcf.ts`；唐僧 `vcfMaxPly=12` / `vcfBudgetMs=400` |
 | 2026-08-07 | 链到 [vcf.md](./vcf.md)；根相位描述与实现对齐          |
+| 2026-08-07 | #70：VCT（仅唐僧）；根序 VCF/VCT 优先于软挡            |

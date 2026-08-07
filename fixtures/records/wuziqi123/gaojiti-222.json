@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    }
+  ]
+}

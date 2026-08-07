@@ -4,7 +4,8 @@
 
 ## 命名与结构约定
 
-- **文件名**：统一使用 **kebab-case**（小写 + 连字符），例如 `branch-strategy.md`、`requirements.md`。便于 URL、链接和跨平台一致性。
+- **文件名**：统一使用 **kebab-case**（小写 + 连字符），  
+  例如 `branch-strategy.md`、`requirements.md`。便于 URL、链接和跨平台一致性。
 - **目录**：
   - **development/**：开发流程、规范、工具说明（分支策略、编码约定等）。
   - **project/**：产品与项目文档（需求、设计、会议纪要等）。
@@ -19,11 +20,14 @@ docs/
 │   └── feature-workflow.md
 ├── project/
 │   ├── issue-backlog.md
-│   ├── requirements.md   # 指向正式规格的入口
-│   └── design.md         # 指向正式设计的入口
+│   ├── requirements.md
+│   └── design.md
 ├── requirements/
 │   └── functional-spec.md
 └── design/
+    ├── product-vision.md      # 产品终态与里程碑（决策）
+    ├── teaching.md            # 新手学堂（闯关；双规则）
+    ├── content-sources.md     # 26 开局 / VCT·VCF 内容来源
     ├── technical-architecture.md
     ├── ai-agents.md
     ├── strength-roadmap.md
@@ -55,13 +59,17 @@ docs/
 
 ## 设计与架构 (design/)
 
-| 文档                                                          | 说明                                   |
-| ------------------------------------------------------------- | -------------------------------------- |
-| [technical-architecture.md](design/technical-architecture.md) | 技术架构设计                           |
-| [ai-agents.md](design/ai-agents.md)                           | AI 算法与四级难度                      |
-| [strength-roadmap.md](design/strength-roadmap.md)             | 棋力对标与三层「最强」策略（决策记录） |
-| [tang-seng-strength.md](design/tang-seng-strength.md)         | 唐僧棋力增强（威胁搜索；Cursor 交接）  |
-| [alphazero-lite.md](design/alphazero-lite.md)                 | 自由/禁手双模型训练路线（已确认设计）  |
-| [forbidden-moves.md](design/forbidden-moves.md)               | 中国规则禁手规格（实现对照）           |
+| 文档                                                          | 说明                                       |
+| ------------------------------------------------------------- | ------------------------------------------ |
+| [product-vision.md](design/product-vision.md)                 | **产品愿景与 M1～M5 里程碑（2026-08-07）** |
+| [teaching.md](design/teaching.md)                             | 新手学堂：闯关、提示广告、#73/#74 分工     |
+| [content-sources.md](design/content-sources.md)               | 26 开局与 VCT/VCF 练习内容来源与合规       |
+| [technical-architecture.md](design/technical-architecture.md) | 技术架构设计                               |
+| [ai-agents.md](design/ai-agents.md)                           | AI 算法与四级难度（实现对照）              |
+| [strength-roadmap.md](design/strength-roadmap.md)             | 棋力对标、四级人设重做、VCF/VCT 优先       |
+| [tang-seng-strength.md](design/tang-seng-strength.md)         | 唐僧威胁搜索 as-built                      |
+| [alphazero-lite.md](design/alphazero-lite.md)                 | 自由/禁手双模型训练路线（M5）              |
+| [forbidden-moves.md](design/forbidden-moves.md)               | 中国规则禁手规格                           |
 
-新文档请按上述目录放入对应子目录，并保持 kebab-case 命名；新增后可在本 README 的表格中加一行链接。
+新文档请按上述目录放入对应子目录，并保持 kebab-case 命名；  
+新增后可在本 README 的表格中加一行链接。

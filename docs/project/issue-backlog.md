@@ -8,20 +8,21 @@
 
 - 本文是「计划创建 / 已创建 GitHub Issue」的待办池。
 - Backlog 内 **§编号** 与 GitHub Issue **#编号** 不必一一对应；PR 请写实际 `#n`。
-- **当前优先级**：棋力 VCF/VCT → 四级人设 → 打谱/练习 → 小程序壳 →  
-  人人与段位 → ML 如来。
+- **当前优先级**：VCF → VCT → 学堂闯关（#74）→ 打谱+分析（#73）→  
+  人设/评测/音频可并行 → 小程序壳 → 人人与段位 → ML 如来。
+- **教学规格**：[teaching.md](../design/teaching.md)。
 
 ---
 
 ## 里程碑总览
 
-| Milestone               | 窗口（约） | 交付                                                   |
-| ----------------------- | ---------- | ------------------------------------------------------ |
-| **M1 棋力与练习（H5）** | 0～3 月    | VCF/VCT、四级人设、26 开局打谱、练习雏形、公开引擎评测 |
-| **M2 小程序壳**         | ~3 月节点  | 微信+手机号登录、人机/打谱、音频、激励视频（插屏关）   |
-| **M3 人人与段位**       | ~6 月      | 房间+匹配、观战、断线重连、排位段位（好友不计）        |
-| **M4 增长与 IP**        | 上线后     | 广告迭代、软著/专利（门禁后）                          |
-| **M5 如来与论文**       | 产品稳定后 | ONNX + 如来佛；论文（不赶工）                          |
+| Milestone               | 窗口（约） | 交付                                                 |
+| ----------------------- | ---------- | ---------------------------------------------------- |
+| **M1 棋力与练习（H5）** | 0～3 月    | VCF/VCT → 学堂闯关 → 打谱分析 → 人设/评测            |
+| **M2 小程序壳**         | ~3 月节点  | 微信+手机号登录、人机/打谱、音频、激励视频（插屏关） |
+| **M3 人人与段位**       | ~6 月      | 房间+匹配、观战、断线重连、排位段位（好友不计）      |
+| **M4 增长与 IP**        | 上线后     | 广告迭代、软著/专利（门禁后）                        |
+| **M5 如来与论文**       | 产品稳定后 | ONNX + 如来佛；论文（不赶工）                        |
 
 历史 Milestone（v0.1～v0.3 基础对局/棋谱/AI）已在 `develop` 交付，  
 本节不再展开；旧表见 git 历史。
@@ -45,16 +46,16 @@
 
 ## M1 — 棋力与练习（H5）· 当前主战场
 
-| #    | GitHub                                                 | 标题                         | 描述                                   |
-| ---- | ------------------------------------------------------ | ---------------------------- | -------------------------------------- |
-| M1.1 | [#69](https://github.com/IdEvEbI/zen-gomoku/issues/69) | **feat: 完整 VCF 求解器**    | 连续冲四杀/防；根优先；单测 + 回归     |
-| M1.2 | [#70](https://github.com/IdEvEbI/zen-gomoku/issues/70) | **feat: VCT 威胁搜索**       | 连续威胁取胜/防守；唐僧默认最强        |
-| M1.3 | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71) | **feat: 四级人设重做**       | 沙=噪声；猪守；悟攻；唐均衡最强        |
-| M1.4 | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72) | **feat: Agent 预留如来佛**   | `rulai` 占位；无模型不可选             |
-| M1.5 | [#73](https://github.com/IdEvEbI/zen-gomoku/issues/73) | **feat: 26 开局打谱 UI**     | 坐标+续着+原创讲解；见 content-sources |
-| M1.6 | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) | **feat: VCF/VCT 练习题包**   | JSON 题包 + 求解器验题 CI              |
-| M1.7 | [#75](https://github.com/IdEvEbI/zen-gomoku/issues/75) | **docs/chore: 引擎公开评测** | 唐僧 vs gobang / Rapfi                 |
-| M1.8 | [#76](https://github.com/IdEvEbI/zen-gomoku/issues/76) | **feat: 音频（H5）**         | BGM 可关 + 落子音效                    |
+| #    | GitHub                                                 | 标题                         | 描述                                                                                      |
+| ---- | ------------------------------------------------------ | ---------------------------- | ----------------------------------------------------------------------------------------- |
+| M1.1 | [#69](https://github.com/IdEvEbI/zen-gomoku/issues/69) | **feat: 完整 VCF 求解器**    | 连续冲四杀/防；根优先；单测 + 回归                                                        |
+| M1.2 | [#70](https://github.com/IdEvEbI/zen-gomoku/issues/70) | **feat: VCT 威胁搜索**       | 连续威胁取胜/防守；唐僧默认最强                                                           |
+| M1.3 | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71) | **feat: 四级人设重做**       | 沙=噪声；猪守；悟攻；唐均衡最强                                                           |
+| M1.4 | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72) | **feat: Agent 预留如来佛**   | `rulai` 占位；无模型不可选                                                                |
+| M1.5 | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) | **feat: 学堂闯关（题包）**   | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73** |
+| M1.6 | [#73](https://github.com/IdEvEbI/zen-gomoku/issues/73) | **feat: 26 开局打谱+分析**   | 照谱落子 + **每步盘面分析**（依赖唐僧 VCF/VCT）；见 teaching.md                           |
+| M1.7 | [#75](https://github.com/IdEvEbI/zen-gomoku/issues/75) | **docs/chore: 引擎公开评测** | 唐僧 vs gobang / Rapfi                                                                    |
+| M1.8 | [#76](https://github.com/IdEvEbI/zen-gomoku/issues/76) | **feat: 音频（H5）**         | BGM 可关 + 落子音效                                                                       |
 
 ---
 
@@ -114,13 +115,15 @@
 1. 从本表复制标题与描述 → GitHub New Issue。
 2. Milestone 选 M1～M5（仓库已建）。
 3. 开发分支 `feature/...`，PR 写 `Closes #n`。
-4. **下一刀建议**：从 [#69](https://github.com/IdEvEbI/zen-gomoku/issues/69) VCF 开工。
+4. **下一刀建议**：从 [#69](https://github.com/IdEvEbI/zen-gomoku/issues/69) VCF 开工；  
+   引擎就绪后优先推进 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) 学堂。
 
 ---
 
 ## 修订记录
 
-| 日期       | 说明                              |
-| ---------- | --------------------------------- |
-| （历史）   | v0.1～v0.3 与早期 Backlog         |
-| 2026-08-07 | 按产品愿景重排为 M1～M5；棋力优先 |
+| 日期       | 说明                               |
+| ---------- | ---------------------------------- |
+| （历史）   | v0.1～v0.3 与早期 Backlog          |
+| 2026-08-07 | 按产品愿景重排为 M1～M5；棋力优先  |
+| 2026-08-07 | 学堂闯关：#74 前置、#73 加盘面分析 |

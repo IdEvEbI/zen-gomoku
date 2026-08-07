@@ -4,6 +4,8 @@
 
 - **[../design/product-vision.md](../design/product-vision.md)** —  
   产品愿景与 M1～M5（决策）
+- **[../design/teaching.md](../design/teaching.md)** —  
+  新手学堂（闯关；双规则）
 - **[../design/content-sources.md](../design/content-sources.md)** —  
   26 开局 / VCT·VCF 内容来源
 - **[../design/technical-architecture.md](../design/technical-architecture.md)** —  

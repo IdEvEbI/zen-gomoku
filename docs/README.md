@@ -26,6 +26,7 @@ docs/
 │   └── functional-spec.md
 └── design/
     ├── product-vision.md      # 产品终态与里程碑（决策）
+    ├── teaching.md            # 新手学堂（闯关；双规则）
     ├── content-sources.md     # 26 开局 / VCT·VCF 内容来源
     ├── technical-architecture.md
     ├── ai-agents.md
@@ -61,6 +62,7 @@ docs/
 | 文档                                                          | 说明                                       |
 | ------------------------------------------------------------- | ------------------------------------------ |
 | [product-vision.md](design/product-vision.md)                 | **产品愿景与 M1～M5 里程碑（2026-08-07）** |
+| [teaching.md](design/teaching.md)                             | 新手学堂：闯关、提示广告、#73/#74 分工     |
 | [content-sources.md](design/content-sources.md)               | 26 开局与 VCT/VCF 练习内容来源与合规       |
 | [technical-architecture.md](design/technical-architecture.md) | 技术架构设计                               |
 | [ai-agents.md](design/ai-agents.md)                           | AI 算法与四级难度（实现对照）              |

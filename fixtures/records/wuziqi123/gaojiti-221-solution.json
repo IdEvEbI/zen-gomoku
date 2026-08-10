@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 12,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 11,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 11,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 11,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/gaojiti/221.html",
+    "title": "SIRIUS中级VCT习题CH8 · 学习谱",
+    "setupMoves": 8,
+    "solutionSites": "f10 (g9) l8 (m9) i5 (h4) i6 (i4) h6 (g6) l6 (k6) l7 (l9)",
+    "complete": false,
+    "attacker": "black",
+    "note": "引擎强迫主线前缀（尚未成五）。H5 导入后可从谱尾继续拆；括号内为守方挡点。非站点官方唯一解。"
+  }
+}

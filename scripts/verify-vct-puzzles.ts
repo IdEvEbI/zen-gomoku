@@ -272,10 +272,10 @@ async function main() {
   )
 
   const conclusion = [
-    '- **加深后命中**：open-three、zhongjiti-129、gaojiti-222 等在 ply16 / 1200ms / 80k nodes 下可解。',
-    '- **仍超时**：gaojiti-221（约 3s）与 210/220（未证）保持 expect miss。',
+    '- **唐僧窗命中**：本题集 expect=hit 题均在 ply16 / 1200ms / 80k nodes 下可解（含 210/220/221/222）。',
+    '- **假杀**：根上 `confirmRootVctAttack` 拦截单冲四假续（220 的 g6）。',
     '- **参数折中**：总思考 1500ms；VCF 300ms + VCT 1200ms；嵌套 VCF 共用剩余节点。',
-    '- **下一步建议**：进 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) 学堂（先收录 expectTangHit=true）。',
+    '- **下一步建议**：进 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) 学堂。',
   ].join('\n')
 
   console.log('')

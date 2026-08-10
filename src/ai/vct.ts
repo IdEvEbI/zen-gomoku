@@ -100,31 +100,52 @@ function orderedAttackMoves(
   const instant = findWinningMoves(board, attacker, rules, radius)
   if (instant.length > 0) return instant
 
-  const raw = uniqueMoves([
+  // 先叉/冲四再视情况补活三：全量活三打分在大棋盘上可耗掉整段墙钟预算
+  const primary = uniqueMoves([
     ...findForkThreeMoves(board, attacker, rules, radius),
     ...findFourThreatMoves(board, attacker, rules, radius),
-    ...findOpenThreeMoves(board, attacker, rules, radius),
   ])
-  if (raw.length === 0) return []
-
   const scored: Array<{ m: AiMove; score: number }> = []
-  for (const m of raw) {
-    if (board[m.row]![m.col] !== 0) continue
+
+  const scoreMove = (m: AiMove): number | null => {
+    if (board[m.row]![m.col] !== 0) return null
     board[m.row]![m.col] = attacker
     if (checkWinner(board, m.row, m.col, rules) === attacker) {
       board[m.row]![m.col] = 0
-      scored.push({ m, score: 10_000 })
-      continue
+      return 10_000
     }
     const wins = findWinningMoves(board, attacker, rules, radius).length
     const openFours = findOpenFourMoves(board, attacker, rules, radius).length
     const fours = findFourThreatMoves(board, attacker, rules, radius).length
+    // 双杀启发下跳过昂贵的活三计数
+    if (wins >= 2 || openFours >= 2) {
+      board[m.row]![m.col] = 0
+      return (wins >= 2 ? 8_000 : 5_000) + wins * 100 + openFours * 200
+    }
     const threes = findOpenThreeMoves(board, attacker, rules, radius).length
     board[m.row]![m.col] = 0
-    if (wins === 0 && openFours === 0 && fours === 0 && threes === 0) continue
-    const score = wins * 500 + openFours * 200 + fours * 40 + threes * 10
+    if (wins === 0 && openFours === 0 && fours === 0 && threes === 0) return null
+    return wins * 500 + openFours * 200 + fours * 40 + threes * 10
+  }
+
+  for (const m of primary) {
+    const score = scoreMove(m)
+    if (score === null) continue
     scored.push({ m, score })
   }
+
+  const hasDualHint = scored.some((s) => s.score >= 5_000)
+  if (!hasDualHint && scored.length < attackBranch) {
+    const primaryKeys = new Set(primary.map((m) => moveKey(m)))
+    for (const m of findOpenThreeMoves(board, attacker, rules, radius)) {
+      if (primaryKeys.has(moveKey(m))) continue
+      const score = scoreMove(m)
+      if (score === null) continue
+      scored.push({ m, score })
+      if (scored.length >= attackBranch * 2) break
+    }
+  }
+
   scored.sort((a, b) => b.score - a.score)
   return scored.slice(0, attackBranch).map((s) => s.m)
 }
@@ -282,6 +303,9 @@ function attackNode(
 /**
  * 守方必应点：胜点 → 对方可成活四点 → 对方冲四点。
  * 比 listForcedReplies 更窄，避免把「冲四着 ∪ 其胜点」全部 AND 导致爆炸。
+ *
+ * 注：可成活四点≥2 作 dual 是野心 A 的约定（活三两端视为不可兼挡），
+ * 会把同线活三当成双杀；根上单冲四假杀由 confirmRushFourAttack 收紧。
  */
 function forcedDefenseBlocks(
   board: number[][],
@@ -351,6 +375,53 @@ function defendNode(
 }
 
 /**
+ * 根上收紧「单冲四」假杀：挡唯一胜点后须仍有胜点 / 双威胁 / VCF，
+ * 不得靠后续假「活三双杀」续命（gaojiti-220 的 g6→h7）。
+ * 可成活四点≥2 仍按野心 A 视为双杀，直接放行。
+ */
+function confirmRootVctAttack(
+  board: number[][],
+  attacker: AiPlayer,
+  move: AiMove,
+  options: VctOptions,
+  maxPly: number,
+  rules: RuleSetId,
+  radius: number
+): boolean {
+  if (board[move.row]![move.col] !== 0) return false
+  board[move.row]![move.col] = attacker
+  if (checkWinner(board, move.row, move.col, rules) === attacker) {
+    board[move.row]![move.col] = 0
+    return true
+  }
+  const wins = findWinningMoves(board, attacker, rules, radius)
+  const openFours = findOpenFourMoves(board, attacker, rules, radius)
+  if (wins.length >= 2 || openFours.length >= 2) {
+    board[move.row]![move.col] = 0
+    return true
+  }
+  if (wins.length !== 1) {
+    board[move.row]![move.col] = 0
+    return true
+  }
+
+  const d = wins[0]!
+  const defender = other(attacker)
+  if (board[d.row]![d.col] !== 0) {
+    board[move.row]![move.col] = 0
+    return false
+  }
+  board[d.row]![d.col] = defender
+  const still =
+    findWinningMoves(board, attacker, rules, radius).length > 0 ||
+    findOpenFourMoves(board, attacker, rules, radius).length >= 2 ||
+    vcfExists(board, attacker, attacker, toVcfOptions(options, Math.max(0, maxPly - 1)))
+  board[d.row]![d.col] = 0
+  board[move.row]![move.col] = 0
+  return still
+}
+
+/**
  * 当前轮到 `player` 时，若存在 VCT，返回首着。
  */
 export function findVctMove(
@@ -366,7 +437,7 @@ export function findVctMove(
   const instant = findWinningMoves(board, player, rules, radius)
   if (instant.length > 0) return instant[0]!
 
-  // 先 VCF（子集且更快）
+  // 先 VCF（子集且通常更快）
   const vcfMove = findVcfMove(board, player, toVcfOptions(options, maxPly))
   if (vcfMove) return vcfMove
 
@@ -405,7 +476,9 @@ export function findVctMove(
           options
         ))
     board[m.row]![m.col] = 0
-    if (won) return m
+    if (won && confirmRootVctAttack(board, player, m, options, maxPly, rules, radius)) {
+      return m
+    }
   }
   return null
 }

@@ -53,12 +53,12 @@ function loadBoard(puzzle: Puzzle): { board: number[][]; toPlay: 1 | 2 } {
 }
 
 describe('vct puzzle bench (#83)', () => {
-  it('manifest has short hits and at least one expected long miss', () => {
+  it('manifest has short hits including gaojiti 220–222', () => {
     const hits = manifest.puzzles.filter((p) => p.expectTangHit)
-    const misses = manifest.puzzles.filter((p) => !p.expectTangHit)
     expect(hits.length).toBeGreaterThanOrEqual(3)
+    expect(hits.some((p) => p.id === 'gaojiti-220')).toBe(true)
+    expect(hits.some((p) => p.id === 'gaojiti-221')).toBe(true)
     expect(hits.some((p) => p.id === 'gaojiti-222')).toBe(true)
-    expect(misses.some((p) => p.id === 'gaojiti-220' || p.id === 'gaojiti-210')).toBe(true)
   })
 
   /**

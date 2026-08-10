@@ -30,12 +30,25 @@
 
 ## VCT 手拣题（gaojiti · #83）
 
-| 文件                         | 来源                                                       | 档位 | 备注                              |
-| ---------------------------- | ---------------------------------------------------------- | ---- | --------------------------------- |
-| `wuziqi123/gaojiti-210.json` | [gaojiti/210](https://wuziqi123.com/qipu/gaojiti/210.html) | 中   | 初级标题；引擎深搜仍可能未证      |
-| `wuziqi123/gaojiti-220.json` | [gaojiti/220](https://wuziqi123.com/qipu/gaojiti/220.html) | 长   | 高级压力样例                      |
-| `wuziqi123/gaojiti-221.json` | [gaojiti/221](https://wuziqi123.com/qipu/gaojiti/221.html) | 中   | 深搜参考首着 **f10**              |
-| `wuziqi123/gaojiti-222.json` | [gaojiti/222](https://wuziqi123.com/qipu/gaojiti/222.html) | 长   | 深搜参考首着 **h7**；唐僧预期超时 |
+| 文件                         | 来源                                                       | 档位 | 备注                                  |
+| ---------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------- |
+| `wuziqi123/gaojiti-210.json` | [gaojiti/210](https://wuziqi123.com/qipu/gaojiti/210.html) | 中   | 初级标题；引擎深搜仍可能未证          |
+| `wuziqi123/gaojiti-220.json` | [gaojiti/220](https://wuziqi123.com/qipu/gaojiti/220.html) | 长   | 高级压力样例                          |
+| `wuziqi123/gaojiti-221.json` | [gaojiti/221](https://wuziqi123.com/qipu/gaojiti/221.html) | 中   | 深搜参考首着 **f10**                  |
+| `wuziqi123/gaojiti-222.json` | [gaojiti/222](https://wuziqi123.com/qipu/gaojiti/222.html) | 长   | 深搜参考首着 **h7**；唐僧加深后可命中 |
+
+**学习谱**（题面 + 引擎强迫主线前缀，可 H5 导入）：
+
+| 文件                        | 主线摘要（守方在括号内）                    |
+| --------------------------- | ------------------------------------------- |
+| `gaojiti-210-solution.json` | `f5 (g6) i11 … k9 (l8)`（部分）             |
+| `gaojiti-220-solution.json` | 人机正解 `i10…k2`（已成五）；引擎首着 g9/j6 |
+| `gaojiti-221-solution.json` | `f10 (g9) l8 (m9) i5 … l7 (l9)`（部分）     |
+| `gaojiti-222-solution.json` | `h7 (i7) h6 … i6 (k6)`（部分）              |
+
+对局 playtest：`playtests/tang-gaojiti-220-2026-08-10-03-42-36.json`。
+
+生成：`npx tsx scripts/build-gaojiti-study-records.ts`。非站点官方唯一解；`meta.complete=false` 表示尚未收到成五。
 
 完整期望与能力表：[`vct/manifest.json`](./vct/manifest.json)、[`vct/RESULTS.md`](./vct/RESULTS.md)。
 

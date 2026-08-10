@@ -104,15 +104,15 @@
     },
     {
       "id": "gaojiti-221",
-      "tier": "mid",
+      "tier": "short",
       "kind": "vct",
       "title": "SIRIUS中级VCT习题CH8",
       "source": "https://wuziqi123.com/qipu/gaojiti/221.html",
       "record": "fixtures/records/wuziqi123/gaojiti-221.json",
-      "expectTangHit": false,
-      "acceptableMoves": ["f10"],
+      "expectTangHit": true,
+      "acceptableMoves": ["f10", "l8", "i5", "h4", "m9"],
       "deepReference": "f10",
-      "notes": "#85：深搜约 3～4s 可解；1200ms 唐僧窗仍超时，保持 expect miss。"
+      "notes": "排序加速后短窗可解；f10 为题解参考，l8 等亦为野心 A 双活三首着。"
     },
     {
       "id": "gaojiti-222",
@@ -128,25 +128,25 @@
     },
     {
       "id": "gaojiti-210",
-      "tier": "mid",
+      "tier": "short",
       "kind": "vct",
       "title": "SIRIUS初级VCT习题CH17",
       "source": "https://wuziqi123.com/qipu/gaojiti/210.html",
       "record": "fixtures/records/wuziqi123/gaojiti-210.json",
-      "expectTangHit": false,
-      "acceptableMoves": [],
-      "notes": "标题为初级，但本引擎深搜仍可能未证；保持 expect miss。"
+      "expectTangHit": true,
+      "acceptableMoves": ["i11"],
+      "notes": "盘面轮白；野心 A 下 i11 双活三。题解长线见 gaojiti-210-solution（黑先 f5…）。"
     },
     {
       "id": "gaojiti-220",
-      "tier": "long",
+      "tier": "short",
       "kind": "vct",
       "title": "SIRIUS高级VCT习题CH8",
       "source": "https://wuziqi123.com/qipu/gaojiti/220.html",
       "record": "fixtures/records/wuziqi123/gaojiti-220.json",
-      "expectTangHit": false,
-      "acceptableMoves": [],
-      "notes": "高级压力样例；保持 expect miss。"
+      "expectTangHit": true,
+      "acceptableMoves": ["g9", "j6"],
+      "notes": "人机正解 i10…k2；引擎在野心 A 下首着 g9/j6（双活三）。confirmRushFour 拦截假杀 g6。"
     }
   ]
 }

@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 3,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 11,
+      "player": 1
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/gaojiti/210.html",
+    "title": "SIRIUS初级VCT习题CH17 · 学习谱",
+    "setupMoves": 21,
+    "solutionSites": "f5 (g6) i11 (g11) l11 (k11) k9 (l8)",
+    "complete": false,
+    "attacker": "white",
+    "note": "引擎强迫主线前缀（尚未成五）。H5 导入后可从谱尾继续拆；括号内为守方挡点。非站点官方唯一解。"
+  }
+}

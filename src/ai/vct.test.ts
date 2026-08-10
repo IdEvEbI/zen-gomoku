@@ -1,4 +1,6 @@
+import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
+import { parseGameRecord, rebuildFromRecord } from '../core/gameRecord'
 import { findVcfMove, vcfExists } from './vcf'
 import { findVctMove, hasVct, vctExists, findVctDefense } from './vct'
 import { findOpenFourMoves, findOpenThreeMoves } from './threats'
@@ -154,4 +156,23 @@ describe('vct', () => {
       [6, 4],
     ]).toContainEqual([move!.row, move!.col])
   }, 15_000)
+
+  it('gaojiti-220: prefers dual-three fork, never false rush g6', () => {
+    const raw = JSON.parse(
+      readFileSync('fixtures/records/wuziqi123/gaojiti-220.json', 'utf8')
+    ) as unknown
+    const parsed = parseGameRecord(raw)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const rebuilt = rebuildFromRecord(parsed.record)
+    expect('error' in rebuilt).toBe(false)
+    if ('error' in rebuilt) return
+    const move = findVctMove(rebuilt.board, 1, { maxPly: 12, maxNodes: 8_000 })
+    expect(move).not.toBeNull()
+    expect([
+      [6, 6], // g9
+      [9, 9], // j6
+    ]).toContainEqual([move!.row, move!.col])
+    expect([move!.row, move!.col]).not.toEqual([9, 6]) // g6
+  })
 })

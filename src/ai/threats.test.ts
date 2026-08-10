@@ -13,7 +13,15 @@ import {
   findForcedWinMove,
   measureAttackLethality,
 } from './threats'
-import { pickForkRaceMove, planRootPhase, resolveSearchWithDefenseFloor } from './rootPolicy'
+import {
+  pickForkRaceMove,
+  planRootPhase,
+  resolveSearchWithDefenseFloor,
+  inspectForcingOutcome,
+  pickBestForcingMove,
+} from './rootPolicy'
+import { analyzeVcfDefense } from './vcf'
+import { findVctMove } from './vct'
 import { MinimaxAgent } from './MinimaxAgent'
 import { createAgentForDifficulty } from './difficulty'
 
@@ -578,4 +586,204 @@ describe('Tang / Minimax threat integration', () => {
     expect(move!.row).toBe(7)
     expect([6, 10]).toContain(move!.col)
   })
+})
+
+describe('regression: zen-gomoku-2026-08-07-12-20-04 multi open-four (#81)', () => {
+  /**
+   * 黑 i10 后三活四端 h11/f10/j10。
+   * 挡 h11 仍留 f10+j10（双活四端）→ 必负；应挡 f10 或 j10。
+   * 旧 forkMode 评分因清掉旁叉 k8 而误选 h11。
+   */
+  const afterBlackI10: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [8, 7, 2],
+    [6, 8, 1],
+    [8, 6, 2],
+    [6, 9, 1],
+    [6, 7, 2],
+    [7, 9, 1],
+    [8, 9, 2],
+    [8, 8, 1],
+    [7, 8, 2],
+    [5, 6, 1],
+    [9, 10, 2],
+    [10, 11, 1],
+    [9, 7, 2],
+    [5, 7, 1],
+    [8, 10, 2],
+    [4, 6, 1],
+    [3, 5, 2],
+    [3, 6, 1],
+    [6, 6, 2],
+    [5, 8, 1],
+  ]
+
+  it('pickBest prefers f10/j10 over dual-leaving h11', () => {
+    const board = emptyBoard()
+    apply(board, afterBlackI10)
+    const soft = listSoftDefenseCandidates(board, 2)
+    expect(soft).toEqual(
+      expect.arrayContaining([
+        { row: 4, col: 7 },
+        { row: 5, col: 5 },
+        { row: 5, col: 9 },
+      ])
+    )
+    const best = pickBestForcedReply(board, 2, soft)
+    expect(best).not.toBeNull()
+    expect(best!.row === 4 && best!.col === 7).toBe(false)
+    expect((best!.row === 5 && best!.col === 5) || (best!.row === 5 && best!.col === 9)).toBe(true)
+
+    board[best!.row]![best!.col] = 2
+    expect(findOpenFourMoves(board, 1).length).toBeLessThan(2)
+  })
+
+  it('planRootPhase terminals on residual-aware open-four block', () => {
+    const board = emptyBoard()
+    apply(board, afterBlackI10)
+    const phase = planRootPhase(board, 2, { vcfMaxPly: 12, vctMaxPly: 12 })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(phase.move.row === 4 && phase.move.col === 7).toBe(false)
+      expect(
+        (phase.move.row === 5 && phase.move.col === 5) ||
+          (phase.move.row === 5 && phase.move.col === 9)
+      ).toBe(true)
+    }
+  })
+
+  it('Tang does not play h11', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlackI10)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 3; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).not.toBeNull()
+      expect(move!.row === 4 && move!.col === 7).toBe(false)
+      expect((move!.row === 5 && move!.col === 5) || (move!.row === 5 && move!.col === 9)).toBe(
+        true
+      )
+    }
+  }, 20_000)
+})
+
+describe('regression: zen-gomoku-2026-08-10-01-35-29 VCF before fork race (#81)', () => {
+  /**
+   * 黑 k5 后有可破 VCF（i6/j6/i5/l4）；白叉杀伤更高会诱使 pickForkRaceMove→i13。
+   * 根序必须先破 VCF，禁止用叉对杀压过待破杀。
+   */
+  const afterBlackK5: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [5, 7, 2],
+    [8, 8, 1],
+    [6, 6, 2],
+    [8, 9, 1],
+    [8, 10, 2],
+    [7, 9, 1],
+    [6, 10, 2],
+    [5, 9, 1],
+    [6, 9, 2],
+    [6, 8, 1],
+    [4, 10, 2],
+    [8, 6, 1],
+    [9, 5, 2],
+    [7, 8, 1],
+    [7, 10, 2],
+    [5, 10, 1],
+    [5, 8, 2],
+    [4, 7, 1],
+    [7, 5, 2],
+    [8, 4, 1],
+    [3, 9, 2],
+    [4, 8, 1],
+    [8, 11, 2],
+    [9, 12, 1],
+    [9, 10, 2],
+    [10, 10, 1],
+  ]
+
+  it('race wants i13 but root breaks VCF instead', () => {
+    const board = emptyBoard()
+    apply(board, afterBlackK5)
+    const race = pickForkRaceMove(board, 2)
+    expect(race).toEqual({ row: 2, col: 8 }) // i13
+    const analysis = analyzeVcfDefense(board, 2, { maxPly: 14 })
+    expect(analysis.status).toBe('broken')
+    const phase = planRootPhase(board, 2, { vcfMaxPly: 12, vctMaxPly: 12 })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(phase.move).not.toEqual({ row: 2, col: 8 })
+      expect(
+        analysis.blocks.some((m) => m.row === phase.move.row && m.col === phase.move.col)
+      ).toBe(true)
+    }
+  })
+
+  it('Tang does not race i13 over breakable VCF', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlackK5)
+    const blocks = analyzeVcfDefense(board, 2, { maxPly: 14 }).blocks
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 3; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).not.toBeNull()
+      expect(move).not.toEqual({ row: 2, col: 8 })
+      expect(blocks.some((m) => m.row === move!.row && m.col === move!.col)).toBe(true)
+    }
+  }, 20_000)
+})
+
+describe('regression: zen-gomoku-2026-08-10-01-53-06 forcing reply (#81)', () => {
+  /**
+   * 黑 j5 后双方都有杀：冲四 e10 应手后白无 VCT、黑仍有；己方 VCT f9 应手后白仍有 VCT。
+   * 统一强迫着必须选 f9，不能用「有叉就冲第一个四」。
+   */
+  const afterBlackJ5: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [7, 8, 2],
+    [8, 6, 1],
+    [6, 8, 2],
+    [9, 6, 1],
+    [7, 6, 2],
+    [9, 7, 1],
+    [9, 8, 2],
+    [8, 8, 1],
+    [8, 7, 2],
+    [10, 9, 1],
+  ]
+
+  it('e10 is suicidal vs f9 after forced reply', () => {
+    const board = emptyBoard()
+    apply(board, afterBlackJ5)
+    const e10 = inspectForcingOutcome(board, 2, { row: 5, col: 4 }, { maxPly: 12 }, { maxPly: 12 })
+    const f9 = inspectForcingOutcome(board, 2, { row: 6, col: 5 }, { maxPly: 12 }, { maxPly: 12 })
+    expect(e10).not.toBeNull()
+    expect(f9).not.toBeNull()
+    expect(e10!.oppVct && !e10!.selfVct).toBe(true)
+    expect(f9!.selfVct).toBe(true)
+    expect(findVctMove(board, 2, { maxPly: 12, maxNodes: 8_000 })).toEqual({ row: 6, col: 5 })
+  }, 30_000)
+
+  it('pickBestForcingMove and planRootPhase choose f9 not e10', () => {
+    const board = emptyBoard()
+    apply(board, afterBlackJ5)
+    const fours = findFourThreatMoves(board, 2)
+    const best = pickBestForcingMove(board, 2, fours, { maxPly: 12 }, { maxPly: 12 })
+    expect(best).toEqual({ row: 6, col: 5 })
+    const phase = planRootPhase(board, 2, { vcfMaxPly: 12, vctMaxPly: 12 })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(phase.move).toEqual({ row: 6, col: 5 })
+    }
+  }, 30_000)
+
+  it('Tang plays f9', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlackJ5)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 3; i++) {
+      const move = await agent.getNextMove(board)
+      expect(move).toEqual({ row: 6, col: 5 })
+    }
+  }, 30_000)
 })

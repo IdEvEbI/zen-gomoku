@@ -67,7 +67,7 @@ defendNode（AND）
 
 - [x] `vct.test.ts`：覆盖 VCF 子集、非 VCF 的短 VCT、叉 VCT、根上 VCF 优先于软挡、VCF 必防
 - [x] `vcf.test.ts` 不回归
-- [ ] 精选公开 VCT 题 fixtures（可选后续）
+- [x] 精选 VCT 题 fixtures + `npm run verify:vct`（#83；见 `fixtures/records/vct/`）
 - [ ] 人机体感：唐僧中盘连续威胁
 
 ---
@@ -76,7 +76,7 @@ defendNode（AND）
 
 Allis TSS 思想、RAOTS 着法分类、Rapfi「探针+αβ」、Pela 验题；根序教训（软着压过杀棋）已修。
 
-猪/悟开 VCT、Worker、更深求解 → 另开 Issue。
+猪/悟开 VCT、Worker、更深求解 → 另开 Issue（#83 结论：优先加深预算，再进 #74）。
 
 ---
 
@@ -88,3 +88,4 @@ Allis TSS 思想、RAOTS 着法分类、Rapfi「探针+αβ」、Pela 验题；�
 | 2026-08-07 | as-built：`vct.ts` + 根序（VCF 必防先于慢 VCT）         |
 | 2026-08-07 | #81：残留威胁模型；活四先于 VCF 必防；己方 VCT 先于软叉 |
 | 2026-08-10 | #81：有叉时统一强迫着（应手后比 VCT，禁假冲四）         |
+| 2026-08-10 | #83：手拣题集 + `verify:vct` 能力表                     |

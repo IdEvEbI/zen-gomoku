@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "description": "Hand-picked VCT bench for Tang ambition A (#83). Tang profile: maxPly=12, budgetMs=400, maxNodes=8000.",
+  "tangProfile": {
+    "maxPly": 12,
+    "budgetMs": 400,
+    "maxNodes": 8000
+  },
+  "deepProfile": {
+    "maxPly": 24,
+    "budgetMs": 8000,
+    "maxNodes": 200000
+  },
+  "puzzles": [
+    {
+      "id": "synthetic-vcf-dual",
+      "tier": "short",
+      "kind": "vcf-subset",
+      "title": "自研：冲四双杀（VCF 子集）",
+      "toPlay": 2,
+      "stones": [
+        { "r": 7, "c": 7, "player": 2 },
+        { "r": 7, "c": 8, "player": 2 },
+        { "r": 7, "c": 9, "player": 2 },
+        { "r": 0, "c": 0, "player": 1 },
+        { "r": 0, "c": 1, "player": 1 },
+        { "r": 0, "c": 2, "player": 1 },
+        { "r": 1, "c": 0, "player": 1 }
+      ],
+      "expectTangHit": true,
+      "acceptableMoves": ["g8", "k8"],
+      "notes": "活四双端，VCT 应与 VCF 同首着。"
+    },
+    {
+      "id": "synthetic-fork",
+      "tier": "short",
+      "kind": "vct",
+      "title": "自研：短叉 VCT",
+      "toPlay": 1,
+      "stones": [
+        { "r": 7, "c": 7, "player": 1 },
+        { "r": 7, "c": 8, "player": 2 },
+        { "r": 6, "c": 7, "player": 1 },
+        { "r": 8, "c": 8, "player": 2 }
+      ],
+      "expectTangHit": true,
+      "acceptableMoves": ["h10"],
+      "notes": "单元测试同源局面。"
+    },
+    {
+      "id": "synthetic-open-three",
+      "tier": "short",
+      "kind": "vct",
+      "title": "自研：活三线短 VCT（非根 VCF）",
+      "toPlay": 2,
+      "stones": [
+        { "r": 8, "c": 7, "player": 2 },
+        { "r": 8, "c": 8, "player": 2 },
+        { "r": 6, "c": 10, "player": 2 },
+        { "r": 7, "c": 10, "player": 2 },
+        { "r": 0, "c": 0, "player": 1 },
+        { "r": 0, "c": 1, "player": 1 },
+        { "r": 0, "c": 2, "player": 1 },
+        { "r": 1, "c": 0, "player": 1 },
+        { "r": 1, "c": 1, "player": 2 },
+        { "r": 2, "c": 0, "player": 1 }
+      ],
+      "expectTangHit": false,
+      "acceptableMoves": ["k7"],
+      "notes": "节点帽 8000 约 1s 可解出 k7；唐僧 400ms 窗常超时 → 区分「能解」与「对局时限」。"
+    },
+    {
+      "id": "zhongjiti-127",
+      "tier": "short",
+      "kind": "vcf-subset",
+      "title": "VCF取胜百题002",
+      "source": "https://wuziqi123.com/qipu/zhongjiti/127.html",
+      "record": "fixtures/records/wuziqi123/zhongjiti-127.json",
+      "expectTangHit": true,
+      "acceptableMoves": ["h10"],
+      "notes": "自由规则；禁手另见 h14。"
+    },
+    {
+      "id": "zhongjiti-128",
+      "tier": "short",
+      "kind": "vcf-subset",
+      "title": "VCF取胜百题001",
+      "source": "https://wuziqi123.com/qipu/zhongjiti/128.html",
+      "record": "fixtures/records/wuziqi123/zhongjiti-128.json",
+      "expectTangHit": true,
+      "acceptableMoves": ["f8"]
+    },
+    {
+      "id": "zhongjiti-129",
+      "tier": "mid",
+      "kind": "vcf-subset",
+      "title": "VCF取胜百题003",
+      "source": "https://wuziqi123.com/qipu/zhongjiti/129.html",
+      "record": "fixtures/records/wuziqi123/zhongjiti-129.json",
+      "expectTangHit": false,
+      "acceptableMoves": ["g13"],
+      "deepReference": "g13",
+      "notes": "长 VCF：唐僧预算常超时；放宽预算可解。"
+    },
+    {
+      "id": "gaojiti-221",
+      "tier": "mid",
+      "kind": "vct",
+      "title": "SIRIUS中级VCT习题CH8",
+      "source": "https://wuziqi123.com/qipu/gaojiti/221.html",
+      "record": "fixtures/records/wuziqi123/gaojiti-221.json",
+      "expectTangHit": false,
+      "acceptableMoves": ["f10"],
+      "deepReference": "f10",
+      "notes": "深搜约 4s / 节点充足可解；唐僧 400ms 未命中。"
+    },
+    {
+      "id": "gaojiti-222",
+      "tier": "long",
+      "kind": "vct",
+      "title": "SIRIUS高级VCT习题CH7",
+      "source": "https://wuziqi123.com/qipu/gaojiti/222.html",
+      "record": "fixtures/records/wuziqi123/gaojiti-222.json",
+      "expectTangHit": false,
+      "acceptableMoves": ["h7"],
+      "deepReference": "h7",
+      "notes": "高级长杀：唐僧预期失败；深搜约 0.8s 可解 → 主要是预算问题。"
+    },
+    {
+      "id": "gaojiti-210",
+      "tier": "mid",
+      "kind": "vct",
+      "title": "SIRIUS初级VCT习题CH17",
+      "source": "https://wuziqi123.com/qipu/gaojiti/210.html",
+      "record": "fixtures/records/wuziqi123/gaojiti-210.json",
+      "expectTangHit": false,
+      "acceptableMoves": [],
+      "notes": "标题为初级，但本引擎深搜 8s 仍未证出；可能假阴性或题面侧别需再核。"
+    },
+    {
+      "id": "gaojiti-220",
+      "tier": "long",
+      "kind": "vct",
+      "title": "SIRIUS高级VCT习题CH8",
+      "source": "https://wuziqi123.com/qipu/gaojiti/220.html",
+      "record": "fixtures/records/wuziqi123/gaojiti-220.json",
+      "expectTangHit": false,
+      "acceptableMoves": [],
+      "notes": "高级；深搜 8s 未证出。作压力样例，不阻塞野心 A。"
+    }
+  ]
+}

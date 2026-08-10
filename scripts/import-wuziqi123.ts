@@ -187,7 +187,16 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : err)
-  process.exitCode = 1
-})
+async function isMain(): Promise<boolean> {
+  const entry = process.argv[1]
+  if (!entry) return false
+  const { pathToFileURL } = await import('node:url')
+  return import.meta.url === pathToFileURL(entry).href
+}
+
+if (await isMain()) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : err)
+    process.exitCode = 1
+  })
+}

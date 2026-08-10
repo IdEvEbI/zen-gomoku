@@ -68,13 +68,22 @@ function boardKey(board: number[][], attacker: AiPlayer, side: AiPlayer, plyLeft
   return parts.join(';')
 }
 
-function toVcfOptions(options: VctOptions, maxPly: number): VcfOptions {
+/** 嵌套 VCF 共用父级剩余节点，避免每次重置 8k 把时限拖爆 */
+function toVcfOptions(
+  options: VctOptions,
+  maxPly: number,
+  parentNodes?: { n: number },
+  parentMaxNodes?: number
+): VcfOptions {
+  const cap = parentMaxNodes ?? options.maxNodes
+  const maxNodes =
+    parentNodes !== undefined && cap !== undefined ? Math.max(0, cap - parentNodes.n) : cap
   return {
     maxPly,
     rules: options.rules,
     radius: options.radius,
     shouldAbort: options.shouldAbort,
-    maxNodes: options.maxNodes,
+    maxNodes,
   }
 }
 
@@ -229,7 +238,9 @@ function attackNode(
     findWinningMoves(board, attacker, rules, radius).length > 0 ||
     findFourThreatMoves(board, attacker, rules, radius).length > 0
   ) {
-    if (vcfExists(board, attacker, attacker, toVcfOptions(options, plyLeft))) return true
+    if (vcfExists(board, attacker, attacker, toVcfOptions(options, plyLeft, nodes, maxNodes))) {
+      return true
+    }
   }
 
   const tryMoves = orderedAttackMoves(board, attacker, rules, radius, attackBranch)

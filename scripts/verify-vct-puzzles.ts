@@ -272,10 +272,10 @@ async function main() {
   )
 
   const conclusion = [
-    '- **短杀可用**：自研叉 / VCF 双杀、zhongjiti-127/128 在唐僧 400ms 内稳定命中。',
-    '- **时限缺口**：synthetic-open-three、zhongjiti-129、gaojiti-221/222 在节点/深搜下可解，但对局 VCT 窗常 timeout —— 优先考虑加深 `vctBudgetMs` / 节点，而非先改根策略。',
-    '- **未证样例**：gaojiti-210/220 深搜 8s 仍空，可能假阴性或需核对题面；不阻塞进 #74 学堂（用已命中短题冷启动）。',
-    '- **下一步建议**：开「VCT 预算加深」Issue；学堂题包先收录 expectTangHit=true 档。',
+    '- **加深后命中**：open-three、zhongjiti-129、gaojiti-222 等在 ply16 / 1200ms / 80k nodes 下可解。',
+    '- **仍超时**：gaojiti-221（约 3s）与 210/220（未证）保持 expect miss。',
+    '- **参数折中**：总思考 1500ms；VCF 300ms + VCT 1200ms；嵌套 VCF 共用剩余节点。',
+    '- **下一步建议**：进 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) 学堂（先收录 expectTangHit=true）。',
   ].join('\n')
 
   console.log('')

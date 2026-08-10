@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "description": "Hand-picked VCT bench for Tang ambition A (#83). Tang profile: maxPly=12, budgetMs=400, maxNodes=8000.",
+  "description": "Hand-picked VCT bench for Tang ambition A (#83/#85). Tang profile: maxPly=16, budgetMs=1200, maxNodes=80000.",
   "tangProfile": {
-    "maxPly": 12,
-    "budgetMs": 400,
-    "maxNodes": 8000
+    "maxPly": 16,
+    "budgetMs": 1200,
+    "maxNodes": 80000
   },
   "deepProfile": {
     "maxPly": 24,
@@ -65,9 +65,9 @@
         { "r": 1, "c": 1, "player": 2 },
         { "r": 2, "c": 0, "player": 1 }
       ],
-      "expectTangHit": false,
+      "expectTangHit": true,
       "acceptableMoves": ["k7"],
-      "notes": "节点帽 8000 约 1s 可解出 k7；唐僧 400ms 窗常超时 → 区分「能解」与「对局时限」。"
+      "notes": "#85：抬高预算/节点后期望命中。"
     },
     {
       "id": "zhongjiti-127",
@@ -97,10 +97,10 @@
       "title": "VCF取胜百题003",
       "source": "https://wuziqi123.com/qipu/zhongjiti/129.html",
       "record": "fixtures/records/wuziqi123/zhongjiti-129.json",
-      "expectTangHit": false,
+      "expectTangHit": true,
       "acceptableMoves": ["g13"],
       "deepReference": "g13",
-      "notes": "长 VCF：唐僧预算常超时；放宽预算可解。"
+      "notes": "#85：VCF 节点帽提高后期望命中。"
     },
     {
       "id": "gaojiti-221",
@@ -112,7 +112,7 @@
       "expectTangHit": false,
       "acceptableMoves": ["f10"],
       "deepReference": "f10",
-      "notes": "深搜约 4s / 节点充足可解；唐僧 400ms 未命中。"
+      "notes": "#85：深搜约 3～4s 可解；1200ms 唐僧窗仍超时，保持 expect miss。"
     },
     {
       "id": "gaojiti-222",
@@ -121,10 +121,10 @@
       "title": "SIRIUS高级VCT习题CH7",
       "source": "https://wuziqi123.com/qipu/gaojiti/222.html",
       "record": "fixtures/records/wuziqi123/gaojiti-222.json",
-      "expectTangHit": false,
+      "expectTangHit": true,
       "acceptableMoves": ["h7"],
       "deepReference": "h7",
-      "notes": "高级长杀：唐僧预期失败；深搜约 0.8s 可解 → 主要是预算问题。"
+      "notes": "#85：预算加深后期望命中。"
     },
     {
       "id": "gaojiti-210",
@@ -135,7 +135,7 @@
       "record": "fixtures/records/wuziqi123/gaojiti-210.json",
       "expectTangHit": false,
       "acceptableMoves": [],
-      "notes": "标题为初级，但本引擎深搜 8s 仍未证出；可能假阴性或题面侧别需再核。"
+      "notes": "标题为初级，但本引擎深搜仍可能未证；保持 expect miss。"
     },
     {
       "id": "gaojiti-220",
@@ -146,7 +146,7 @@
       "record": "fixtures/records/wuziqi123/gaojiti-220.json",
       "expectTangHit": false,
       "acceptableMoves": [],
-      "notes": "高级；深搜 8s 未证出。作压力样例，不阻塞野心 A。"
+      "notes": "高级压力样例；保持 expect miss。"
     }
   ]
 }

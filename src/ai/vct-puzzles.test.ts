@@ -57,7 +57,8 @@ describe('vct puzzle bench (#83)', () => {
     const hits = manifest.puzzles.filter((p) => p.expectTangHit)
     const misses = manifest.puzzles.filter((p) => !p.expectTangHit)
     expect(hits.length).toBeGreaterThanOrEqual(3)
-    expect(misses.some((p) => p.id === 'gaojiti-222')).toBe(true)
+    expect(hits.some((p) => p.id === 'gaojiti-222')).toBe(true)
+    expect(misses.some((p) => p.id === 'gaojiti-220' || p.id === 'gaojiti-210')).toBe(true)
   })
 
   /**

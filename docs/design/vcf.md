@@ -54,12 +54,13 @@ defendNode（AND）
 
 ### 2.2 对外 API
 
-| 函数                                           | 行为                                                  |
-| ---------------------------------------------- | ----------------------------------------------------- |
-| `vcfExists(board, attacker, sideToMove, opts)` | 从指定行棋方起，攻方是否存在 VCF                      |
-| `findVcfMove(board, player, opts)`             | 轮到 `player` 时的 VCF 首着（若有）                   |
-| `findVcfDefense(board, toPlay, opts)`          | 若「下一手对方有 VCF」，返回我方能打破该 VCF 的候选点 |
-| `hasVcf`                                       | `findVcfMove !== null`                                |
+| 函数                                           | 行为                                                                     |
+| ---------------------------------------------- | ------------------------------------------------------------------------ |
+| `vcfExists(board, attacker, sideToMove, opts)` | 从指定行棋方起，攻方是否存在 VCF                                         |
+| `findVcfMove(board, player, opts)`             | 轮到 `player` 时的 VCF 首着（若有）                                      |
+| `analyzeVcfDefense(board, toPlay, opts)`       | `none` / `broken` / `unavoidable` + 可破点（双杀等已必负为 unavoidable） |
+| `findVcfDefense(board, toPlay, opts)`          | `analyzeVcfDefense` 的可破点列表；必负时 `[]`                            |
+| `hasVcf`                                       | `findVcfMove !== null`                                                   |
 
 防守候选优先取自对方冲四着及其胜点，避免全盘扫描。
 
@@ -67,15 +68,14 @@ defendNode（AND）
 
 ## 3. 根策略中的位置（`rootPolicy`）
 
-唐僧根相位顺序（节选）：
+唐僧根相位顺序（节选 · #81）：
 
-1. 己方一步胜 / 硬必防 / 己方活四 / 双胜点快路径 / 叉对杀
-2. **己方 VCF** → **对方 VCF 必防**
-3. **己方 VCT** → **对方 VCT 必防**（见 [vct.md](./vct.md)）
-4. 软威胁（对方活三端等）→ 可能直接挡
-5. 否则 αβ
+1. 己方一步胜 / 硬必防 / 己方活四 / 双胜点快路径
+2. **己方 VCF**
+3. **对方活四端** → **对方 VCF 必防** → 叉对杀 / 叉软搜 / **己方 VCT** → **对方 VCT 必防**
+4. 软威胁 → αβ
 
-#70 已将强迫杀提到软挡之前。
+活四端先于 VCF 必防；VCF 必防先于叉对杀（避免抢叉放过可破杀）。
 
 ---
 
@@ -109,7 +109,7 @@ defendNode（AND）
 
 | 主题      | 说明                                     |
 | --------- | ---------------------------------------- |
-| 根优先级  | ✅ #70：己方 VCF 优先于软活三挡          |
+| 根优先级  | ✅ #70 / #81：杀棋与活四紧迫级已理顺     |
 | 更深/更快 | 置换表增强、迭代加深、Worker             |
 | **VCT**   | ✅ [vct.md](./vct.md) as-built（仅唐僧） |
 | 教学闯关  | 求解器验题 + 关卡 JSON（#74）            |
@@ -121,3 +121,4 @@ defendNode（AND）
 | 日期       | 说明                                           |
 | ---------- | ---------------------------------------------- |
 | 2026-08-07 | 初稿：AND-OR、守方只堵胜点、根策略位置、对照题 |
+| 2026-08-07 | #81：`analyzeVcfDefense`；活四先于 VCF 必防    |

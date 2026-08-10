@@ -319,28 +319,50 @@ export function listForcedReplies(
 }
 
 /**
- * 堵完后对方残留叉的严重度。
- * 关键键是「最狠的残留叉」落下后的双胜杀伤（ofDualSum），不是叉的个数——
- * 少留一个叉但放过 (8,7) 这类双活四叉，会立刻崩盘。
+ * 攻方在当前盘面的残留威胁（守方视角：越大越糟）。
+ *
+ * 紧迫级（高 → 低）：胜点 → 多活四端 → 活四双胜杀伤 → 叉双杀 → 叉数。
+ * 评分与择优统一走这套，避免「forkMode / 活三Mode」分叉把双活四排到叉后面。
  */
-function remainingForkSeverity(
+export interface ThreatResidual {
+  /** 攻方下一步可胜点数 */
+  winPoints: number
+  /** 攻方可成活四（活三端）点数 */
+  openFourMoves: number
+  /** 各活四端落下后的胜点总数 */
+  openFourDualSum: number
+  forkCount: number
+  /** 最狠残留叉落下后的胜点数 */
+  forkMaxWins: number
+  /** 最狠残留叉的活四双胜杀伤 */
+  forkMaxDual: number
+  forkMaxOF: number
+  forkSumOF: number
+}
+
+/**
+ * 测量攻方残留威胁。调用方负责局面（通常已试下守方着）。
+ */
+export function measureThreatResidual(
   board: number[][],
   attacker: AiPlayer,
-  rules: RuleSetId,
-  radius: number
-): {
-  forks: number
-  maxOF: number
-  sumOF: number
-  openLeft: number
-  maxDual: number
-  maxWins: number
-} {
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS
+): ThreatResidual {
+  const winPoints = findWinningMoves(board, attacker, rules, radius).length
+  const openFours = findOpenFourMoves(board, attacker, rules, radius)
+  let openFourDualSum = 0
+  for (const e of openFours) {
+    board[e.row]![e.col] = attacker
+    openFourDualSum += findWinningMoves(board, attacker, rules, radius).length
+    board[e.row]![e.col] = 0
+  }
+
   const forks = findForkThreeMoves(board, attacker, rules, radius)
-  let maxOF = 0
-  let sumOF = 0
-  let maxDual = 0
-  let maxWins = 0
+  let forkMaxOF = 0
+  let forkSumOF = 0
+  let forkMaxDual = 0
+  let forkMaxWins = 0
   for (const f of forks) {
     board[f.row]![f.col] = attacker
     const ofs = findOpenFourMoves(board, attacker, rules, radius)
@@ -352,31 +374,40 @@ function remainingForkSeverity(
       board[e.row]![e.col] = 0
     }
     board[f.row]![f.col] = 0
-    maxOF = Math.max(maxOF, ofs.length)
-    sumOF += ofs.length
-    maxDual = Math.max(maxDual, dual)
-    maxWins = Math.max(maxWins, wins)
+    forkMaxOF = Math.max(forkMaxOF, ofs.length)
+    forkSumOF += ofs.length
+    forkMaxDual = Math.max(forkMaxDual, dual)
+    forkMaxWins = Math.max(forkMaxWins, wins)
   }
-  const openLeft = findOpenFourMoves(board, attacker, rules, radius).length
-  return { forks: forks.length, maxOF, sumOF, openLeft, maxDual, maxWins }
+
+  return {
+    winPoints,
+    openFourMoves: openFours.length,
+    openFourDualSum,
+    forkCount: forks.length,
+    forkMaxWins,
+    forkMaxDual,
+    forkMaxOF,
+    forkSumOF,
+  }
 }
 
 /**
- * 对方每个残留「可成活四」点落下后的胜点总数。
+ * 残留威胁标量（越小越好）。位权保证紧迫级不会被低级项淹没。
  */
-function remainingOpenFourDualSum(
-  board: number[][],
-  attacker: AiPlayer,
-  rules: RuleSetId,
-  radius: number
-): number {
-  let sum = 0
-  for (const e of findOpenFourMoves(board, attacker, rules, radius)) {
-    board[e.row]![e.col] = attacker
-    sum += findWinningMoves(board, attacker, rules, radius).length
-    board[e.row]![e.col] = 0
-  }
-  return sum
+export function scoreThreatResidual(r: ThreatResidual): number {
+  return (
+    r.winPoints * 1_000_000_000_000 +
+    // 残留 ≥2 活四端：一手无法兼顾，高于任何单叉
+    (r.openFourMoves >= 2 ? 100_000_000_000 : 0) +
+    r.openFourMoves * 1_000_000_000 +
+    r.openFourDualSum * 10_000_000 +
+    (r.forkMaxWins >= 2 ? r.forkMaxWins * 1_000_000 : 0) +
+    r.forkMaxDual * 100_000 +
+    r.forkMaxOF * 1_000 +
+    r.forkCount * 10 +
+    r.forkSumOF
+  )
 }
 
 function isOwnAttackPoint(
@@ -447,8 +478,7 @@ function ownPressureBonus(
 
 /**
  * 必防点评分（越小越好）。
- * - 有双杀叉时：残留叉杀伤优先；同杀伤下强偏兼攻
- * - 活三端时：残留双胜杀伤为主；兼攻 + 落子后己方压迫（边消边造）
+ * 主序：`measureThreatResidual` 紧迫级；同档才用兼攻 / 坐标作 tie-break。
  */
 export function scoreForcedReply(
   board: number[][],
@@ -459,44 +489,21 @@ export function scoreForcedReply(
 ): number {
   if (board[move.row]![move.col] !== 0) return Number.POSITIVE_INFINITY
   const opp = other(toPlay)
-  const forkMode = findForkThreeMoves(board, opp, rules, radius).length > 0
   const own = isOwnAttackPoint(board, toPlay, move, rules, radius)
   const pressure = ownPressureBonus(board, toPlay, move, rules, radius)
 
   board[move.row]![move.col] = toPlay
-  const s = remainingForkSeverity(board, opp, rules, radius)
-  const ofDualSum = remainingOpenFourDualSum(board, opp, rules, radius)
+  const residual = measureThreatResidual(board, opp, rules, radius)
   board[move.row]![move.col] = 0
 
-  if (forkMode) {
-    const defense =
-      (s.maxWins >= 2 ? s.maxWins * 10_000_000 : 0) +
-      s.maxDual * 1_000_000 +
-      s.maxOF * 10_000 +
-      (s.maxWins > 0 ? s.maxWins * 1_000 : 0) +
-      ofDualSum * 100 +
-      s.openLeft * 50 +
-      s.forks * 10 +
-      s.sumOF
-    const tie =
-      move.row +
-      move.col / 100 -
-      (own.fork ? 2_000 : 0) -
-      (own.openFour ? 1_000 : 0) -
-      (own.four ? 100 : 0) -
-      pressure
-    return defense + tie
-  }
-
-  const defense = ofDualSum * 10_000 + s.openLeft * 1_000 + s.maxOF * 100 + s.sumOF * 10 + s.forks
   const tie =
-    -(own.fork ? 200 : 0) -
-    (own.openFour ? 120 : 0) -
-    (own.four ? 40 : 0) -
-    pressure +
     move.row +
-    move.col / 100
-  return defense + tie
+    move.col / 100 -
+    (own.fork ? 2_000 : 0) -
+    (own.openFour ? 1_000 : 0) -
+    (own.four ? 100 : 0) -
+    pressure
+  return scoreThreatResidual(residual) + tie
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { findVcfMove, hasVcf, vcfExists, findVcfDefense } from './vcf'
+import { findVcfMove, hasVcf, vcfExists, findVcfDefense, analyzeVcfDefense } from './vcf'
 import { findOpenFourMoves } from './threats'
 import { planRootPhase } from './rootPolicy'
 import { createAgentForDifficulty } from './difficulty'
@@ -106,11 +106,31 @@ describe('vcf', () => {
     ])
     const blocks = findVcfDefense(board, 1, { maxPly: 8 })
     expect(blocks.length).toBeGreaterThan(0)
+    expect(analyzeVcfDefense(board, 1, { maxPly: 8 }).status).toBe('broken')
     const phase = planRootPhase(board, 1, { vcfMaxPly: 8 })
     expect(phase.type).toBe('terminal')
     if (phase.type === 'terminal') {
       expect(blocks.some((m) => m.row === phase.move.row && m.col === phase.move.col)).toBe(true)
     }
+  })
+
+  it('analyzeVcfDefense: dual win points are unavoidable', () => {
+    const board = emptyBoard()
+    // 白两行活四：胜点各两端，黑一手只能堵一个
+    apply(board, [
+      [7, 5, 2],
+      [7, 6, 2],
+      [7, 7, 2],
+      [7, 8, 2],
+      [5, 5, 2],
+      [5, 6, 2],
+      [5, 7, 2],
+      [5, 8, 2],
+      [0, 0, 1],
+    ])
+    const analysis = analyzeVcfDefense(board, 1, { maxPly: 8 })
+    expect(analysis.status).toBe('unavoidable')
+    expect(findVcfDefense(board, 1, { maxPly: 8 })).toEqual([])
   })
 
   it('tang agent still returns a legal move under VCF budget', async () => {

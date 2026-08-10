@@ -113,7 +113,7 @@ interface IAgent {
 
 ### 4.2 算法骨架
 
-1. **根节点**：由 `rootPolicy.planRootPhase` 统一决策——一步胜 / 硬必防 / 己方活四 / 叉对杀；**己方 VCF → 对方 VCF 必防 → 己方 VCT → 对方 VCT 必防**（[vct.md](./vct.md)）；再软活三挡 / αβ。
+1. 根节点：由 `rootPolicy.planRootPhase` 统一决策——一步胜 / 硬必防 / 己方活四；**己方 VCF**；**对方活四端 → 对方 VCF 必防**；叉对杀；有叉时**统一强迫着**（应手后比杀）否则软搜；**己方 VCT → 对方 VCT 必防**（[vct.md](./vct.md)）；再 αβ。必防见 `measureThreatResidual`。
 2. **走法生成**：`listThreatCandidates`（胜/硬软防守/冲四/叉）优先，再 `listOrderedCandidates` 启发补齐；威胁点截断前必留。
 3. **递归**：交替落子；α-β 剪枝；触达深度或终局停止；层内同样威胁优先。
 4. **叶子评估**：赢法计数分 + 形分（冲四/活三数量加权）。

@@ -59,20 +59,20 @@ evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 2. **硬必防**（对方下一步可成五）→ `pickBestForcedReply` → terminal
 3. **己方活四（可成活四点）** → terminal
 4. **己方双胜点快路径**（冲四着落子后胜点≥2 / 直接胜）→ terminal
-5. **叉对杀抢攻**（`pickForkRaceMove`）→ terminal
-6. **己方 VCF** → **对方 VCF 必防** → **己方 VCT** → **对方 VCT 必防**（见 [vct.md](./vct.md)）
-7. **软威胁**
-   - 对方有**可成活四**（活三端）：**直接** `pickBestForcedReply` → terminal
-   - 否则（叉 / 冲四软防）：受限 αβ + `resolveSearchWithDefenseFloor`
-8. 否则全盘候选 αβ
+5. **己方 VCF**
+6. **对方活四端**（`measureThreatResidual` 择优）→ **对方 VCF 必防**（`analyzeVcfDefense`）
+7. **叉对杀抢攻**（`pickForkRaceMove`；仅当对方无待破 VCF）
+8. 对方叉：**统一强迫着**（`pickBestForcingMove` / 应手后局面）→ 否则软搜
+9. **己方 VCT** → **对方 VCT 必防**
+10. 其余软威胁 / 全盘 αβ
 
-> **已修（#70）**：强迫杀棋（VCF/VCT）提到软活三挡之前；对方 VCF 必防先于慢 VCT 穷举。
+> **#81**：多活四端残留威胁模型；VCF 必防压过叉对杀；有叉时强迫着按应手后 VCT/VCF 残留择优（禁假冲四）。
 
 ### 3.1 防守底线（`resolveSearchWithDefenseFloor`）
 
 - 搜索着若不在软挡集合内：对方仍有胜点 / 活三端 / **叉** → 回退底线最优挡
 - 仅当落子后己方 ≥2 活四向，且对方**无**活三端、**无**叉时，才允许越出底线抢攻
-- 同档比较用 `scoreForcedReply`（越小越好）
+- 同档比较用 `scoreForcedReply`（越小越好；底层为 `scoreThreatResidual`）
 
 ### 3.2 形定义（`threats.ts`，与单测一致）
 
@@ -147,3 +147,5 @@ evaluate.ts            → 叶子赢法分 + 形分（冲四 / 可成活四）
 | 2026-08-07 | 根策略 `rootPolicy`；凶棋风与对杀纪律；文档改为与代码对齐的已落地规格 |
 | 2026-08-07 | #69 VCF：链到 [vcf.md](./vcf.md)                                      |
 | 2026-08-07 | #70 VCT：仅唐僧；根序杀棋优先于软挡；见 [vct.md](./vct.md)            |
+| 2026-08-07 | #81：`ThreatResidual` 统一必防；多活四/双 VCF 分析 API                |
+| 2026-08-10 | #81：有叉时强迫着按应手后 VCT 残留择优（`inspectForcingOutcome`）     |

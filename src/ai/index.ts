@@ -24,17 +24,22 @@ export {
   listForcedReplies,
   pickBestForcedReply,
   scoreForcedReply,
+  measureThreatResidual,
+  scoreThreatResidual,
   measureAttackLethality,
   listThreatCandidates,
   findForcedWinMove,
+  type ThreatResidual,
 } from './threats'
 export {
   findVcfMove,
   hasVcf,
   vcfExists,
   findVcfDefense,
+  analyzeVcfDefense,
   DEFAULT_VCF_MAX_PLY,
   type VcfOptions,
+  type VcfDefenseAnalysis,
 } from './vcf'
 export {
   findVctMove,
@@ -54,6 +59,10 @@ export {
   buildSoftRootRestrict,
   listAttackCandidates,
   pickForkRaceMove,
+  inspectForcingOutcome,
+  scoreForcingOutcome,
+  pickBestForcingMove,
+  type ForcingOutcome,
   type RootPhase,
   type RootPolicyOptions,
 } from './rootPolicy'

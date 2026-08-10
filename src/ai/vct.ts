@@ -232,42 +232,36 @@ function attackNode(
     if (vcfExists(board, attacker, attacker, toVcfOptions(options, plyLeft))) return true
   }
 
-  const defender = other(attacker)
-  const hasRushOrBetter =
-    findWinningMoves(board, attacker, rules, radius).length > 0 ||
-    findOpenFourMoves(board, attacker, rules, radius).length > 0 ||
-    findFourThreatMoves(board, attacker, rules, radius).length > 0
-  // 己方无冲四级时，守方已有活四/叉会反先 → 不能宣称 VCT
-  if (
-    !hasRushOrBetter &&
-    (findOpenFourMoves(board, defender, rules, radius).length > 0 ||
-      findForkThreeMoves(board, defender, rules, radius).length > 0)
-  ) {
-    return false
-  }
-
   const tryMoves = orderedAttackMoves(board, attacker, rules, radius, attackBranch)
+  const ofBefore = findOpenFourMoves(board, attacker, rules, radius).length
   for (const m of tryMoves) {
     if (shouldAbort?.() || nodes.n >= maxNodes) return false
     if (board[m.row]![m.col] !== 0) continue
     board[m.row]![m.col] = attacker
-    const won =
+    // 必须因本手新增强迫（胜/活四/双威胁）；盘上原有冲四点不能为安静着背书
+    const forced =
       checkWinner(board, m.row, m.col, rules) === attacker ||
-      search(
-        board,
-        attacker,
-        other(attacker),
-        plyLeft - 1,
-        rules,
-        radius,
-        shouldAbort,
-        cache,
-        nodes,
-        maxNodes,
-        attackBranch,
-        defenseBranch,
-        options
-      )
+      forcedDefenseBlocks(board, attacker, rules, radius).dual ||
+      findWinningMoves(board, attacker, rules, radius).length > 0 ||
+      findOpenFourMoves(board, attacker, rules, radius).length > ofBefore
+    const won =
+      forced &&
+      (checkWinner(board, m.row, m.col, rules) === attacker ||
+        search(
+          board,
+          attacker,
+          other(attacker),
+          plyLeft - 1,
+          rules,
+          radius,
+          shouldAbort,
+          cache,
+          nodes,
+          maxNodes,
+          attackBranch,
+          defenseBranch,
+          options
+        ))
     board[m.row]![m.col] = 0
     if (won) return true
   }
@@ -371,27 +365,34 @@ export function findVctMove(
   const attackBranch = options.attackBranch ?? DEFAULT_ATTACK_BRANCH
   const defenseBranch = options.defenseBranch ?? DEFAULT_DEFENSE_BRANCH
   const attacks = orderedAttackMoves(board, player, rules, radius, attackBranch)
+  const ofBefore = findOpenFourMoves(board, player, rules, radius).length
   for (const m of attacks) {
     if (options.shouldAbort?.() || nodes.n >= maxNodes) return null
     if (board[m.row]![m.col] !== 0) continue
     board[m.row]![m.col] = player
-    const won =
+    const forced =
       checkWinner(board, m.row, m.col, rules) === player ||
-      search(
-        board,
-        player,
-        other(player),
-        maxPly - 1,
-        rules,
-        radius,
-        options.shouldAbort,
-        cache,
-        nodes,
-        maxNodes,
-        attackBranch,
-        defenseBranch,
-        options
-      )
+      forcedDefenseBlocks(board, player, rules, radius).dual ||
+      findWinningMoves(board, player, rules, radius).length > 0 ||
+      findOpenFourMoves(board, player, rules, radius).length > ofBefore
+    const won =
+      forced &&
+      (checkWinner(board, m.row, m.col, rules) === player ||
+        search(
+          board,
+          player,
+          other(player),
+          maxPly - 1,
+          rules,
+          radius,
+          options.shouldAbort,
+          cache,
+          nodes,
+          maxNodes,
+          attackBranch,
+          defenseBranch,
+          options
+        ))
     board[m.row]![m.col] = 0
     if (won) return m
   }

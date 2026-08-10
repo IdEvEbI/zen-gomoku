@@ -298,24 +298,35 @@ export function hasVcf(board: number[][], player: AiPlayer, options: VcfOptions 
 }
 
 /**
- * 若「轮到对方」时对方有 VCF，返回我方能打破该 VCF 的落点。
+ * VCF 必防分析结果。
+ * - `none`：对方当前无 VCF
+ * - `broken`：存在能打破对方 VCF 的落点
+ * - `unavoidable`：对方有 VCF 且候选内无法打破（常已双杀/双 VCF）
+ */
+export type VcfDefenseAnalysis =
+  | { status: 'none'; blocks: [] }
+  | { status: 'broken'; blocks: AiMove[] }
+  | { status: 'unavoidable'; blocks: [] }
+
+/**
+ * 若「轮到对方」时对方有 VCF，分析我方能否打破。
  * 候选优先：对方冲四着与其胜点（避免全盘扫描）。
  */
-export function findVcfDefense(
+export function analyzeVcfDefense(
   board: number[][],
   toPlay: AiPlayer,
   options: VcfOptions = {}
-): AiMove[] {
+): VcfDefenseAnalysis {
   const rules = options.rules ?? DEFAULT_RULE_SET
   const radius = options.radius ?? NEIGHBOR_RADIUS
   const opp = other(toPlay)
 
   const oppFours = findFourThreatMoves(board, opp, rules, radius)
   if (oppFours.length === 0 && findWinningMoves(board, opp, rules, radius).length === 0) {
-    return []
+    return { status: 'none', blocks: [] }
   }
 
-  if (!vcfExists(board, opp, opp, options)) return []
+  if (!vcfExists(board, opp, opp, options)) return { status: 'none', blocks: [] }
 
   const candidates = uniqueMoves([...oppFours, ...findWinningMoves(board, opp, rules, radius)])
   for (const f of oppFours) {
@@ -334,5 +345,19 @@ export function findVcfDefense(
     board[m.row]![m.col] = 0
     if (broken) out.push(m)
   }
-  return out
+  if (out.length > 0) return { status: 'broken', blocks: out }
+  return { status: 'unavoidable', blocks: [] }
+}
+
+/**
+ * 若「轮到对方」时对方有 VCF，返回我方能打破该 VCF 的落点。
+ * 已必负时返回 []；需要区分「无杀 / 可破 / 必负」时用 `analyzeVcfDefense`。
+ */
+export function findVcfDefense(
+  board: number[][],
+  toPlay: AiPlayer,
+  options: VcfOptions = {}
+): AiMove[] {
+  const analysis = analyzeVcfDefense(board, toPlay, options)
+  return analysis.status === 'broken' ? analysis.blocks : []
 }

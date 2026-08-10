@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/44.html",
+    "title": "入门题四四 14 · 人机正解",
+    "setupMoves": 19,
+    "solutionSites": "k6 (k5) g10 (j7) f10",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "k6",
+    "engineFirst": "g10",
+    "tang": "k6",
+    "trueDuals": ["g10"],
+    "tangHitBatch": false,
+    "tangHitHuman": true,
+    "skill": "double-four",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 k6 (k5) g10 (j7) f10。批跑引擎首着 g10 / 唐僧 k6。 批跑曾因「真双优先」误判未命中；人以唐僧/VCT 点起手。"
+  }
+}

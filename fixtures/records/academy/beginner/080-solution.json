@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 11,
+      "c": 8,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/80.html",
+    "title": "入门题双活三 6 · 人机正解",
+    "setupMoves": 9,
+    "solutionSites": "g6 (f6) i8 (f5) i5 (i9) i4",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "g6",
+    "vct": "i8",
+    "tang": "i8",
+    "phase": "search",
+    "trueDuals": [],
+    "oppForks": 4,
+    "tangHitHuman": false,
+    "tangAppearsLaterInHuman": true,
+    "skill": "double-open-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 g6 (f6) i8 (f5) i5 (i9) i4。唐僧 i8 / VCT i8 / search。 唐僧点出现在人机后续攻着（顺序敏感）。"
+  }
+}

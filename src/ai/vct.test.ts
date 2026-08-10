@@ -289,4 +289,44 @@ describe('vct', () => {
       expect([phase.move.row, phase.move.col]).not.toEqual([7, 11])
     }
   })
+
+  it('academy beginner: true dual / VCT races despite opp soft forks (061, 081–085)', async () => {
+    const cases: Array<{ id: string; first: string }> = [
+      { id: '061', first: 'i5' },
+      { id: '081', first: 'g10' },
+      { id: '082', first: 'k7' },
+      { id: '083', first: 'j5' },
+      { id: '084', first: 'k10' },
+      { id: '085', first: 'h7' },
+    ]
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    for (const { id, first } of cases) {
+      const raw = JSON.parse(
+        readFileSync(`fixtures/records/academy/beginner/${id}.json`, 'utf8')
+      ) as unknown
+      const parsed = parseGameRecord(raw)
+      expect(parsed.ok).toBe(true)
+      if (!parsed.ok) return
+      const rebuilt = rebuildFromRecord(parsed.record)
+      expect('error' in rebuilt).toBe(false)
+      if ('error' in rebuilt) return
+      const { board, currentPlayer } = rebuilt
+      const phase = planRootPhase(
+        board.map((r) => r.slice()),
+        currentPlayer as 1 | 2,
+        {
+          vcfMaxPly: 14,
+          vctMaxPly: 16,
+          vctMaxNodes: 80_000,
+        }
+      )
+      expect(phase.type).toBe('terminal')
+      if (phase.type === 'terminal') {
+        expect(site(phase.move.row, phase.move.col)).toBe(first)
+      }
+      const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+      expect(move).not.toBeNull()
+      expect(site(move!.row, move!.col)).toBe(first)
+    }
+  }, 60_000)
 })

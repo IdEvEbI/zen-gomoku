@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "black_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 1
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/51.html",
+    "title": "入门题四三 1 · 人机正解",
+    "setupMoves": 10,
+    "solutionSites": "j8 (k8) k9 (l10) g5",
+    "complete": true,
+    "attacker": "black",
+    "humanFirst": "j8",
+    "engineFirst": "j8",
+    "vct": "j8",
+    "tang": "j8",
+    "trueDuals": ["j8"],
+    "tangHitBatch": true,
+    "tangHitHuman": true,
+    "skill": "four-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 j8 (k8) k9 (l10) g5。批跑 VCT j8 / 唐僧 j8 / phase≈j8。"
+  }
+}

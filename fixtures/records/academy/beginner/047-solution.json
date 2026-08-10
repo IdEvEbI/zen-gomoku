@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/47.html",
+    "title": "入门题四四 17 · 人机正解",
+    "setupMoves": 19,
+    "solutionSites": "i6 (j6) f9 (g8) g9",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "i6",
+    "engineFirst": "i6",
+    "tang": "i6",
+    "trueDuals": [],
+    "tangHitBatch": true,
+    "tangHitHuman": true,
+    "skill": "double-four",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 i6 (j6) f9 (g8) g9。批跑引擎首着 i6 / 唐僧 i6。"
+  }
+}

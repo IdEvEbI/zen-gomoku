@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 1
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/33.html",
+    "title": "入门题四四 3",
+    "toPlay": "white",
+    "skill": "double-four",
+    "academy": "wuzi-xuetang",
+    "note": "初级入门·四四。题面 9 手后轮白。"
+  }
+}

@@ -9,7 +9,7 @@
 - 本文是「计划创建 / 已创建 GitHub Issue」的待办池。
 - Backlog 内 **§编号** 与 GitHub Issue **#编号** 不必一一对应；PR 请写实际 `#n`。
 - **当前优先级**：~~VCF~~ → ~~VCT（#70）~~ → ~~多威胁必防（#81）~~ → ~~VCT 题集（#83）~~ →  
-  **VCT 预算加深（#85）** → 学堂闯关（#74）→ 打谱+分析（#73）→  
+  **VCT 预算加深（#85）** → **学堂初级题 bench（#87）** → 学堂闯关（#74）→ 打谱+分析（#73）→  
   人设/评测/音频可并行 → 小程序壳 → 人人与段位 → ML 如来。
 - **教学规格**：[teaching.md](../design/teaching.md)。
 
@@ -58,6 +58,7 @@
 | M1.2b | [#81](https://github.com/IdEvEbI/zen-gomoku/issues/81) | **feat: 多威胁必防**         | ✅ 已合入 PR [#82](https://github.com/IdEvEbI/zen-gomoku/pull/82)                                |
 | M1.2c | [#83](https://github.com/IdEvEbI/zen-gomoku/issues/83) | **test: VCT 题集验证**       | ✅ 已合入 PR [#84](https://github.com/IdEvEbI/zen-gomoku/pull/84)                                |
 | M1.2d | [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) | **feat: VCT 预算加深**       | 抬高唐僧 `vctBudgetMs` / 节点；复跑能力表后再进 #74                                              |
+| M1.2e | [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87) | **feat: 学堂初级题 bench**   | 初级题人机对照 + 真双/软叉根策略 hardening；假叉/顺序敏感另开刀                                  |
 | M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71) | **feat: 四级人设重做**       | 沙=噪声；猪守；悟攻；唐均衡最强                                                                  |
 | M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72) | **feat: Agent 预留如来佛**   | `rulai` 占位；无模型不可选                                                                       |
 | M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) | **feat: 学堂闯关（题包）**   | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**        |
@@ -123,18 +124,19 @@
 1. 从本表复制标题与描述 → GitHub New Issue。
 2. Milestone 选 M1～M5（仓库已建）。
 3. 开发分支 `feature/...`，PR 写 `Closes #n`。
-4. **下一刀建议**：[#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) VCT 预算加深；  
-   完成后推进 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) 学堂。
+4. **下一刀建议**：[#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) 与 [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87) 并行收口后，  
+   推进 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) 学堂。
 
 ---
 
 ## 修订记录
 
-| 日期       | 说明                                                                                         |
-| ---------- | -------------------------------------------------------------------------------------------- |
-| （历史）   | v0.1～v0.3 与早期 Backlog                                                                    |
-| 2026-08-07 | 按产品愿景重排为 M1～M5；棋力优先                                                            |
-| 2026-08-07 | 学堂闯关：#74 前置、#73 加盘面分析                                                           |
-| 2026-08-07 | #69 关闭；下一刀 #70；链 [vct.md](../design/vct.md)（仅唐僧 / 野心 A）                       |
-| 2026-08-10 | #70/#81 合入；开 [#83](https://github.com/IdEvEbI/zen-gomoku/issues/83) VCT 题集验证为下一刀 |
-| 2026-08-10 | #83 合入；开 [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) VCT 预算加深             |
+| 日期       | 说明                                                                                          |
+| ---------- | --------------------------------------------------------------------------------------------- |
+| （历史）   | v0.1～v0.3 与早期 Backlog                                                                     |
+| 2026-08-07 | 按产品愿景重排为 M1～M5；棋力优先                                                             |
+| 2026-08-07 | 学堂闯关：#74 前置、#73 加盘面分析                                                            |
+| 2026-08-07 | #69 关闭；下一刀 #70；链 [vct.md](../design/vct.md)（仅唐僧 / 野心 A）                        |
+| 2026-08-10 | #70/#81 合入；开 [#83](https://github.com/IdEvEbI/zen-gomoku/issues/83) VCT 题集验证为下一刀  |
+| 2026-08-10 | #83 合入；开 [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) VCT 预算加深              |
+| 2026-08-10 | 开 [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87) 学堂初级题 bench + 根策略 hardening |

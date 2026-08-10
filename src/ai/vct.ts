@@ -320,12 +320,13 @@ function attackNode(
  * 真双活四：挡任一可成活四点后，仍有胜点或可成活四。
  * 同线活三两端挡一即尽 → 假双。用于根确认（搜索层仍野心 A 短路）。
  */
-function isTrueOpenFourDual(
+/** 真双活四：挡任一活四端后仍有胜点或活四（排除同线假双）。 */
+export function isTrueOpenFourDual(
   board: number[][],
   attacker: AiPlayer,
   ends: AiMove[],
-  rules: RuleSetId,
-  radius: number
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS
 ): boolean {
   if (ends.length < 2) return false
   const defender = other(attacker)
@@ -339,6 +340,36 @@ function isTrueOpenFourDual(
     if (!still) return false
   }
   return true
+}
+
+/**
+ * 一步造成真双活四的点（双活三题 / 对方软叉下可抢攻）。
+ * 候选：叉 + 活三；按「新增真双」优先。
+ */
+export function findTrueDualMove(
+  board: number[][],
+  player: AiPlayer,
+  options: Pick<VctOptions, 'rules' | 'radius'> = {}
+): AiMove | null {
+  const rules = options.rules ?? DEFAULT_RULE_SET
+  const radius = options.radius ?? NEIGHBOR_RADIUS
+  const seeds = uniqueMoves([
+    ...findForkThreeMoves(board, player, rules, radius),
+    ...findOpenThreeMoves(board, player, rules, radius),
+  ]).slice(0, 32)
+  for (const m of seeds) {
+    if (board[m.row]![m.col] !== 0) continue
+    board[m.row]![m.col] = player
+    if (checkWinner(board, m.row, m.col, rules) === player) {
+      board[m.row]![m.col] = 0
+      return m
+    }
+    const of = uniqueMoves(findOpenFourMoves(board, player, rules, radius))
+    const ok = of.length >= 2 && isTrueOpenFourDual(board, player, of, rules, radius)
+    board[m.row]![m.col] = 0
+    if (ok) return m
+  }
+  return null
 }
 
 /**
@@ -415,8 +446,8 @@ function defendNode(
   return true
 }
 
-/** 挡后硬续：胜点 / 可成活四 / 叉 / VCF（用于假双活四确认；冲四确认见下）。 */
-function hasHardContinuation(
+/** 假双确认用：不含裸叉（叉过松会放行 072 k12 / 079 f9） */
+function hasHardContinuationNoBareFork(
   board: number[][],
   attacker: AiPlayer,
   options: VctOptions,
@@ -426,7 +457,6 @@ function hasHardContinuation(
 ): boolean {
   if (findWinningMoves(board, attacker, rules, radius).length > 0) return true
   if (findOpenFourMoves(board, attacker, rules, radius).length > 0) return true
-  if (findForkThreeMoves(board, attacker, rules, radius).length > 0) return true
   return vcfExists(board, attacker, attacker, toVcfOptions(options, Math.max(0, maxPly)))
 }
 
@@ -476,7 +506,14 @@ function confirmRootVctAttack(
         return false
       }
       board[d.row]![d.col] = defender
-      const still = hasHardContinuation(board, attacker, options, maxPly - 1, rules, radius)
+      const still = hasHardContinuationNoBareFork(
+        board,
+        attacker,
+        options,
+        maxPly - 1,
+        rules,
+        radius
+      )
       board[d.row]![d.col] = 0
       if (!still) {
         board[move.row]![move.col] = 0
@@ -554,8 +591,8 @@ export function findRushFourIntoForkMove(
     board[d.row]![d.col] = 0
     board[m.row]![m.col] = 0
     if (forksLeft <= 0 && ofLeft < 2) continue
-    // 冲四留叉分高于单活四留叉，便于 221 优先 f10
-    consider(m, 1_000 + forksLeft * 10 + ofLeft * 5)
+    // 冲四留活四加权高于裸叉（048 类假抢仍可能同分，根上靠真双/强迫择优压过）
+    consider(m, 1_000 + ofLeft * 50 + forksLeft * 10)
   }
 
   const softSeeds = uniqueMoves([

@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "black_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 3,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 3,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 12,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 2,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 13,
+      "player": 1
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/69.html",
+    "title": "入门题四三 19 · 人机正解",
+    "setupMoves": 16,
+    "solutionSites": "j12 (j11) m9 (l9) l10 (i13) n8",
+    "complete": true,
+    "attacker": "black",
+    "humanFirst": "j12",
+    "engineFirst": "j12",
+    "vct": "j12",
+    "tang": "j12",
+    "trueDuals": [],
+    "tangHitBatch": true,
+    "tangHitHuman": true,
+    "skill": "four-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 j12 (j11) m9 (l9) l10 (i13) n8。批跑 VCT j12 / 唐僧 j12 / phase≈j12。"
+  }
+}

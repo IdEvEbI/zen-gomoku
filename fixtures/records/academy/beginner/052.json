@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/52.html",
+    "title": "入门题四三 2",
+    "toPlay": "black",
+    "skill": "four-three",
+    "academy": "wuzi-xuetang",
+    "note": "初级入门·四三。题面 10 手后轮黑。"
+  }
+}

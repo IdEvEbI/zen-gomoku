@@ -11,11 +11,12 @@
 
 ## 目录约定
 
-| 路径         | 用途                                                                         |
-| ------------ | ---------------------------------------------------------------------------- |
-| `wuziqi123/` | 从 wuziqi123.com 手工导入的少量对照题（注明来源 URL）                        |
-| `vct/`       | VCT 验题清单 `manifest.json` + 跑分结果（#83）                               |
-| 本地草稿     | 用 `npm run import:wuziqi123` 默认写到本目录时间戳文件；确认有用后再改名归档 |
+| 路径                | 用途                                                                         |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `wuziqi123/`        | 从 wuziqi123.com 手工导入的少量对照题（注明来源 URL）                        |
+| `academy/beginner/` | 五子学堂 · 初级题；能力表见 [`RESULTS.md`](./academy/beginner/RESULTS.md)    |
+| `vct/`              | VCT 验题清单 `manifest.json` + 跑分结果（#83）                               |
+| 本地草稿            | 用 `npm run import:wuziqi123` 默认写到本目录时间戳文件；确认有用后再改名归档 |
 
 导入工具说明：[docs/development/puzzle-import.md](../../docs/development/puzzle-import.md)。  
 验题：`npm run verify:vct`（可选 `--deep` / `--write-results`）。

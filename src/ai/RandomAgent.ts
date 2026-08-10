@@ -18,12 +18,7 @@ export class RandomAgent implements IAgent {
 
   async getNextMove(board: number[][]): Promise<AiMove | null> {
     const player = nextPlayerFromBoard(board)
-    const empty = filterLegalCandidates(
-      board,
-      listEmptyCells(board),
-      player,
-      this.rules
-    )
+    const empty = filterLegalCandidates(board, listEmptyCells(board), player, this.rules)
     if (empty.length === 0) return null
     const i = Math.floor(Math.random() * empty.length)
     return empty[i] ?? null

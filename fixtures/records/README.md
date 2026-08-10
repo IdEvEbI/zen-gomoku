@@ -28,25 +28,27 @@
 | `wuziqi123/zhongjiti-128.json` | [zhongjiti/128](https://wuziqi123.com/qipu/zhongjiti/128.html) | **f8**（自由/禁手同）            |
 | `wuziqi123/zhongjiti-129.json` | [zhongjiti/129](https://wuziqi123.com/qipu/zhongjiti/129.html) | **g13**（自由/禁手同）           |
 
+**学习谱**：`zhongjiti-128-solution.json` → `f8 (g7) g8 (e8) i8`（已成五）；`zhongjiti-129-solution.json`、`zhongjiti-127-renju-solution.json` 见同目录。
+
 ## VCT 手拣题（gaojiti · #83）
 
 | 文件                         | 来源                                                       | 档位 | 备注                                  |
 | ---------------------------- | ---------------------------------------------------------- | ---- | ------------------------------------- |
-| `wuziqi123/gaojiti-210.json` | [gaojiti/210](https://wuziqi123.com/qipu/gaojiti/210.html) | 中   | 初级标题；引擎深搜仍可能未证          |
+| `wuziqi123/gaojiti-210.json` | [gaojiti/210](https://wuziqi123.com/qipu/gaojiti/210.html) | 中   | **白先行**；引擎首着 **g6**           |
 | `wuziqi123/gaojiti-220.json` | [gaojiti/220](https://wuziqi123.com/qipu/gaojiti/220.html) | 长   | 高级压力样例                          |
 | `wuziqi123/gaojiti-221.json` | [gaojiti/221](https://wuziqi123.com/qipu/gaojiti/221.html) | 中   | 深搜参考首着 **f10**                  |
 | `wuziqi123/gaojiti-222.json` | [gaojiti/222](https://wuziqi123.com/qipu/gaojiti/222.html) | 长   | 深搜参考首着 **h7**；唐僧加深后可命中 |
 
 **学习谱**（题面 + 引擎强迫主线前缀，可 H5 导入）：
 
-| 文件                        | 主线摘要（守方在括号内）                    |
-| --------------------------- | ------------------------------------------- |
-| `gaojiti-210-solution.json` | `f5 (g6) i11 … k9 (l8)`（部分）             |
-| `gaojiti-220-solution.json` | 人机正解 `i10…k2`（已成五）；引擎首着 g9/j6 |
-| `gaojiti-221-solution.json` | `f10 (g9) l8 (m9) i5 … l7 (l9)`（部分）     |
-| `gaojiti-222-solution.json` | `h7 (i7) h6 … i6 (k6)`（部分）              |
+| 文件                        | 主线摘要（守方在括号内）                                 |
+| --------------------------- | -------------------------------------------------------- |
+| `gaojiti-210-solution.json` | 人机正解 `g11…d8`（已成五）；根上引擎首着 **g6**         |
+| `gaojiti-220-solution.json` | 人机正解 `i10…k2`（已成五）；引擎首着 g9/j6              |
+| `gaojiti-221-solution.json` | 人机正解 `i5…e6 (d7) i2`（已成五）；根上引擎首着 **f10** |
+| `gaojiti-222-solution.json` | 人机正解 `i7…i6 (i8) i3`（已成五）；引擎首着 **h7**      |
 
-对局 playtest：`playtests/tang-gaojiti-220-2026-08-10-03-42-36.json`。
+对局 playtest：`playtests/tang-gaojiti-210-2026-08-10-05-17-21.json`、`220-…`、`221-…`、`222-…`。
 
 生成：`npx tsx scripts/build-gaojiti-study-records.ts`。非站点官方唯一解；`meta.complete=false` 表示尚未收到成五。
 

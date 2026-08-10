@@ -172,11 +172,11 @@
   ],
   "meta": {
     "source": "https://wuziqi123.com/qipu/gaojiti/220.html",
-    "title": "SIRIUS高级VCT习题CH8 · 人机正解",
+    "title": "SIRIUS高级VCT习题CH8 · 学习谱",
     "setupMoves": 16,
     "solutionSites": "i10 (l10) k8 (l7) j6 (k5) g6 (h7) i6 (h6) h5 (j7) i4 (i5) j3 (f7) k2",
     "complete": true,
     "attacker": "black",
-    "note": "来自对局 zen-gomoku-2026-08-10-03-42-36（人对唐僧）；谱尾补黑 k2 成五。引擎首着偏好 g9/j6（双活三）；已拦假冲四 g6。"
+    "note": "引擎主线已成五。括号内为守方挡点。非站点官方唯一解。"
   }
 }

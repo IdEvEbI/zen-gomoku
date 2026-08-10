@@ -2,7 +2,7 @@
   "version": 1,
   "boardSize": 15,
   "rules": "freestyle-v1",
-  "status": "playing",
+  "status": "white_win",
   "moves": [
     {
       "r": 7,
@@ -110,53 +110,89 @@
       "player": 1
     },
     {
-      "r": 10,
-      "c": 5,
-      "player": 2
-    },
-    {
-      "r": 9,
+      "r": 4,
       "c": 6,
-      "player": 1
+      "player": 2
     },
     {
       "r": 4,
       "c": 8,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 6,
       "player": 2
     },
     {
-      "r": 4,
+      "r": 3,
       "c": 6,
       "player": 1
     },
     {
-      "r": 4,
-      "c": 11,
+      "r": 6,
+      "c": 5,
       "player": 2
     },
     {
-      "r": 4,
-      "c": 10,
+      "r": 3,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 3,
+      "player": 1
+    },
+    {
+      "r": 3,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 5,
       "player": 1
     },
     {
       "r": 6,
-      "c": 10,
+      "c": 4,
       "player": 2
     },
     {
-      "r": 7,
-      "c": 11,
+      "r": 2,
+      "c": 8,
       "player": 1
+    },
+    {
+      "r": 7,
+      "c": 3,
+      "player": 2
     }
   ],
   "meta": {
     "source": "https://wuziqi123.com/qipu/gaojiti/210.html",
     "title": "SIRIUS初级VCT习题CH17 · 学习谱",
     "setupMoves": 21,
-    "solutionSites": "f5 (g6) i11 (g11) l11 (k11) k9 (l8)",
-    "complete": false,
+    "solutionSites": "g11 (i11) g10 (g12) f9 (i12) e8 (d7) h12 (f5) f10 (f7) e9 (i13) d8",
+    "complete": true,
     "attacker": "white",
-    "note": "引擎强迫主线前缀（尚未成五）。H5 导入后可从谱尾继续拆；括号内为守方挡点。非站点官方唯一解。"
+    "note": "人机正解已成五；根上引擎首着 g6（冲四留叉）。g6 线 i11…m13 后 h12/k9 假双活三，VCT 证不全。括号内为守方挡点。",
+    "engineFirst": "g6"
   }
 }

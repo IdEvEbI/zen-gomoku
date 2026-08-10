@@ -71,19 +71,11 @@ function draw() {
   const last = markIndex >= 0 ? history.value[markIndex] : undefined
   const scaleNow = pulseRadiusScale()
   const pulse =
-    last && scaleNow > 1.001
-      ? { row: last.row, col: last.col, radiusScale: scaleNow }
-      : undefined
+    last && scaleNow > 1.001 ? { row: last.row, col: last.col, radiusScale: scaleNow } : undefined
   renderer.drawPieces(displayBoard.value, pulse)
   // 禁手规则：空点红叉提示黑方不可落（白方回合也显示，便于捉禁）
-  if (
-    rules.value === RULE_RENJU_CN &&
-    status.value === 'playing' &&
-    isAtLiveEdge.value
-  ) {
-    renderer.drawForbiddenMarks(
-      listForbiddenEmptyCells(displayBoard.value, RULE_RENJU_CN)
-    )
+  if (rules.value === RULE_RENJU_CN && status.value === 'playing' && isAtLiveEdge.value) {
+    renderer.drawForbiddenMarks(listForbiddenEmptyCells(displayBoard.value, RULE_RENJU_CN))
   }
   if (last) renderer.drawLastMoveMark(last.row, last.col)
 }
@@ -185,11 +177,7 @@ onUnmounted(() => {
 
 <template>
   <div ref="containerRef" class="game-board">
-    <canvas
-      ref="canvasRef"
-      class="game-board__canvas"
-      @pointerdown="handlePointerDown"
-    />
+    <canvas ref="canvasRef" class="game-board__canvas" @pointerdown="handlePointerDown" />
     <div class="game-board__hint" aria-live="polite">
       <template v-if="status === 'playing' && isAtLiveEdge">
         <span v-if="aiThinking">AI 落子中…</span>

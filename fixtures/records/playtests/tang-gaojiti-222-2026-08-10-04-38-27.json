@@ -1,8 +1,6 @@
 {
   "version": 1,
   "boardSize": 15,
-  "rules": "freestyle-v1",
-  "status": "black_win",
   "moves": [
     {
       "r": 7,
@@ -133,20 +131,8 @@
       "r": 7,
       "c": 8,
       "player": 2
-    },
-    {
-      "r": 12,
-      "c": 8,
-      "player": 1
     }
   ],
-  "meta": {
-    "source": "https://wuziqi123.com/qipu/gaojiti/222.html",
-    "title": "SIRIUS高级VCT习题CH7 · 学习谱",
-    "setupMoves": 6,
-    "solutionSites": "i7 (h7) j6 (g9) j5 (j8) j4 (j3) i5 (h6) h5 (g5) h4 (k7) l4 (k5) i4 (k4) i6 (i8) i3",
-    "complete": true,
-    "attacker": "black",
-    "note": "引擎主线已成五。括号内为守方挡点。非站点官方唯一解。"
-  }
+  "rules": "freestyle-v1",
+  "status": "playing"
 }

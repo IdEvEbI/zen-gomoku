@@ -6,8 +6,8 @@
  * 2. 己方 VCF
  * 3. 对方活四端（残留威胁择优）→ 对方 VCF 必防
  * 4. 叉对杀抢攻（仅当对方无待破 VCF）
- * 5. 对方叉：统一强迫着（冲四 / 己方 VCT）按「对方应手后」局面择优，否则软搜
- * 6. 己方 VCT → 对方 VCT 必防
+ * 5. 对方叉：统一强迫着 → 冲四留叉 → 己方 VCT（单活四）→ 否则软搜
+ * 6. 冲四/单活四留叉 → 己方 VCT → 对方 VCT 必防
  * 7. 其余软威胁 / 全盘 αβ
  */
 
@@ -25,7 +25,13 @@ import {
   scoreForcedReply,
 } from './threats'
 import { analyzeVcfDefense, findVcfMove, vcfExists, type VcfOptions } from './vcf'
-import { findVctDefense, findVctMove, vctExists, type VctOptions } from './vct'
+import {
+  findRushFourIntoForkMove,
+  findVctDefense,
+  findVctMove,
+  vctExists,
+  type VctOptions,
+} from './vct'
 import { checkWinner } from '../core'
 import { DEFAULT_RULE_SET, type RuleSetId } from '../core/rules'
 
@@ -482,10 +488,39 @@ export function planRootPhase(
     const forcing = findFourThreatMoves(board, toPlay, rules, radius)
     const bestForce = pickBestForcingMove(board, toPlay, forcing, vctOpts, vcfOpts, rules, radius)
     if (bestForce) return terminal(bestForce)
+    // 冲四留叉可抢（wins≥1）；单活四留叉留给下方 VCT 确认（避 junction 假抢 f9）
+    {
+      const rush = findRushFourIntoForkMove(board, toPlay, { rules, radius })
+      if (rush && board[rush.row]![rush.col] === 0) {
+        board[rush.row]![rush.col] = toPlay
+        const myWins = findWinningMoves(board, toPlay, rules, radius).length
+        board[rush.row]![rush.col] = 0
+        if (myWins >= 1) return terminal(rush)
+      }
+    }
+    // 己方 VCT 抢攻：冲四或「单活三续攻」(OF=1)。双活四若对方叉仍在则先去叉
+    // （222：h7 优于挡 h9；junction：勿用假双活四 h10 抢攻）
+    if (vctMaxPly > 0) {
+      const myVct = findVctMove(board, toPlay, vctOpts)
+      if (myVct && board[myVct.row]![myVct.col] === 0) {
+        board[myVct.row]![myVct.col] = toPlay
+        const myWins = findWinningMoves(board, toPlay, rules, radius).length
+        const myOF = findOpenFourMoves(board, toPlay, rules, radius).length
+        const oppForksLeft = findForkThreeMoves(board, opp, rules, radius).length
+        board[myVct.row]![myVct.col] = 0
+        if (myWins >= 1 || myOF === 1 || (myOF >= 2 && oppForksLeft === 0)) {
+          return terminal(myVct)
+        }
+      }
+    }
     return softSearch(board, toPlay, defense, softRootLimit, rules, radius)
   }
 
-  // —— 6. 无对方活四/叉时：己方 VCT → 对方 VCT 必防 ——
+  // —— 6. 无对方活四/叉时：冲四/活四留叉 → 己方 VCT → 对方 VCT 必防 ——
+  {
+    const rush = findRushFourIntoForkMove(board, toPlay, { rules, radius })
+    if (rush) return terminal(rush)
+  }
   if (vctMaxPly > 0) {
     const myVct = findVctMove(board, toPlay, vctOpts)
     if (myVct) return terminal(myVct)

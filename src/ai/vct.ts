@@ -114,10 +114,26 @@ function orderedAttackMoves(
       board[m.row]![m.col] = 0
       return 10_000
     }
-    const wins = findWinningMoves(board, attacker, rules, radius).length
+    const winMoves = findWinningMoves(board, attacker, rules, radius)
+    const wins = winMoves.length
     const openFours = findOpenFourMoves(board, attacker, rules, radius).length
     const fours = findFourThreatMoves(board, attacker, rules, radius).length
-    // 双杀启发下跳过昂贵的活三计数
+    // 冲四后挡点仍留叉：真 VCT 骨架（221 的 f10 / 210 的 g6），高于裸双活三启发
+    if (wins === 1) {
+      const d = winMoves[0]!
+      const defender = other(attacker)
+      if (board[d.row]![d.col] === 0) {
+        board[d.row]![d.col] = defender
+        const forksLeft = findForkThreeMoves(board, attacker, rules, radius).length
+        const ofLeft = findOpenFourMoves(board, attacker, rules, radius).length
+        board[d.row]![d.col] = 0
+        if (forksLeft > 0 || ofLeft >= 2) {
+          board[m.row]![m.col] = 0
+          return 7_000 + forksLeft * 50 + ofLeft * 20
+        }
+      }
+    }
+    // 双杀启发（裸 OF≥2 可能是假双活三，分低于冲四留叉）
     if (wins >= 2 || openFours >= 2) {
       board[m.row]![m.col] = 0
       return (wins >= 2 ? 8_000 : 5_000) + wins * 100 + openFours * 200
@@ -301,11 +317,36 @@ function attackNode(
 }
 
 /**
+ * 真双活四：挡任一可成活四点后，仍有胜点或可成活四。
+ * 同线活三两端挡一即尽 → 假双。用于根确认（搜索层仍野心 A 短路）。
+ */
+function isTrueOpenFourDual(
+  board: number[][],
+  attacker: AiPlayer,
+  ends: AiMove[],
+  rules: RuleSetId,
+  radius: number
+): boolean {
+  if (ends.length < 2) return false
+  const defender = other(attacker)
+  for (const d of ends) {
+    if (board[d.row]![d.col] !== 0) continue
+    board[d.row]![d.col] = defender
+    const still =
+      findWinningMoves(board, attacker, rules, radius).length > 0 ||
+      findOpenFourMoves(board, attacker, rules, radius).length > 0
+    board[d.row]![d.col] = 0
+    if (!still) return false
+  }
+  return true
+}
+
+/**
  * 守方必应点：胜点 → 对方可成活四点 → 对方冲四点。
  * 比 listForcedReplies 更窄，避免把「冲四着 ∪ 其胜点」全部 AND 导致爆炸。
  *
- * 注：可成活四点≥2 作 dual 是野心 A 的约定（活三两端视为不可兼挡），
- * 会把同线活三当成双杀；根上单冲四假杀由 confirmRushFourAttack 收紧。
+ * 搜索层仍按野心 A：可成活四点≥2 作 dual 短路（含同线假双）。
+ * 假双过滤放在根确认 `confirmRootVctAttack`（真双判定 + 硬续）。
  */
 function forcedDefenseBlocks(
   board: number[][],
@@ -374,10 +415,27 @@ function defendNode(
   return true
 }
 
+/** 挡后硬续：胜点 / 可成活四 / 叉 / VCF（用于假双活四确认；冲四确认见下）。 */
+function hasHardContinuation(
+  board: number[][],
+  attacker: AiPlayer,
+  options: VctOptions,
+  maxPly: number,
+  rules: RuleSetId,
+  radius: number
+): boolean {
+  if (findWinningMoves(board, attacker, rules, radius).length > 0) return true
+  if (findOpenFourMoves(board, attacker, rules, radius).length > 0) return true
+  if (findForkThreeMoves(board, attacker, rules, radius).length > 0) return true
+  return vcfExists(board, attacker, attacker, toVcfOptions(options, Math.max(0, maxPly)))
+}
+
 /**
- * 根上收紧「单冲四」假杀：挡唯一胜点后须仍有胜点 / 双威胁 / VCF，
- * 不得靠后续假「活三双杀」续命（gaojiti-220 的 g6→h7）。
- * 可成活四点≥2 仍按野心 A 视为双杀，直接放行。
+ * 根上防假阳性：
+ * - 双胜点 / 真双活四：直接通过
+ * - 假双活四（同线两端）：每个挡点后须仍有硬续（拦 221 的 l8）
+ * - 单冲四：挡后须有胜点 / 可成活四 / VCF（不含裸叉，拦 220 的 g6）；
+ *   冲四留叉由根相位 `findRushFourIntoForkMove` 独立承接（210 g6 / 221 f10）
  */
 function confirmRootVctAttack(
   board: number[][],
@@ -394,31 +452,142 @@ function confirmRootVctAttack(
     board[move.row]![move.col] = 0
     return true
   }
-  const wins = findWinningMoves(board, attacker, rules, radius)
-  const openFours = findOpenFourMoves(board, attacker, rules, radius)
-  if (wins.length >= 2 || openFours.length >= 2) {
+  const wins = uniqueMoves(findWinningMoves(board, attacker, rules, radius))
+  if (wins.length >= 2) {
     board[move.row]![move.col] = 0
     return true
   }
+
+  const openFours = uniqueMoves(findOpenFourMoves(board, attacker, rules, radius))
+  const defender = other(attacker)
+
+  if (openFours.length >= 2) {
+    if (isTrueOpenFourDual(board, attacker, openFours, rules, radius)) {
+      board[move.row]![move.col] = 0
+      return true
+    }
+    for (const d of openFours) {
+      if (options.shouldAbort?.()) {
+        board[move.row]![move.col] = 0
+        return false
+      }
+      if (board[d.row]![d.col] !== 0) {
+        board[move.row]![move.col] = 0
+        return false
+      }
+      board[d.row]![d.col] = defender
+      const still = hasHardContinuation(board, attacker, options, maxPly - 1, rules, radius)
+      board[d.row]![d.col] = 0
+      if (!still) {
+        board[move.row]![move.col] = 0
+        return false
+      }
+    }
+    board[move.row]![move.col] = 0
+    return true
+  }
+
   if (wins.length !== 1) {
     board[move.row]![move.col] = 0
     return true
   }
 
   const d = wins[0]!
-  const defender = other(attacker)
   if (board[d.row]![d.col] !== 0) {
     board[move.row]![move.col] = 0
     return false
   }
   board[d.row]![d.col] = defender
+  // 故意不含裸叉：220 的 g6 挡后有叉但是假续
   const still =
     findWinningMoves(board, attacker, rules, radius).length > 0 ||
-    findOpenFourMoves(board, attacker, rules, radius).length >= 2 ||
+    findOpenFourMoves(board, attacker, rules, radius).length > 0 ||
     vcfExists(board, attacker, attacker, toVcfOptions(options, Math.max(0, maxPly - 1)))
   board[d.row]![d.col] = 0
   board[move.row]![move.col] = 0
   return still
+}
+
+/**
+ * 强迫切入留叉（不声称完整 VCT）：
+ * - 冲四 → 挡胜点后仍有叉 / 双活四向（210 g6、221 f10；按残留叉数择优，避 220 g6）
+ * - 单可成活四 → 挡后仍有叉（222 h7；与假双活四 l8 无关）
+ */
+export function findRushFourIntoForkMove(
+  board: number[][],
+  player: AiPlayer,
+  options: Pick<VctOptions, 'rules' | 'radius'> = {}
+): AiMove | null {
+  const rules = options.rules ?? DEFAULT_RULE_SET
+  const radius = options.radius ?? NEIGHBOR_RADIUS
+  const defender = other(player)
+  let best: AiMove | null = null
+  let bestScore = 0
+
+  const consider = (m: AiMove, score: number) => {
+    if (score > bestScore) {
+      bestScore = score
+      best = m
+    }
+  }
+
+  for (const m of findFourThreatMoves(board, player, rules, radius)) {
+    if (board[m.row]![m.col] !== 0) continue
+    board[m.row]![m.col] = player
+    if (checkWinner(board, m.row, m.col, rules) === player) {
+      board[m.row]![m.col] = 0
+      return m
+    }
+    const wins = findWinningMoves(board, player, rules, radius)
+    if (wins.length !== 1) {
+      board[m.row]![m.col] = 0
+      continue
+    }
+    const d = wins[0]!
+    if (board[d.row]![d.col] !== 0) {
+      board[m.row]![m.col] = 0
+      continue
+    }
+    board[d.row]![d.col] = defender
+    const forksLeft = findForkThreeMoves(board, player, rules, radius).length
+    const ofLeft = findOpenFourMoves(board, player, rules, radius).length
+    board[d.row]![d.col] = 0
+    board[m.row]![m.col] = 0
+    if (forksLeft <= 0 && ofLeft < 2) continue
+    // 冲四留叉分高于单活四留叉，便于 221 优先 f10
+    consider(m, 1_000 + forksLeft * 10 + ofLeft * 5)
+  }
+
+  const softSeeds = uniqueMoves([
+    ...findForkThreeMoves(board, player, rules, radius),
+    ...findOpenThreeMoves(board, player, rules, radius),
+  ]).slice(0, 24)
+  for (const m of softSeeds) {
+    if (board[m.row]![m.col] !== 0) continue
+    board[m.row]![m.col] = player
+    if (checkWinner(board, m.row, m.col, rules) === player) {
+      board[m.row]![m.col] = 0
+      return m
+    }
+    const wins = findWinningMoves(board, player, rules, radius).length
+    const openFours = uniqueMoves(findOpenFourMoves(board, player, rules, radius))
+    // 单活四续攻；假双（≥2 且非真双）不走这条快捷道
+    if (wins === 0 && openFours.length === 1) {
+      const d = openFours[0]!
+      if (board[d.row]![d.col] === 0) {
+        board[d.row]![d.col] = defender
+        const forksLeft = findForkThreeMoves(board, player, rules, radius).length
+        const ofLeft = findOpenFourMoves(board, player, rules, radius).length
+        board[d.row]![d.col] = 0
+        if (forksLeft > 0 || ofLeft > 0) {
+          consider(m, 500 + forksLeft * 10 + ofLeft * 5)
+        }
+      }
+    }
+    board[m.row]![m.col] = 0
+  }
+
+  return best
 }
 
 /**

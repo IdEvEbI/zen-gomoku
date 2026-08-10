@@ -43,9 +43,9 @@
         { "r": 6, "c": 7, "player": 1 },
         { "r": 8, "c": 8, "player": 2 }
       ],
-      "expectTangHit": true,
+      "expectTangHit": false,
       "acceptableMoves": ["h10"],
-      "notes": "单元测试同源局面。"
+      "notes": "裸双活三：根上 confirm 要求挡后硬续，本题无硬续故 expect miss；搜索层 vctExists 仍可能为 true。"
     },
     {
       "id": "synthetic-open-three",
@@ -110,9 +110,9 @@
       "source": "https://wuziqi123.com/qipu/gaojiti/221.html",
       "record": "fixtures/records/wuziqi123/gaojiti-221.json",
       "expectTangHit": true,
-      "acceptableMoves": ["f10", "l8", "i5", "h4", "m9"],
+      "acceptableMoves": ["f10"],
       "deepReference": "f10",
-      "notes": "排序加速后短窗可解；f10 为题解参考，l8 等亦为野心 A 双活三首着。"
+      "notes": "真 VCT：f10 冲四，挡 g9 后仍有叉。l8/i5 为假双活三（挡后无硬续）。人机长线见 playtest。"
     },
     {
       "id": "gaojiti-222",
@@ -122,9 +122,9 @@
       "source": "https://wuziqi123.com/qipu/gaojiti/222.html",
       "record": "fixtures/records/wuziqi123/gaojiti-222.json",
       "expectTangHit": true,
-      "acceptableMoves": ["h7"],
+      "acceptableMoves": ["h7", "i7"],
       "deepReference": "h7",
-      "notes": "#85：预算加深后期望命中。"
+      "notes": "引擎首着 h7；人机正解可走 i7。根策略须在对方软叉时仍返回己方 VCT（勿只挡 h9）。"
     },
     {
       "id": "gaojiti-210",
@@ -134,8 +134,8 @@
       "source": "https://wuziqi123.com/qipu/gaojiti/210.html",
       "record": "fixtures/records/wuziqi123/gaojiti-210.json",
       "expectTangHit": true,
-      "acceptableMoves": ["i11"],
-      "notes": "盘面轮白；野心 A 下 i11 双活三。题解长线见 gaojiti-210-solution（黑先 f5…）。"
+      "acceptableMoves": ["g6", "i11"],
+      "notes": "题面 21 手后白先行。引擎首着 g6（冲四留叉）；i11 亦为硬续双活三。旧 solution 曾误以黑为攻方。"
     },
     {
       "id": "gaojiti-220",
@@ -145,8 +145,8 @@
       "source": "https://wuziqi123.com/qipu/gaojiti/220.html",
       "record": "fixtures/records/wuziqi123/gaojiti-220.json",
       "expectTangHit": true,
-      "acceptableMoves": ["g9", "j6"],
-      "notes": "人机正解 i10…k2；引擎在野心 A 下首着 g9/j6（双活三）。confirmRushFour 拦截假杀 g6。"
+      "acceptableMoves": ["i10", "g9", "j6"],
+      "notes": "人机正解 i10…k2；引擎可出 i10（冲四留叉）或 g9/j6（双活三硬续）。假冲四 g6 仍拦截。"
     }
   ]
 }

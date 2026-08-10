@@ -4,12 +4,7 @@
  * - renju-cn：白 ≥5 胜；黑恰 5 胜；黑长连（≥6）不记胜（应由禁手拦截）
  */
 
-import {
-  DEFAULT_RULE_SET,
-  RULE_FREESTYLE,
-  RULE_RENJU_CN,
-  type RuleSetId,
-} from './rules'
+import { DEFAULT_RULE_SET, RULE_FREESTYLE, RULE_RENJU_CN, type RuleSetId } from './rules'
 
 const BOARD_SIZE = 15
 

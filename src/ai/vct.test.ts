@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { parseGameRecord, rebuildFromRecord } from '../core/gameRecord'
 import { findVcfMove, vcfExists } from './vcf'
-import { findVctMove, hasVct, vctExists, findVctDefense } from './vct'
+import { findRushFourIntoForkMove, findVctMove, hasVct, vctExists, findVctDefense } from './vct'
 import { findOpenFourMoves, findOpenThreeMoves } from './threats'
 import { planRootPhase } from './rootPolicy'
 import { createAgentForDifficulty } from './difficulty'
@@ -57,7 +57,7 @@ describe('vct', () => {
     expect(move).not.toBeNull()
   })
 
-  it('detects fork VCT on short vertical shape', () => {
+  it('short vertical open-three: search may see VCT, root confirm rejects false dual', () => {
     const board = emptyBoard()
     apply(board, [
       [7, 7, 1],
@@ -65,7 +65,9 @@ describe('vct', () => {
       [6, 7, 1],
       [8, 8, 2],
     ])
-    expect(findVctMove(board, 1, { maxPly: 8, maxNodes: 4_000 })).not.toBeNull()
+    // 野心 A 搜索层仍可能证；根确认假双无硬续则不返回
+    expect(vctExists(board, 1, 1, { maxPly: 8, maxNodes: 4_000 })).toBe(true)
+    expect(findVctMove(board, 1, { maxPly: 8, maxNodes: 4_000 })).toBeNull()
   })
 
   it('returns null on sparse unrelated stones', () => {
@@ -157,7 +159,7 @@ describe('vct', () => {
     ]).toContainEqual([move!.row, move!.col])
   }, 15_000)
 
-  it('gaojiti-220: prefers dual-three fork, never false rush g6', () => {
+  it('gaojiti-220: root prefers hard line, never false rush g6', () => {
     const raw = JSON.parse(
       readFileSync('fixtures/records/wuziqi123/gaojiti-220.json', 'utf8')
     ) as unknown
@@ -167,12 +169,124 @@ describe('vct', () => {
     const rebuilt = rebuildFromRecord(parsed.record)
     expect('error' in rebuilt).toBe(false)
     if ('error' in rebuilt) return
-    const move = findVctMove(rebuilt.board, 1, { maxPly: 12, maxNodes: 8_000 })
-    expect(move).not.toBeNull()
-    expect([
+    const { board } = rebuilt
+    const allowed = [
+      [5, 8], // i10 冲四留叉
       [6, 6], // g9
       [9, 9], // j6
+    ]
+    const rush = findRushFourIntoForkMove(board, 1)
+    expect(rush).not.toBeNull()
+    expect(allowed).toContainEqual([rush!.row, rush!.col])
+    expect([rush!.row, rush!.col]).not.toEqual([9, 6])
+    const t0 = Date.now()
+    const phase = planRootPhase(board, 1, {
+      vcfMaxPly: 14,
+      vctMaxPly: 16,
+      vctMaxNodes: 20_000,
+      shouldAbortVct: () => Date.now() > t0 + 1_200,
+    })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(allowed).toContainEqual([phase.move.row, phase.move.col])
+      expect([phase.move.row, phase.move.col]).not.toEqual([9, 6])
+    }
+  })
+
+  it('gaojiti-210: rush-four-into-fork g6 at root (VCT may not complete)', () => {
+    const raw = JSON.parse(
+      readFileSync('fixtures/records/wuziqi123/gaojiti-210.json', 'utf8')
+    ) as unknown
+    const parsed = parseGameRecord(raw)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const rebuilt = rebuildFromRecord(parsed.record)
+    expect('error' in rebuilt).toBe(false)
+    if ('error' in rebuilt) return
+    const { board } = rebuilt
+    const rush = findRushFourIntoForkMove(board, 2)
+    expect(rush).not.toBeNull()
+    expect([rush!.row, rush!.col]).toEqual([9, 6]) // g6
+    const phase = planRootPhase(board, 2, {
+      vcfMaxPly: 14,
+      vctMaxPly: 16,
+      vctMaxNodes: 80_000,
+    })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect([phase.move.row, phase.move.col]).toEqual([9, 6])
+    }
+  })
+
+  it('gaojiti-222: own VCT beats soft fork defense (h7 not h9)', async () => {
+    const raw = JSON.parse(
+      readFileSync('fixtures/records/wuziqi123/gaojiti-222.json', 'utf8')
+    ) as unknown
+    const parsed = parseGameRecord(raw)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const rebuilt = rebuildFromRecord(parsed.record)
+    expect('error' in rebuilt).toBe(false)
+    if ('error' in rebuilt) return
+    const { board } = rebuilt
+    const phase = planRootPhase(board, 1, {
+      vcfMaxPly: 14,
+      vctMaxPly: 16,
+      vctMaxNodes: 80_000,
+    })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect([
+        [8, 7], // h7
+        [8, 8], // i7
+      ]).toContainEqual([phase.move.row, phase.move.col])
+      expect([phase.move.row, phase.move.col]).not.toEqual([6, 7]) // h9 soft block
+    }
+    const agent = createAgentForDifficulty('tang')
+    const move = await agent.getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    expect([
+      [8, 7],
+      [8, 8],
     ]).toContainEqual([move!.row, move!.col])
-    expect([move!.row, move!.col]).not.toEqual([9, 6]) // g6
+  }, 15_000)
+
+  it('gaojiti-221: prefers rush-four into fork f10, not false dual l8', () => {
+    const raw = JSON.parse(
+      readFileSync('fixtures/records/wuziqi123/gaojiti-221.json', 'utf8')
+    ) as unknown
+    const parsed = parseGameRecord(raw)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const rebuilt = rebuildFromRecord(parsed.record)
+    expect('error' in rebuilt).toBe(false)
+    if ('error' in rebuilt) return
+    const { board } = rebuilt
+    // 假双活四不得作为 VCT 首着
+    const tConfirm = Date.now()
+    const vct = findVctMove(board, 1, {
+      maxPly: 12,
+      maxNodes: 8_000,
+      shouldAbort: () => Date.now() > tConfirm + 800,
+    })
+    if (vct) {
+      expect([vct.row, vct.col]).not.toEqual([7, 11]) // l8
+    }
+    const rush = findRushFourIntoForkMove(board, 1)
+    expect(rush).not.toBeNull()
+    expect([rush!.row, rush!.col]).toEqual([5, 5]) // f10
+    expect([rush!.row, rush!.col]).not.toEqual([7, 11])
+    const t0 = Date.now()
+    const phase = planRootPhase(board, 1, {
+      vcfMaxPly: 14,
+      vctMaxPly: 16,
+      vctMaxNodes: 20_000,
+      shouldAbortVct: () => Date.now() > t0 + 1_200,
+    })
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect([phase.move.row, phase.move.col]).toEqual([5, 5])
+      expect([phase.move.row, phase.move.col]).not.toEqual([7, 11])
+    }
   })
 })

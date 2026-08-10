@@ -1,0 +1,140 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1,
+      "site": "h8"
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2,
+      "site": "i9"
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1,
+      "site": "i7"
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2,
+      "site": "g9"
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1,
+      "site": "g7"
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2,
+      "site": "h7"
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1,
+      "site": "h6"
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 2,
+      "site": "j9"
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 1,
+      "site": "h9"
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2,
+      "site": "j8"
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1,
+      "site": "h10"
+    },
+    {
+      "r": 4,
+      "c": 9,
+      "player": 2,
+      "site": "j11"
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1,
+      "site": "j7"
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2,
+      "site": "i8"
+    },
+    {
+      "r": 5,
+      "c": 10,
+      "player": 1,
+      "site": "k10"
+    },
+    {
+      "r": 4,
+      "c": 7,
+      "player": 2,
+      "site": "h11"
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1,
+      "site": "i5"
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 2,
+      "site": "f8"
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 1,
+      "site": "i10"
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 2,
+      "site": "j10"
+    },
+    {
+      "r": 3,
+      "c": 9,
+      "player": 1,
+      "site": "j12"
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/gaojiti/210.html",
+    "title": "SIRIUS初级VCT习题CH17",
+    "siteMoves": "h8i9i7g9g7h7h6j9h9j8h10j11j7i8k10h11i5f8i10j10j12",
+    "note": "站点坐标 a-o / 1底-15顶；本仓 r=15-n,c=a..o。"
+  }
+}

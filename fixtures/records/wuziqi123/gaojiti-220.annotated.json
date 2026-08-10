@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1,
+      "site": "h8"
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2,
+      "site": "h9"
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 1,
+      "site": "j10"
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2,
+      "site": "i9"
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 1,
+      "site": "j9"
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2,
+      "site": "j8"
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1,
+      "site": "h10"
+    },
+    {
+      "r": 5,
+      "c": 6,
+      "player": 2,
+      "site": "g10"
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1,
+      "site": "i8"
+    },
+    {
+      "r": 4,
+      "c": 8,
+      "player": 2,
+      "site": "i11"
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 1,
+      "site": "f9"
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 2,
+      "site": "f8"
+    },
+    {
+      "r": 5,
+      "c": 10,
+      "player": 1,
+      "site": "k10"
+    },
+    {
+      "r": 4,
+      "c": 11,
+      "player": 2,
+      "site": "l11"
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1,
+      "site": "i7"
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 2,
+      "site": "k7"
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/gaojiti/220.html",
+    "title": "SIRIUS高级VCT习题CH8",
+    "siteMoves": "h8h9j10i9j9j8h10g10i8i11f9f8k10l11i7k7",
+    "note": "站点坐标 a-o / 1底-15顶；本仓 r=15-n,c=a..o。"
+  }
+}

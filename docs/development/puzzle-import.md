@@ -64,10 +64,11 @@ npm run import:wuziqi123 -- --url ... --annotate --title 'VCF取胜百题004'
 
 ## 2. 相关脚本
 
-| 命令                               | 脚本                                  | 说明                                                    |
-| ---------------------------------- | ------------------------------------- | ------------------------------------------------------- |
-| `npm run import:wuziqi123`         | `scripts/import-wuziqi123.ts`         | 上文                                                    |
-| `npm run generate:teacher-records` | `scripts/generate-teacher-records.ts` | 老师棋谱批量导出；产物默认 `data/teacher/`（gitignore） |
+| 命令                               | 脚本                                  | 说明                                                         |
+| ---------------------------------- | ------------------------------------- | ------------------------------------------------------------ |
+| `npm run import:wuziqi123`         | `scripts/import-wuziqi123.ts`         | 上文                                                         |
+| `npm run verify:vct`               | `scripts/verify-vct-puzzles.ts`       | #83 VCT 题集：唐僧预算命中表（`--deep` / `--write-results`） |
+| `npm run generate:teacher-records` | `scripts/generate-teacher-records.ts` | 老师棋谱批量导出；产物默认 `data/teacher/`（gitignore）      |
 
 后续若增加其它站点导入器，放在 `scripts/import-*.ts`，并在本页加一节。
 

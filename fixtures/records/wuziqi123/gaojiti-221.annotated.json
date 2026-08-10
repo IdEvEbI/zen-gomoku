@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1,
+      "site": "h8"
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2,
+      "site": "i9"
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1,
+      "site": "i7"
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2,
+      "site": "j8"
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 1,
+      "site": "j6"
+    },
+    {
+      "r": 10,
+      "c": 10,
+      "player": 2,
+      "site": "k5"
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 1,
+      "site": "k7"
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2,
+      "site": "h7"
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/gaojiti/221.html",
+    "title": "SIRIUS中级VCT习题CH8",
+    "siteMoves": "h8i9i7j8j6k5k7h7",
+    "note": "站点坐标 a-o / 1底-15顶；本仓 r=15-n,c=a..o。"
+  }
+}

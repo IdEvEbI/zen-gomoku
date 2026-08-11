@@ -12,7 +12,8 @@
   ~~VCT 预算（#85）~~ → ~~学堂初级 bench（#87）~~ → ~~真双契约文档（#89）~~ → ~~真双实现（#91）~~ →  
   ~~冲四假 terminal（#93 · G）~~ → ~~多冲四选点（#95 · F）~~ → ~~攻势顺序（#97 · J）~~ →  
   ~~软起手短 VCT（#99 · I）~~ → ~~其余 F（#101）~~ → ~~软威胁抢攻（#103 · K）~~ →  
-  ~~L 契约（#105 / PR #106）~~ → ~~M（#107 / PR #108+#109）~~ → **先破对方短杀实现（#105 · L）** →  
+  ~~L（#105 / PR #106+#110）~~ → ~~M（#107 / PR #108+#109）~~ →  
+  **双活四软挤（#111 · N）** →  
   academy beginner 首着门禁 A / 剩余 F（048/058）→  
   中级/高级题 → 禁手 → 人设 #71 →  
   学堂闯关（#74）→ 打谱+分析（#73）→ 小程序壳 → 人人与段位 → ML 如来。  
@@ -75,8 +76,9 @@
 | M1.2k | [#99](https://github.com/IdEvEbI/zen-gomoku/issues/99)   | **fix: 软起手短 VCT 认序（I）**   | ✅ 已合入 PR [#100](https://github.com/IdEvEbI/zen-gomoku/pull/100)；072/075/077/078/068                                                     |
 | M1.2l | [#101](https://github.com/IdEvEbI/zen-gomoku/issues/101) | **fix: 其余多冲四选点（F 续）**   | ✅ 已合入 PR [#102](https://github.com/IdEvEbI/zen-gomoku/pull/102)；060/070；048/058 仍待                                                   |
 | M1.2m | [#103](https://github.com/IdEvEbI/zen-gomoku/issues/103) | **fix: 软威胁逼应抢攻（K）**      | ✅ 已合入 PR [#104](https://github.com/IdEvEbI/zen-gomoku/pull/104)；soft-squeeze #14 `c7`                                                   |
-| M1.2n | [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) | **fix: 先破对方短杀（L）**        | ✅ 契约 [#106](https://github.com/IdEvEbI/zen-gomoku/pull/106)；实现互有 VCT 旁路冲四交软搜                                                  |
+| M1.2n | [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) | **fix: 先破对方短杀（L）**        | ✅ 契约 [#106](https://github.com/IdEvEbI/zen-gomoku/pull/106)；实现 [#110](https://github.com/IdEvEbI/zen-gomoku/pull/110)                  |
 | M1.2o | [#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) | **fix: 软叉丛关键点（M）**        | ✅ 合入 PR [#108](https://github.com/IdEvEbI/zen-gomoku/pull/108)/[#109](https://github.com/IdEvEbI/zen-gomoku/pull/109)；`forkMultiOfCount` |
+| M1.2p | [#111](https://github.com/IdEvEbI/zen-gomoku/issues/111) | **fix: 双活四软挤抢先手（N）**    | 人机谱 `tang-human-dual-of-squeeze-*`；K/L/M 后仍落后一手；**契约先行**                                                                      |
 | M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71)   | **feat: 四级人设重做**            | 唐僧定型后：沙=噪声；猪守；悟攻；唐均衡最强                                                                                                  |
 | M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72)   | **feat: Agent 预留如来佛**        | `rulai` 占位；无模型不可选                                                                                                                   |
 | M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)   | **feat: 学堂闯关（题包）**        | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**                                                    |
@@ -142,25 +144,26 @@
 1. 从本表复制标题与描述 → GitHub New Issue。
 2. Milestone 选 M1～M5（仓库已建）。
 3. 开发分支 `feature/...`，PR 写 `Closes #n`。
-4. **下一刀建议**：[#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) 模式 L 实现 →  
+4. **下一刀建议**：[#111](https://github.com/IdEvEbI/zen-gomoku/issues/111) 模式 N 契约 → 实现；并行可清 048/058；  
    beginner 门禁后再 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)。
 
 ---
 
 ## 修订记录
 
-| 日期       | 说明                                                                                                                                                  |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| （历史）   | v0.1～v0.3 与早期 Backlog                                                                                                                             |
-| 2026-08-07 | 按产品愿景重排为 M1～M5；棋力优先                                                                                                                     |
-| 2026-08-07 | 学堂闯关：#74 前置、#73 加盘面分析                                                                                                                    |
-| 2026-08-07 | #69 关闭；下一刀 #70；链 [vct.md](../design/vct.md)（仅唐僧 / 野心 A）                                                                                |
-| 2026-08-10 | #70/#81 合入；开 [#83](https://github.com/IdEvEbI/zen-gomoku/issues/83) VCT 题集验证为下一刀                                                          |
-| 2026-08-10 | #83 合入；开 [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) VCT 预算加深                                                                      |
-| 2026-08-10 | 开 [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87) 学堂初级题 bench + 根策略 hardening                                                         |
-| 2026-08-11 | #85/#87 合入；下一刀 M1.2f 真双契约；#74/#71 后移至 beginner 门禁后                                                                                   |
-| 2026-08-11 | #89 文档合入；开 [#91](https://github.com/IdEvEbI/zen-gomoku/issues/91) 真双实现                                                                      |
-| 2026-08-11 | #103/#104 合入；开 [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) L、[#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) M；实战优先 M |
-| 2026-08-11 | #105 契约合入 PR [#106](https://github.com/IdEvEbI/zen-gomoku/pull/106)；下一刀 [#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) M            |
-| 2026-08-11 | #107 契约合入 PR [#108](https://github.com/IdEvEbI/zen-gomoku/pull/108)；实现 forkMultiOfCount（#10 → `j8`）                                          |
-| 2026-08-11 | #107 实现合入 PR [#109](https://github.com/IdEvEbI/zen-gomoku/pull/109)；下一刀 [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) L 实现       |
+| 日期       | 说明                                                                                                                                                      |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| （历史）   | v0.1～v0.3 与早期 Backlog                                                                                                                                 |
+| 2026-08-07 | 按产品愿景重排为 M1～M5；棋力优先                                                                                                                         |
+| 2026-08-07 | 学堂闯关：#74 前置、#73 加盘面分析                                                                                                                        |
+| 2026-08-07 | #69 关闭；下一刀 #70；链 [vct.md](../design/vct.md)（仅唐僧 / 野心 A）                                                                                    |
+| 2026-08-10 | #70/#81 合入；开 [#83](https://github.com/IdEvEbI/zen-gomoku/issues/83) VCT 题集验证为下一刀                                                              |
+| 2026-08-10 | #83 合入；开 [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) VCT 预算加深                                                                          |
+| 2026-08-10 | 开 [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87) 学堂初级题 bench + 根策略 hardening                                                             |
+| 2026-08-11 | #85/#87 合入；下一刀 M1.2f 真双契约；#74/#71 后移至 beginner 门禁后                                                                                       |
+| 2026-08-11 | #89 文档合入；开 [#91](https://github.com/IdEvEbI/zen-gomoku/issues/91) 真双实现                                                                          |
+| 2026-08-11 | #103/#104 合入；开 [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) L、[#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) M；实战优先 M     |
+| 2026-08-11 | #105 契约合入 PR [#106](https://github.com/IdEvEbI/zen-gomoku/pull/106)；下一刀 [#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) M                |
+| 2026-08-11 | #107 契约合入 PR [#108](https://github.com/IdEvEbI/zen-gomoku/pull/108)；实现 forkMultiOfCount（#10 → `j8`）                                              |
+| 2026-08-11 | #107 实现合入 PR [#109](https://github.com/IdEvEbI/zen-gomoku/pull/109)；下一刀 [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) L 实现           |
+| 2026-08-11 | #105 实现合入 PR [#110](https://github.com/IdEvEbI/zen-gomoku/pull/110)；开 [#111](https://github.com/IdEvEbI/zen-gomoku/issues/111) 模式 N（双活四软挤） |

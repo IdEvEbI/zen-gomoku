@@ -542,4 +542,22 @@ describe('vct', () => {
       expect(forbidden).not.toContain(ms)
     }
   }, 120_000)
+
+  it('mode K soft-squeeze: rush four c7 over soft fork block g8 (#103)', async () => {
+    const raw = JSON.parse(
+      readFileSync('fixtures/records/playtests/tang-soft-squeeze-2026-08-11-06-16-30.json', 'utf8')
+    ) as { moves: Array<{ r: number; c: number; player: number }> }
+    const board = Array.from({ length: 15 }, () => Array(15).fill(0))
+    // 白第 14 手之前（前 13 手）
+    for (let i = 0; i < 13; i++) {
+      const m = raw.moves[i]!
+      board[m.r]![m.c] = m.player
+    }
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    const s = site(move!.row, move!.col)
+    expect(s).toBe('c7')
+    expect(s).not.toBe('g8')
+  }, 20_000)
 })

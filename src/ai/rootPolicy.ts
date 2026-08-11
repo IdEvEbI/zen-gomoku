@@ -6,7 +6,7 @@
  * 2. 己方 VCF
  * 3. 对方活四端：已强制真双 / 四三 → 否则软挡；对方 VCF 必防
  * 4. 已强制真双；对方叉时确认 VCT 先于叉对杀
- * 5. 对方叉：强迫着 → 模式 J/I 活四续攻认序 → 冲四留叉 → 否则软搜
+ * 5. 对方叉：强迫着 → 模式 J/I 活四续攻认序 → 冲四留叉（模式 K）→ 否则软搜
  * 6. 冲四/单活四留叉 → 己方 VCT → 对方 VCT 必防
  * 7. 其余软威胁 / 全盘 αβ
  */
@@ -1066,6 +1066,21 @@ export function planRootPhase(
           vctMaxPly
         )
         if (ordered) return terminal(ordered)
+      }
+      // 模式 K（soft-squeeze）：冲四留叉 == 最优强迫，且应手后己方仍有 VCT、对方无活四
+      // → 抢过「只挡软叉」底线（#14 c7）。048 rush≠bestForce；065/076 由上式 ordered 先接手。
+      if (
+        rush &&
+        bestForce &&
+        rush.row === bestForce.row &&
+        rush.col === bestForce.col &&
+        board[rush.row]![rush.col] === 0
+      ) {
+        const oRush =
+          inspectForcingOutcome(board, toPlay, rush, vctOpts, vcfOpts, rules, radius) ?? null
+        if (oRush && oRush.forceWins >= 1 && oRush.selfVct && oRush.oppOpenFours === 0) {
+          return terminal(rush)
+        }
       }
       if (rush && board[rush.row]![rush.col] === 0) {
         board[rush.row]![rush.col] = toPlay

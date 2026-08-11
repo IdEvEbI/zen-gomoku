@@ -791,17 +791,22 @@ function isSuicidalForcing(o: ForcingOutcome): boolean {
 }
 
 /**
- * 可否压过对方软活四/软叉抢攻（契约 · RESULTS 模式 G）：
+ * 可否压过对方软活四/软叉抢攻（契约 · RESULTS 模式 G / L）：
  * - 立刻胜 / 已强制双威胁 / 四三且应后对方无 VCT
  * - 或纯节奏冲四（挡后无叉/活四残留；回归 10-17-10）
+ * - **模式 L**：节奏冲四应手后**互有 VCT** 且未占对方叉 → 不抢，交软搜打断叉丛
+ *   （`07-53-01` #12 禁 `j9`；软挡后冲四仍在，可下回合再抢）
  * 挡后仅「留叉」的裸冲四不得短路（048 g6 / 076 e9）。
  */
 function canRaceSoftDefense(o: ForcingOutcome): boolean {
   if (o.immediateWin || o.trueDual || o.forceWins >= 2) return true
   if (o.fourThree && !o.oppVct && !isSuicidalForcing(o)) return true
   const residual = o.residualForks + o.residualOpenFours
-  // 纯节奏冲四（挡后无叉/活四残留）；对方已有 VCT 时由调用方先必防
-  if (o.forceWins === 1 && o.openFourCount === 0 && residual === 0) return true
+  if (o.forceWins === 1 && o.openFourCount === 0 && residual === 0) {
+    // 模式 L：互有 VCT 的旁路节奏冲四让位于软挡（#81 软挡后仍可下回合 f9）
+    if (o.oppVct && o.selfVct && !o.onOppFork) return false
+    return true
+  }
   return false
 }
 

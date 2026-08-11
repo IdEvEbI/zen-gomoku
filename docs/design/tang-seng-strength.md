@@ -109,15 +109,16 @@ openingBook.ts         → 开局定式
 > **模式 L（#105 · premature dual-three）**：互有软威胁时的半盘优先级。
 >
 > - **己方尚无必应强迫**（非真双 / 非合法四三 / 非冲四必应）时：若对方已出现或即将可证 **短 VCF/VCT 杀线**，优先打断/降维该方向，**高于**经营己方双活三造型。
-> - 回归：`playtests/tang-premature-dual-three-2026-08-11-07-53-01.json`（白 #12 `j9` / #14 `h9` 过早右侧造型；黑随后 VCF 再 f 路竖杀）。
-> - **#18 挡 `g5` 仍正确**（己方 `j11` 非强迫，不得裸抢软活四）。
-> - **不回退**：模式 K（`c7`）、G/J/I/F。
+> - **实现**：`canRaceSoftDefense`——纯节奏冲四应手后若 **互有 VCT** 且 **未占对方叉**，不得抢软防，交软搜挡叉（软挡后冲四往往仍在，可下回合再抢）。
+> - 回归：`playtests/tang-premature-dual-three-2026-08-11-07-53-01.json` 白 #12 **不得** `j9`。
+> - **#18 挡 `g5` 仍正确**；#81 仍禁自杀 `e10`（强迫择优仍认 `f9`，根上可软搜）。
+> - **不回退**：模式 K（`c7`）、G/J/I/F、M；10-17-10 节奏冲四（应手后己方无 VCT 仍可抢）。
 >
 > **模式 M（#107 · wrong soft-fork key）**：软叉丛里的关键点择优。
 >
 > - `scoreThreatResidual` / `pickBestForcedReply`：统计残留叉中「落下后 ≥2 活四苗」的个数（`forkMultiOfCount`），与 `forkMaxDual` **同阶累加**，**不得**被较低的 dual 带去挡「单叉双杀分好看、却放一窝」的点。
 > - 回归：`playtests/tang-wrong-soft-fork-key-2026-08-11-08-06-48.json` 白 #10 → **`j8`**（非历史 / 旧引擎 `h7`）。
-> - **不回退**：既有 `pickBestForcedReply` 双活四叉 / junction 回归、模式 K（`c7`）、G/J/I/F；模式 L 实现另开。
+> - **不回退**：既有 `pickBestForcedReply` 双活四叉 / junction 回归、模式 K（`c7`）、G/J/I/F、L。
 
 ### 3.2 「真双」语义（下一刀必须收紧）
 

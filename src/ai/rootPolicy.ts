@@ -600,8 +600,17 @@ export interface ForcingOutcome {
   openFourCount: number
   trueDual: boolean
   fourThree: boolean
+  /** 落点本身是否兼攻对方叉（四三抢攻豁免破 VCF 项时用，070 g9） */
+  onOppFork: boolean
   residualForks: number
   residualOpenFours: number
+  /**
+   * 应手后：在「落下可成 ≥2 活四」的残留叉上，叉丰度最大值。
+   * 用于同分冲四择优（060 d10 的 e10 续攻优于 f12/c9）。
+   */
+  residualDualSeedForks: number
+  /** 应手后对方活四数：旁路冲四惩罚（046 j11 / 058 d10） */
+  oppOpenFours: number
   oppVct: boolean
   oppVcf: boolean
   selfVct: boolean
@@ -641,6 +650,9 @@ export function inspectForcingOutcome(
   if (board[move.row]![move.col] !== 0) return null
   const opp = other(toPlay)
   const { vct: vctO, vcf: vcfO } = probeOpts(vctOpts, vcfOpts)
+  const onOppFork = findForkThreeMoves(board, opp, rules, radius).some(
+    (f) => f.row === move.row && f.col === move.col
+  )
 
   board[move.row]![move.col] = toPlay
   if (checkWinner(board, move.row, move.col, rules) === toPlay) {
@@ -651,8 +663,11 @@ export function inspectForcingOutcome(
       openFourCount: 0,
       trueDual: false,
       fourThree: false,
+      onOppFork,
       residualForks: 0,
       residualOpenFours: 0,
+      residualDualSeedForks: 0,
+      oppOpenFours: 0,
       oppVct: false,
       oppVcf: false,
       selfVct: true,
@@ -676,8 +691,11 @@ export function inspectForcingOutcome(
       openFourCount,
       trueDual,
       fourThree,
+      onOppFork,
       residualForks: 0,
       residualOpenFours: 0,
+      residualDualSeedForks: 0,
+      oppOpenFours: 0,
       oppVct: false,
       oppVcf: false,
       selfVct: true,
@@ -699,6 +717,18 @@ export function inspectForcingOutcome(
 
   const residualForks = findForkThreeMoves(board, toPlay, rules, radius).length
   const residualOpenFours = findOpenFourMoves(board, toPlay, rules, radius).length
+  let residualDualSeedForks = 0
+  for (const f of findForkThreeMoves(board, toPlay, rules, radius)) {
+    if (board[f.row]![f.col] !== 0) continue
+    board[f.row]![f.col] = toPlay
+    const ofCount = findOpenFourMoves(board, toPlay, rules, radius).length
+    const forksAfter = findForkThreeMoves(board, toPlay, rules, radius).length
+    board[f.row]![f.col] = 0
+    if (ofCount >= 2 && forksAfter > residualDualSeedForks) {
+      residualDualSeedForks = forksAfter
+    }
+  }
+  const oppOpenFours = findOpenFourMoves(board, opp, rules, radius).length
   const oppVcf = vcfExists(board, opp, opp, vcfO)
   const oppVct = oppVcf || vctExists(board, opp, opp, vctO)
   const selfVcf = vcfExists(board, toPlay, toPlay, vcfO)
@@ -713,8 +743,11 @@ export function inspectForcingOutcome(
     openFourCount,
     trueDual,
     fourThree,
+    onOppFork,
     residualForks,
     residualOpenFours,
+    residualDualSeedForks,
+    oppOpenFours,
     oppVct,
     oppVcf,
     selfVct,
@@ -724,7 +757,8 @@ export function inspectForcingOutcome(
 
 /**
  * 强迫着得分（越大越好）。
- * 主序：立刻胜 / 双胜点 → 应手后对方无 VCT → 己方仍有 VCT → 破对方 VCF / 留己方 VCF。
+ * 主序：立刻胜 / 双胜点 → 应手后对方无 VCT → 己方仍有 VCT → 破对方 VCF /
+ * 四三兼攻豁免 → 双活四向续攻丰度 → 硬残留；非四三却留对方活四则重罚。
  */
 export function scoreForcingOutcome(o: ForcingOutcome): number {
   if (o.immediateWin) return 1_000_000_000
@@ -732,15 +766,21 @@ export function scoreForcingOutcome(o: ForcingOutcome): number {
   const residual = o.residualForks + o.residualOpenFours
   const emptyRushPenalty =
     o.forceWins === 1 && o.openFourCount === 0 && residual === 0 ? -5_000_000 : 0
+  // 070 g9：四三落在对方叉上，可与「破 VCF」同档；060 j8 裸四三不豁免
+  const breaksOppVcf = !o.oppVcf || (o.fourThree && o.onOppFork)
+  // 046 j11 / 058 d10：旁路冲四应手后送给对方活四
+  const oppOfPenalty = !o.fourThree && o.oppOpenFours > 0 ? o.oppOpenFours * 2_000_000 : 0
   return (
     (o.oppVct ? 0 : 10_000_000) +
     (o.selfVct ? 1_000_000 : 0) +
-    (o.oppVcf ? 0 : 100_000) +
+    (breaksOppVcf ? 100_000 : 0) +
     (o.selfVcf ? 10_000 : 0) +
     emptyRushPenalty +
     (o.fourThree ? 5_000 : 0) +
+    o.residualDualSeedForks * 1_000 +
     residual * 300 +
-    o.forceWins * 100
+    o.forceWins * 100 -
+    oppOfPenalty
   )
 }
 

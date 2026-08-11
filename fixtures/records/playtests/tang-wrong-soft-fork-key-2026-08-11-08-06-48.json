@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "moves": [
+    { "r": 7, "c": 7, "player": 1 },
+    { "r": 8, "c": 6, "player": 2 },
+    { "r": 8, "c": 8, "player": 1 },
+    { "r": 6, "c": 6, "player": 2 },
+    { "r": 9, "c": 8, "player": 1 },
+    { "r": 10, "c": 8, "player": 2 },
+    { "r": 9, "c": 7, "player": 1 },
+    { "r": 9, "c": 6, "player": 2 },
+    { "r": 7, "c": 6, "player": 1 },
+    { "r": 8, "c": 7, "player": 2 },
+    { "r": 7, "c": 9, "player": 1 },
+    { "r": 10, "c": 6, "player": 2 },
+    { "r": 7, "c": 8, "player": 1 },
+    { "r": 7, "c": 5, "player": 2 },
+    { "r": 7, "c": 10, "player": 1 }
+  ],
+  "rules": "freestyle-v1",
+  "status": "black_win",
+  "meta": {
+    "title": "人机实战：软叉丛选错关键点 · 放多活四苗",
+    "date": "2026-08-11",
+    "source": "Downloads/zen-gomoku-2026-08-11-08-06-48.json",
+    "black": "human",
+    "white": "tang",
+    "result": "black_win",
+    "moves": 15,
+    "decisive": "第 8 路活四：黑 i8 后双胜点 f8/k8，白挡 f8 黑 k8 成五",
+    "note": "白 #10 引擎选 h7（forkMaxDual 偏低），漏关键点 j8；黑 #11 j8 放出活四苗 k9/i8/g5，白 #12 只能挡其一。失败在软挡评分，非末手。",
+    "failureMode": "wrong-soft-fork-key",
+    "related": ["M", "#107"],
+    "keyTurns": {
+      "W10": {
+        "played": "h7",
+        "expected": "j8",
+        "issue": "软叉丛应占塌叉关键点；h7 留 f8/i8/j8/g5"
+      },
+      "W12": {
+        "played": "g5",
+        "issue": "已面对 ≥2 活四苗，一手无法兼顾"
+      },
+      "W14": {
+        "played": "f8",
+        "issue": "挡活四一端；契约上已无解"
+      }
+    }
+  }
+}

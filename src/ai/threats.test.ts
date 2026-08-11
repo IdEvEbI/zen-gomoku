@@ -792,3 +792,39 @@ describe('regression: zen-gomoku-2026-08-10-01-53-06 forcing reply (#81)', () =>
     }
   }, 30_000)
 })
+
+/** 模式 M：软叉丛关键点 — playtest tang-wrong-soft-fork-key-2026-08-11-08-06-48 */
+describe('mode M: wrong soft-fork key (08-06-48)', () => {
+  /** 黑 #9 g8 后，白 #10 应 j8 而非 h7 */
+  const afterBlackG8: Array<[number, number, number]> = [
+    [7, 7, 1],
+    [8, 6, 2],
+    [8, 8, 1],
+    [6, 6, 2],
+    [9, 8, 1],
+    [10, 8, 2],
+    [9, 7, 1],
+    [9, 6, 2],
+    [7, 6, 1],
+  ]
+
+  it('pickBestForcedReply chooses j8 over h7', () => {
+    const board = emptyBoard()
+    apply(board, afterBlackG8)
+    const soft = listSoftDefenseCandidates(board, 2)
+    expect(soft.some((m) => m.row === 7 && m.col === 9)).toBe(true) // j8
+    expect(soft.some((m) => m.row === 8 && m.col === 7)).toBe(true) // h7
+    const best = pickBestForcedReply(board, 2, soft)
+    expect(best).toEqual({ row: 7, col: 9 })
+  })
+
+  it('Tang plays j8', async () => {
+    const board = emptyBoard()
+    apply(board, afterBlackG8)
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 3; i++) {
+      const move = await agent.getNextMove(board.map((r) => r.slice()))
+      expect(move).toEqual({ row: 7, col: 9 })
+    }
+  }, 30_000)
+})

@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "black_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 3,
+      "player": 2
+    },
+    {
+      "r": 11,
+      "c": 8,
+      "player": 1
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/52.html",
+    "title": "入门题四三 2 · 人机正解",
+    "setupMoves": 10,
+    "solutionSites": "e8 (g8) f7 (d9) i4",
+    "complete": true,
+    "attacker": "black",
+    "humanFirst": "e8",
+    "engineFirst": "e8",
+    "vct": "e8",
+    "tang": "e8",
+    "trueDuals": [],
+    "tangHitBatch": true,
+    "tangHitHuman": true,
+    "skill": "four-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 e8 (g8) f7 (d9) i4。批跑 VCT e8 / 唐僧 e8 / phase≈e8。"
+  }
+}

@@ -12,18 +12,8 @@ function emptyBoard(size = 15): number[][] {
 
 describe('createAgentForDifficulty', () => {
   it('exposes four named levels', () => {
-    expect(AI_DIFFICULTY_OPTIONS.map((o) => o.id)).toEqual([
-      'sha',
-      'zhu',
-      'wukong',
-      'tang',
-    ])
-    expect(AI_DIFFICULTY_OPTIONS.map((o) => o.name)).toEqual([
-      '沙和尚',
-      '猪八戒',
-      '孙悟空',
-      '唐僧',
-    ])
+    expect(AI_DIFFICULTY_OPTIONS.map((o) => o.id)).toEqual(['sha', 'zhu', 'wukong', 'tang'])
+    expect(AI_DIFFICULTY_OPTIONS.map((o) => o.name)).toEqual(['沙和尚', '猪八戒', '孙悟空', '唐僧'])
   })
 
   it('zhu uses heuristic agent', () => {

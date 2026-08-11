@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/41.html",
+    "title": "入门题四四 11 · 人机正解",
+    "setupMoves": 17,
+    "solutionSites": "j10 (j9) i10 (g10) i9",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "j10",
+    "engineFirst": "j10",
+    "tang": "j10",
+    "trueDuals": [],
+    "tangHitBatch": true,
+    "tangHitHuman": true,
+    "skill": "double-four",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 j10 (j9) i10 (g10) i9。批跑引擎首着 j10 / 唐僧 j10。"
+  }
+}

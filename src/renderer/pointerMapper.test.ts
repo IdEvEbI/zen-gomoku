@@ -49,9 +49,10 @@ describe('pointerEventToLogical', () => {
     const canvas = mockCanvas(displaySize, cssSize)
     const displayX = (offset + 7 * scale) / 2
     const displayY = (offset + 7 * scale) / 2
-    expect(
-      pointerEventToLogical(10 + displayX, 20 + displayY, canvas, scale)
-    ).toEqual({ row: 7, col: 7 })
+    expect(pointerEventToLogical(10 + displayX, 20 + displayY, canvas, scale)).toEqual({
+      row: 7,
+      col: 7,
+    })
   })
 
   it('handles high-DPR bitmap (width > clientWidth) without offset drift', () => {
@@ -66,9 +67,7 @@ describe('pointerEventToLogical', () => {
     const canvas = mockCanvas(cssSize)
     expect(pointerEventToLogical(5, 20, canvas, scale)).toBeNull()
     expect(pointerEventToLogical(10, 5, canvas, scale)).toBeNull()
-    expect(
-      pointerEventToLogical(10 + cssSize + 1, 20 + offset, canvas, scale)
-    ).toBeNull()
+    expect(pointerEventToLogical(10 + cssSize + 1, 20 + offset, canvas, scale)).toBeNull()
   })
 
   it('returns null when scale is invalid', () => {

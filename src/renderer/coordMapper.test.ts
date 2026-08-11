@@ -47,18 +47,14 @@ describe('createCoordMapper', () => {
 
     it('rounds to nearest intersection', () => {
       const mapper = createCoordMapper(scale)
-      expect(
-        mapper.pixelToLogical(
-          offset + 7.4 * scale,
-          offset + 7.4 * scale
-        )
-      ).toEqual({ row: 7, col: 7 })
-      expect(
-        mapper.pixelToLogical(
-          offset + 7.6 * scale,
-          offset + 7.6 * scale
-        )
-      ).toEqual({ row: 8, col: 8 })
+      expect(mapper.pixelToLogical(offset + 7.4 * scale, offset + 7.4 * scale)).toEqual({
+        row: 7,
+        col: 7,
+      })
+      expect(mapper.pixelToLogical(offset + 7.6 * scale, offset + 7.6 * scale)).toEqual({
+        row: 8,
+        col: 8,
+      })
     })
 
     it('returns null when out of board (negative)', () => {
@@ -77,12 +73,10 @@ describe('createCoordMapper', () => {
 
     it('accepts pixel at (14,14) intersection', () => {
       const mapper = createCoordMapper(scale)
-      expect(
-        mapper.pixelToLogical(
-          offset + 14 * scale,
-          offset + 14 * scale
-        )
-      ).toEqual({ row: 14, col: 14 })
+      expect(mapper.pixelToLogical(offset + 14 * scale, offset + 14 * scale)).toEqual({
+        row: 14,
+        col: 14,
+      })
     })
   })
 

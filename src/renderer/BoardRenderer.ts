@@ -62,14 +62,10 @@ function resolveDpr(explicit?: number): number {
 /**
  * 创建并返回棋盘渲染器方法，绑定当前 canvas 与尺寸
  */
-export function createBoardRenderer(
-  canvas: HTMLCanvasElement,
-  options: BoardRendererOptions
-) {
+export function createBoardRenderer(canvas: HTMLCanvasElement, options: BoardRendererOptions) {
   const { containerWidth, containerHeight } = options
   const dpr = resolveDpr(options.devicePixelRatio)
-  const scale =
-    Math.min(containerWidth, containerHeight) / BOARD_SIZE
+  const scale = Math.min(containerWidth, containerHeight) / BOARD_SIZE
   const size = BOARD_SIZE * scale
   /** 半格偏移，使棋盘居中、四周留白不贴边 */
   const offset = scale / 2
@@ -155,18 +151,12 @@ export function createBoardRenderer(
      * 根据 board 二维数组重绘所有棋子，0 空 1 黑 2 白
      * @param pulse 可选：对某格施加半径缩放（落子反馈）
      */
-    drawPieces(
-      board: number[][],
-      pulse?: { row: number; col: number; radiusScale: number }
-    ): void {
+    drawPieces(board: number[][], pulse?: { row: number; col: number; radiusScale: number }): void {
       for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
           const v = board[row]?.[col]
           if (v === 1 || v === 2) {
-            const scale =
-              pulse && pulse.row === row && pulse.col === col
-                ? pulse.radiusScale
-                : 1
+            const scale = pulse && pulse.row === row && pulse.col === col ? pulse.radiusScale : 1
             this.drawPiece(row, col, v as PieceColor, scale)
           }
         }

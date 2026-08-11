@@ -43,6 +43,7 @@ export {
 } from './vcf'
 export {
   findVctMove,
+  findRushFourIntoForkMove,
   hasVct,
   vctExists,
   findVctDefense,

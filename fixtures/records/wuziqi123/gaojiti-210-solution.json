@@ -1,0 +1,198 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 3,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 3,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 3,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 3,
+      "player": 1
+    },
+    {
+      "r": 3,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 2,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 3,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/gaojiti/210.html",
+    "title": "SIRIUS初级VCT习题CH17 · 学习谱",
+    "setupMoves": 21,
+    "solutionSites": "g11 (i11) g10 (g12) f9 (i12) e8 (d7) h12 (f5) f10 (f7) e9 (i13) d8",
+    "complete": true,
+    "attacker": "white",
+    "note": "人机正解已成五；根上引擎首着 g6（冲四留叉）。g6 线 i11…m13 后 h12/k9 假双活三，VCT 证不全。括号内为守方挡点。",
+    "engineFirst": "g6"
+  }
+}

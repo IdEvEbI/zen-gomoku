@@ -23,12 +23,7 @@ export function pointerEventToLogical(
 
   const displayX = clientX - rect.left
   const displayY = clientY - rect.top
-  if (
-    displayX < 0 ||
-    displayY < 0 ||
-    displayX > rect.width ||
-    displayY > rect.height
-  ) {
+  if (displayX < 0 || displayY < 0 || displayX > rect.width || displayY > rect.height) {
     return null
   }
 

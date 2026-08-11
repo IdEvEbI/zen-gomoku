@@ -21,7 +21,6 @@ import {
   pickBestForcingMove,
 } from './rootPolicy'
 import { analyzeVcfDefense } from './vcf'
-import { findVctMove } from './vct'
 import { MinimaxAgent } from './MinimaxAgent'
 import { createAgentForDifficulty } from './difficulty'
 
@@ -761,7 +760,13 @@ describe('regression: zen-gomoku-2026-08-10-01-53-06 forcing reply (#81)', () =>
     expect(f9).not.toBeNull()
     expect(e10!.oppVct && !e10!.selfVct).toBe(true)
     expect(f9!.selfVct).toBe(true)
-    expect(findVctMove(board, 2, { maxPly: 12, maxNodes: 8_000 })).toEqual({ row: 6, col: 5 })
+    // 根上 findVctMove 经 confirm 硬续过滤后未必直接返回 f9；强迫择优仍须认 f9
+    expect(
+      pickBestForcingMove(board, 2, findFourThreatMoves(board, 2), { maxPly: 12 }, { maxPly: 12 })
+    ).toEqual({
+      row: 6,
+      col: 5,
+    })
   }, 30_000)
 
   it('pickBestForcingMove and planRootPhase choose f9 not e10', () => {

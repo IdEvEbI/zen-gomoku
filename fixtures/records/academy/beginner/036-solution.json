@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/36.html",
+    "title": "入门题四四 6 · 人机正解",
+    "setupMoves": 17,
+    "solutionSites": "i6 (h6) h7",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "i6",
+    "engineFirst": "i6",
+    "tang": "i6",
+    "trueDuals": [],
+    "tangHitBatch": true,
+    "tangHitHuman": true,
+    "skill": "double-four",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 i6 (h6) h7。批跑引擎首着 i6 / 唐僧 i6。"
+  }
+}

@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 3,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 11,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 3,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 2,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 3,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/39.html",
+    "title": "入门题四四 9 · 人机正解",
+    "setupMoves": 29,
+    "solutionSites": "f9 (e10) i6",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "f9",
+    "engineFirst": "f9",
+    "tang": "f9",
+    "trueDuals": [],
+    "tangHitBatch": true,
+    "tangHitHuman": true,
+    "skill": "double-four",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 f9 (e10) i6。批跑引擎首着 f9 / 唐僧 f9。"
+  }
+}

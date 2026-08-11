@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 11,
+      "c": 9,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/83.html",
+    "title": "入门题双活三 3 · 人机正解",
+    "setupMoves": 9,
+    "solutionSites": "j5 (i6) j6 (j9) j4",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "j5",
+    "vct": "f9",
+    "tang": "j9",
+    "phase": "search",
+    "trueDuals": ["j5"],
+    "oppForks": 6,
+    "tangHitHuman": false,
+    "tangAppearsLaterInHuman": false,
+    "skill": "double-open-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 j5 (i6) j6 (j9) j4。唐僧 j9 / VCT f9 / search。"
+  }
+}

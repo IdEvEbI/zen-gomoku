@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 11,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 12,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 13,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/73.html",
+    "title": "入门题双活三 13 · 人机正解",
+    "setupMoves": 17,
+    "solutionSites": "m9 (l8) j9 (g6) l9 (i9) n9",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "m9",
+    "vct": "j9",
+    "tang": "g6",
+    "phase": "search",
+    "trueDuals": [],
+    "oppForks": 4,
+    "tangHitHuman": false,
+    "tangAppearsLaterInHuman": false,
+    "skill": "double-open-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 m9 (l8) j9 (g6) l9 (i9) n9。唐僧 g6 / VCT j9 / search。"
+  }
+}

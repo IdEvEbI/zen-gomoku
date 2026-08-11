@@ -73,24 +73,14 @@ function isFiveOnAxis(
   return stoneCountOnAxis(board, row, col, stone, axis) === 5
 }
 
-function isFiveAnywhere(
-  board: number[][],
-  row: number,
-  col: number,
-  stone: number
-): boolean {
+function isFiveAnywhere(board: number[][], row: number, col: number, stone: number): boolean {
   for (let axis = 0; axis < 4; axis++) {
     if (isFiveOnAxis(board, row, col, stone, axis)) return true
   }
   return false
 }
 
-function isOverline(
-  board: number[][],
-  row: number,
-  col: number,
-  stone: number
-): boolean {
+function isOverline(board: number[][], row: number, col: number, stone: number): boolean {
   for (let axis = 0; axis < 4; axis++) {
     if (stoneCountOnAxis(board, row, col, stone, axis) > 5) return true
   }
@@ -179,11 +169,7 @@ function liveFourScoreOnAxis(
 /**
  * 试落「活四」点时的禁手筛：只查长连/四四，避免与三三检测递归互咬。
  */
-function isForbiddenAsOpenFourPoint(
-  board: number[][],
-  row: number,
-  col: number
-): boolean {
+function isForbiddenAsOpenFourPoint(board: number[][], row: number, col: number): boolean {
   if (board[row]?.[col] !== BLACK) return false
   if (isFiveAnywhere(board, row, col, BLACK)) return false
   if (isOverline(board, row, col, BLACK)) return true
@@ -207,25 +193,15 @@ function hasOpenThreeOnAxis(
     const empty = findEmptyBeyond(board, row, col, stone, dr, dc)
     if (!empty) continue
     board[empty.row]![empty.col] = stone
-    const isLiveFour =
-      liveFourScoreOnAxis(board, empty.row, empty.col, stone, axis) === 1
-    const stillAllowed = !isForbiddenAsOpenFourPoint(
-      board,
-      empty.row,
-      empty.col
-    )
+    const isLiveFour = liveFourScoreOnAxis(board, empty.row, empty.col, stone, axis) === 1
+    const stillAllowed = !isForbiddenAsOpenFourPoint(board, empty.row, empty.col)
     board[empty.row]![empty.col] = EMPTY
     if (isLiveFour && stillAllowed) return true
   }
   return false
 }
 
-function isDoubleThree(
-  board: number[][],
-  row: number,
-  col: number,
-  stone: number
-): boolean {
+function isDoubleThree(board: number[][], row: number, col: number, stone: number): boolean {
   let cnt = 0
   for (let axis = 0; axis < 4; axis++) {
     // 已成四的方向不计活三（四三合法，不可误判三三）
@@ -235,12 +211,7 @@ function isDoubleThree(
   return cnt >= 2
 }
 
-function isDoubleFour(
-  board: number[][],
-  row: number,
-  col: number,
-  stone: number
-): boolean {
+function isDoubleFour(board: number[][], row: number, col: number, stone: number): boolean {
   let cnt = 0
   for (let axis = 0; axis < 4; axis++) {
     const live = liveFourScoreOnAxis(board, row, col, stone, axis)
@@ -258,11 +229,7 @@ function isDoubleFour(
  * 黑子落在 (row,col) 后是否为禁手（board 已含该黑子）。
  * 成五优先：恰五连则非禁手。
  */
-export function isForbiddenBlackMove(
-  board: number[][],
-  row: number,
-  col: number
-): boolean {
+export function isForbiddenBlackMove(board: number[][], row: number, col: number): boolean {
   return getForbiddenKind(board, row, col) !== null
 }
 
@@ -319,10 +286,7 @@ export interface BoardPoint {
  * 列出当前盘面上黑方若落子则为禁手的空点（供 UI 红叉标记）。
  * 自由规则返回空数组。
  */
-export function listForbiddenEmptyCells(
-  board: number[][],
-  rules: RuleSetId
-): BoardPoint[] {
+export function listForbiddenEmptyCells(board: number[][], rules: RuleSetId): BoardPoint[] {
   if (rules === RULE_FREESTYLE) return []
   const out: BoardPoint[] = []
   for (let row = 0; row < board.length; row++) {

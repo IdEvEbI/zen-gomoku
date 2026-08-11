@@ -4,13 +4,8 @@ import { storeToRefs } from 'pinia'
 import { useGameStore, REPLAY_INTERVAL_MS } from '../../stores'
 
 const gameStore = useGameStore()
-const {
-  history,
-  displayHistoryIndex,
-  isReplayPlaying,
-  canReplay,
-  isAtLiveEdge,
-} = storeToRefs(gameStore)
+const { history, displayHistoryIndex, isReplayPlaying, canReplay, isAtLiveEdge } =
+  storeToRefs(gameStore)
 
 let timer: ReturnType<typeof setInterval> | null = null
 

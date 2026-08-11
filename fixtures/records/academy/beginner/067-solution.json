@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "black_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 11,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 12,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 11,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 11,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 13,
+      "c": 9,
+      "player": 1
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/67.html",
+    "title": "入门题四三 17 · 人机正解",
+    "setupMoves": 14,
+    "solutionSites": "j8 (k9) h10 (k7) f6 (e5) g5 (f4) i5 (f8) i3 (i4) h4 (e7) j2",
+    "complete": true,
+    "attacker": "black",
+    "humanFirst": "j8",
+    "engineFirst": "h9",
+    "vct": "h9",
+    "tang": "f6",
+    "trueDuals": [],
+    "tangHitBatch": false,
+    "tangHitHuman": false,
+    "skill": "four-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 j8 (k9) h10 (k7) f6 (e5) g5 (f4) i5 (f8) i3 (i4) h4 (e7) j2。批跑 VCT h9 / 唐僧 f6 / phase≈f6。"
+  }
+}

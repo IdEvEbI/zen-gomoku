@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "black_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 11,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 3,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 3,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 3,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 3,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 3,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 3,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 2,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 1,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 6,
+      "player": 1
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/60.html",
+    "title": "入门题四三 10 · 人机正解",
+    "setupMoves": 26,
+    "solutionSites": "d10 (e9) e10 (d9) f10 (f12) c10 (b10) g10",
+    "complete": true,
+    "attacker": "black",
+    "humanFirst": "d10",
+    "engineFirst": "f12",
+    "vct": "f12",
+    "tang": "f12",
+    "trueDuals": [],
+    "tangHitBatch": true,
+    "tangHitHuman": false,
+    "skill": "four-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 d10 (e9) e10 (d9) f10 (f12) c10 (b10) g10。批跑 VCT f12 / 唐僧 f12 / phase≈f12。"
+  }
+}

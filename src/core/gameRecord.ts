@@ -4,16 +4,8 @@
  */
 
 import { checkWinner } from './checkWinner'
-import {
-  DEFAULT_RULE_SET,
-  isRuleSetId,
-  RULE_RENJU_CN,
-  type RuleSetId,
-} from './rules'
-import {
-  getForbiddenKind,
-  forbiddenKindMessage,
-} from './forbiddenMoves'
+import { DEFAULT_RULE_SET, isRuleSetId, RULE_RENJU_CN, type RuleSetId } from './rules'
+import { getForbiddenKind, forbiddenKindMessage } from './forbiddenMoves'
 
 export const GAME_RECORD_VERSION = 1
 export const DEFAULT_BOARD_SIZE = 15
@@ -45,9 +37,7 @@ export interface RebuiltGameState {
   status: RecordStatus
 }
 
-export type ParseRecordResult =
-  | { ok: true; record: GameRecord }
-  | { ok: false; message: string }
+export type ParseRecordResult = { ok: true; record: GameRecord } | { ok: false; message: string }
 
 function createEmptyBoard(size: number): number[][] {
   return Array.from({ length: size }, () => Array(size).fill(0))
@@ -76,12 +66,7 @@ function isPlayer(v: unknown): v is RecordPlayer {
 }
 
 function isStatus(v: unknown): v is RecordStatus {
-  return (
-    v === 'playing' ||
-    v === 'black_win' ||
-    v === 'white_win' ||
-    v === 'draw'
-  )
+  return v === 'playing' || v === 'black_win' || v === 'white_win' || v === 'draw'
 }
 
 /**
@@ -129,8 +114,7 @@ export function parseGameRecord(input: unknown): ParseRecordResult {
   if (typeof version !== 'number' || version < 1) {
     return { ok: false, message: '不支持的棋谱版本' }
   }
-  const boardSize =
-    typeof obj.boardSize === 'number' ? obj.boardSize : DEFAULT_BOARD_SIZE
+  const boardSize = typeof obj.boardSize === 'number' ? obj.boardSize : DEFAULT_BOARD_SIZE
   if (!Number.isInteger(boardSize) || boardSize < 5 || boardSize > 19) {
     return { ok: false, message: '棋盘尺寸无效' }
   }

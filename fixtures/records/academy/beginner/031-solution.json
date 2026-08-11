@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/31.html",
+    "title": "入门题四四 1 · 人机正解",
+    "setupMoves": 13,
+    "solutionSites": "f7 (h7) f6",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "f7",
+    "engineFirst": "f7",
+    "tang": "f7",
+    "trueDuals": [],
+    "tangHitBatch": true,
+    "tangHitHuman": true,
+    "skill": "double-four",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 f7 (h7) f6。批跑引擎首着 f7 / 唐僧 f7。"
+  }
+}

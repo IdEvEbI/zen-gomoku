@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "black_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 3,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 11,
+      "c": 8,
+      "player": 1
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/61.html",
+    "title": "入门题四三 11 · 人机正解",
+    "setupMoves": 12,
+    "solutionSites": "i5 (f5) i8 (g8) i6 (i9) i4",
+    "complete": true,
+    "attacker": "black",
+    "humanFirst": "i5",
+    "engineFirst": "i5",
+    "vct": "i5",
+    "tang": "g8",
+    "trueDuals": [],
+    "tangHitBatch": false,
+    "tangHitHuman": false,
+    "skill": "four-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 i5 (f5) i8 (g8) i6 (i9) i4。批跑 VCT i5 / 唐僧 g8 / phase≈g8。"
+  }
+}

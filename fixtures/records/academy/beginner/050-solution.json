@@ -1,0 +1,133 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 3,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/50.html",
+    "title": "入门题四四 20 · 人机正解",
+    "setupMoves": 17,
+    "solutionSites": "i6 (k6) i10 (g8) i8",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "i6",
+    "engineFirst": "g9",
+    "tang": "g9",
+    "tangHitHuman": false,
+    "skill": "double-four",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 i6 (k6) i10 (g8) i8。批跑曾误选假叉 g9；正解首着 i6。"
+  }
+}

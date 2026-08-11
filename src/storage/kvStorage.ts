@@ -10,9 +10,7 @@ export interface KeyValueStorage {
 
 export const DEFAULT_RECORD_STORAGE_KEY = 'zen-gomoku:last-record'
 
-export function createMemoryStorage(
-  initial?: Record<string, string>
-): KeyValueStorage {
+export function createMemoryStorage(initial?: Record<string, string>): KeyValueStorage {
   const map = new Map<string, string>(Object.entries(initial ?? {}))
   return {
     getItem(key) {

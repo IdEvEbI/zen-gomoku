@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 3,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 3,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 4,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 3,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 1,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 3,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 11,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 10,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 2,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 7,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/49.html",
+    "title": "入门题四四 19 · 人机正解",
+    "setupMoves": 21,
+    "solutionSites": "c5 (f8) g5 (f5) h5",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "c5",
+    "engineFirst": "g5",
+    "tang": "c5",
+    "trueDuals": ["g5"],
+    "tangHitBatch": false,
+    "tangHitHuman": true,
+    "skill": "double-four",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 c5 (f8) g5 (f5) h5。批跑引擎首着 g5 / 唐僧 c5。 批跑曾因「真双优先」误判未命中；人以唐僧/VCT 点起手。"
+  }
+}

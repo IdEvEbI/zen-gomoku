@@ -15,6 +15,7 @@
     "format:check": "prettier --check \"docs/**/*.md\" \"*.md\" \".cursor/**/*.mdc\"",
     "generate:teacher-records": "tsx scripts/generate-teacher-records.ts",
     "import:wuziqi123": "tsx scripts/import-wuziqi123.ts",
+    "build:gaojiti-study": "tsx scripts/build-gaojiti-study-records.ts",
     "verify:vct": "tsx scripts/verify-vct-puzzles.ts",
     "prepare": "husky"
   },

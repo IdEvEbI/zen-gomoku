@@ -1,0 +1,117 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "white_win",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 3,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 2,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/76.html",
+    "title": "入门题双活三 10 · 人机正解",
+    "setupMoves": 11,
+    "solutionSites": "g11 (h10) g10 (i8) g12 (g13) g8",
+    "complete": true,
+    "attacker": "white",
+    "humanFirst": "g11",
+    "vct": "h10",
+    "tang": "e9",
+    "phase": "T:e9",
+    "trueDuals": [],
+    "oppForks": 3,
+    "tangHitHuman": false,
+    "tangAppearsLaterInHuman": false,
+    "skill": "double-open-three",
+    "verifiedBy": "human-playtest",
+    "note": "人机正解 g11 (h10) g10 (i8) g12 (g13) g8。唐僧 e9 / VCT h10 / T:e9。"
+  }
+}

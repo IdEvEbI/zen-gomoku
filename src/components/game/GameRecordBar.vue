@@ -2,11 +2,7 @@
 import { ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useGameStore } from '../../stores'
-import {
-  createLocalStorageAdapter,
-  downloadTextFile,
-  readTextFile,
-} from '../../storage'
+import { createLocalStorageAdapter, downloadTextFile, readTextFile } from '../../storage'
 
 const gameStore = useGameStore()
 const { status } = storeToRefs(gameStore)

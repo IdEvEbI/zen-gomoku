@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "rules": "freestyle-v1",
+  "status": "playing",
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 4,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 3,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 4,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 7,
+      "c": 9,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 11,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 6,
+      "player": 2
+    }
+  ],
+  "meta": {
+    "source": "https://wuziqi123.com/qipu/chujiti/69.html",
+    "title": "入门题四三 19",
+    "toPlay": "black",
+    "skill": "four-three",
+    "academy": "wuzi-xuetang",
+    "note": "初级入门·四三。题面 16 手后轮黑。"
+  }
+}

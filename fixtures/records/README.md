@@ -52,7 +52,10 @@
 对局 playtest：`playtests/tang-gaojiti-210-2026-08-10-05-17-21.json`、`220-…`、`221-…`、`222-…`；  
 实战软逼应：`tang-soft-squeeze-2026-08-11-06-16-30.json`（#14 应 `c7`）、`…-07-20-34.json`；  
 过早双活三：`tang-premature-dual-three-2026-08-11-07-53-01.json`（模式 L / #105）；  
-软叉关键点：`tang-wrong-soft-fork-key-2026-08-11-08-06-48.json`（模式 M / #107；#10 应 `j8`）。
+软叉关键点：`tang-wrong-soft-fork-key-2026-08-11-08-06-48.json`（模式 M / #107；#10 应 `j8`）；  
+人机双活四软挤（黑胜 · 白每手挡对仍落后一手）：  
+`tang-human-dual-of-squeeze-2026-08-11-10-05-04.json`（#13 起双活四 `k10`/`g6`）、  
+`tang-human-dual-of-squeeze-2026-08-11-10-10-23.json`（#13–#17 连续双活四 → `i` 路双杀）。
 
 生成：`npx tsx scripts/build-gaojiti-study-records.ts`。非站点官方唯一解；`meta.complete=false` 表示尚未收到成五。
 

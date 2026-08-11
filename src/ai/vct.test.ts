@@ -403,4 +403,31 @@ describe('vct', () => {
       expect(forbidden).not.toContain(site(move!.row, move!.col))
     }
   }, 30_000)
+
+  it('academy mode F: prefer better residual over false VCF/VCT (046 j7)', async () => {
+    const raw = JSON.parse(
+      readFileSync('fixtures/records/academy/beginner/046.json', 'utf8')
+    ) as unknown
+    const parsed = parseGameRecord(raw)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const rebuilt = rebuildFromRecord(parsed.record)
+    expect('error' in rebuilt).toBe(false)
+    if ('error' in rebuilt) return
+    const { board, currentPlayer } = rebuilt
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      currentPlayer as 1 | 2,
+      { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+    )
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(site(phase.move.row, phase.move.col)).toBe('j7')
+      expect(site(phase.move.row, phase.move.col)).not.toBe('j11')
+    }
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    expect(site(move!.row, move!.col)).toBe('j7')
+  }, 20_000)
 })

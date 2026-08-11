@@ -10,7 +10,8 @@
 - Backlog 内 **§编号** 与 GitHub Issue **#编号** 不必一一对应；PR 请写实际 `#n`。
 - **当前优先级**：~~VCF~~ → ~~VCT（#70）~~ → ~~多威胁必防（#81）~~ → ~~VCT 题集（#83）~~ →  
   ~~VCT 预算（#85）~~ → ~~学堂初级 bench（#87）~~ → ~~真双契约文档（#89）~~ → ~~真双实现（#91）~~ →  
-  ~~冲四假 terminal（#93 · G）~~ → ~~多冲四选点（#95 · F）~~ → **攻势顺序（#97 · J）** → academy beginner 首着门禁 A（I/其余 F）→  
+  ~~冲四假 terminal（#93 · G）~~ → ~~多冲四选点（#95 · F）~~ → ~~攻势顺序（#97 · J）~~ →  
+  ~~软起手短 VCT（#99 · I）~~ → **其余 F** → academy beginner 首着门禁 A →  
   中级/高级题 → 禁手 → 人设 #71 →  
   学堂闯关（#74）→ 打谱+分析（#73）→ 小程序壳 → 人人与段位 → ML 如来。  
   （契约变更文档先行，见 tang-seng §0。）
@@ -68,7 +69,8 @@
 | M1.2g | [#91](https://github.com/IdEvEbI/zen-gomoku/issues/91) | **fix: 根真双契约收紧**           | ✅ 已合入 PR [#92](https://github.com/IdEvEbI/zen-gomoku/pull/92)                                |
 | M1.2h | [#93](https://github.com/IdEvEbI/zen-gomoku/issues/93) | **fix: 冲四假 terminal（G）**     | ✅ 已合入 PR [#94](https://github.com/IdEvEbI/zen-gomoku/pull/94)                                |
 | M1.2i | [#95](https://github.com/IdEvEbI/zen-gomoku/issues/95) | **fix: 多冲四/VCT 选错点（F）**   | ✅ 已合入 PR [#96](https://github.com/IdEvEbI/zen-gomoku/pull/96)；046 `j7`；其余 F 另开         |
-| M1.2j | [#97](https://github.com/IdEvEbI/zen-gomoku/issues/97) | **fix: 攻势顺序 / 多解择优（J）** | 活四续攻 continuity；071/080/074；见 RESULTS §3.3 / §4.2                                         |
+| M1.2j | [#97](https://github.com/IdEvEbI/zen-gomoku/issues/97) | **fix: 攻势顺序 / 多解择优（J）** | ✅ 已合入 PR [#98](https://github.com/IdEvEbI/zen-gomoku/pull/98)；071/080/074                   |
+| M1.2k | [#99](https://github.com/IdEvEbI/zen-gomoku/issues/99) | **fix: 软起手短 VCT 认序（I）**   | 072/075/077/078/068；可成活四真双短路保 081–085                                                  |
 | M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71) | **feat: 四级人设重做**            | 唐僧定型后：沙=噪声；猪守；悟攻；唐均衡最强                                                      |
 | M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72) | **feat: Agent 预留如来佛**        | `rulai` 占位；无模型不可选                                                                       |
 | M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) | **feat: 学堂闯关（题包）**        | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**        |

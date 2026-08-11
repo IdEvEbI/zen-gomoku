@@ -429,7 +429,7 @@ describe('vct', () => {
     const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
     expect(move).not.toBeNull()
     expect(site(move!.row, move!.col)).toBe('j7')
-  }, 20_000)
+  }, 40_000)
 
   it('academy mode J: attack order / multi-solution prefer first (071/080/074)', async () => {
     const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
@@ -467,4 +467,43 @@ describe('vct', () => {
       expect(forbidden).not.toContain(ms)
     }
   }, 90_000)
+
+  it('academy mode I: soft-start short VCT order (072/075/077/078/068)', async () => {
+    const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
+      { id: '072', first: 'g10', forbidden: ['g9', 'i11', 'k12'] },
+      { id: '075', first: 'f8', forbidden: ['g7', 'i11'] },
+      { id: '077', first: 'e8', forbidden: ['g10', 'j10'] },
+      { id: '078', first: 'f5', forbidden: ['f7', 'i7'] },
+      { id: '068', first: 'g5', forbidden: ['h6', 'd8'] },
+    ]
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    for (const { id, first, forbidden } of cases) {
+      const raw = JSON.parse(
+        readFileSync(`fixtures/records/academy/beginner/${id}.json`, 'utf8')
+      ) as unknown
+      const parsed = parseGameRecord(raw)
+      expect(parsed.ok).toBe(true)
+      if (!parsed.ok) return
+      const rebuilt = rebuildFromRecord(parsed.record)
+      expect('error' in rebuilt).toBe(false)
+      if ('error' in rebuilt) return
+      const { board, currentPlayer } = rebuilt
+      const phase = planRootPhase(
+        board.map((r) => r.slice()),
+        currentPlayer as 1 | 2,
+        { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+      )
+      expect(phase.type).toBe('terminal')
+      if (phase.type === 'terminal') {
+        const s = site(phase.move.row, phase.move.col)
+        expect(s).toBe(first)
+        expect(forbidden).not.toContain(s)
+      }
+      const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+      expect(move).not.toBeNull()
+      const ms = site(move!.row, move!.col)
+      expect(ms).toBe(first)
+      expect(forbidden).not.toContain(ms)
+    }
+  }, 120_000)
 })

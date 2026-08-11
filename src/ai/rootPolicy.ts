@@ -6,7 +6,7 @@
  * 2. 己方 VCF
  * 3. 对方活四端：已强制真双 / 四三 → 否则软挡；对方 VCF 必防
  * 4. 已强制真双；对方叉时确认 VCT 先于叉对杀
- * 5. 对方叉：统一强迫着 → 冲四留叉 → 否则软搜
+ * 5. 对方叉：强迫着 → 模式 J 活四续攻顺序 → 冲四留叉 → 否则软搜
  * 6. 冲四/单活四留叉 → 己方 VCT → 对方 VCT 必防
  * 7. 其余软威胁 / 全盘 αβ
  */
@@ -44,6 +44,9 @@ const NEIGHBOR_RADIUS = 2
 
 /** 抢攻门槛：至少「双活四向」杀伤（dual≈2） */
 const RACE_MIN_LETHALITY = 2_000
+
+/** 模式 J：短强迫线 continuity 探测节点帽（找不到即视为无，控时延） */
+const ATTACK_ORDER_PROBE_NODES = 3_000
 
 function other(p: AiPlayer): AiPlayer {
   return p === 1 ? 2 : 1
@@ -117,10 +120,205 @@ export function buildSoftRootRestrict(
   return listSoftRootCandidates(board, toPlay, limit, rules, radius)
 }
 
+export interface AttackContinuity {
+  /** 每一必应挡后己方仍有确认 VCT（findVctMove） */
+  sustainedVct: boolean
+  /** 着法造成可成活四（模式 J 只抢这类续攻，不含裸冲四） */
+  createsOpenFour: boolean
+  /** 落在对方叉点（兼攻易转让攻势） */
+  onOppFork: boolean
+  /** 最差应手 continuity 分（越大越好） */
+  score: number
+}
+
+/**
+ * 模式 J · 短强迫线 continuity（RESULTS 攻势顺序）：
+ * 试下后对每个可成活四挡点取最差应手，比较确认 VCT / 消叉 / 是否兼攻对方叉点。
+ * 用于叉对杀同分择优，以及软叉下「活四续攻且挡后仍有 VCT」抢攻。
+ */
+export function evaluateAttackContinuity(
+  board: number[][],
+  toPlay: AiPlayer,
+  move: AiMove,
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS,
+  vctMaxPly = 14
+): AttackContinuity {
+  const fail: AttackContinuity = {
+    sustainedVct: false,
+    createsOpenFour: false,
+    onOppFork: false,
+    score: Number.NEGATIVE_INFINITY,
+  }
+  if (board[move.row]![move.col] !== 0) return fail
+  const opp = other(toPlay)
+  const onOppFork = findForkThreeMoves(board, opp, rules, radius).some(
+    (f) => f.row === move.row && f.col === move.col
+  )
+  const oppForksBefore = findForkThreeMoves(board, opp, rules, radius).length
+
+  board[move.row]![move.col] = toPlay
+  if (checkWinner(board, move.row, move.col, rules) === toPlay) {
+    board[move.row]![move.col] = 0
+    return { sustainedVct: true, createsOpenFour: true, onOppFork, score: 100_000_000 }
+  }
+
+  const wins = findWinningMoves(board, toPlay, rules, radius)
+  const openFours = findOpenFourMoves(board, toPlay, rules, radius)
+  const createsOpenFour = openFours.length > 0
+  const oppForksAfter = findForkThreeMoves(board, opp, rules, radius).length
+  // 落在对方叉点上「消叉」不算维持己方攻势（080 i8 / 074 h9）
+  const clearedOppForks = onOppFork ? 0 : Math.max(0, oppForksBefore - oppForksAfter)
+
+  if (wins.length >= 2) {
+    board[move.row]![move.col] = 0
+    return {
+      sustainedVct: true,
+      createsOpenFour,
+      onOppFork,
+      score: 50_000_000 + clearedOppForks * 10_000,
+    }
+  }
+
+  // 模式 J 只评估活四逼应线；裸冲四走 G/F，不在此抢软叉
+  if (!createsOpenFour) {
+    board[move.row]![move.col] = 0
+    return {
+      sustainedVct: false,
+      createsOpenFour: false,
+      onOppFork,
+      score: Number.NEGATIVE_INFINITY,
+    }
+  }
+
+  const vctOpts: VctOptions = {
+    maxPly: vctMaxPly,
+    rules,
+    radius,
+    maxNodes: ATTACK_ORDER_PROBE_NODES,
+  }
+
+  let worst = Number.POSITIVE_INFINITY
+  let sustainedVct = true
+  for (const d of openFours) {
+    if (board[d.row]![d.col] !== 0) continue
+    board[d.row]![d.col] = opp
+    const myForks = findForkThreeMoves(board, toPlay, rules, radius).length
+    const oppForks = findForkThreeMoves(board, opp, rules, radius).length
+    // 挡后须仍有叉/活四才值得探 VCT；裸冲四残留太常见，负搜极贵（dual-OF 回归 k5）
+    const hasShape = myForks > 0 || findOpenFourMoves(board, toPlay, rules, radius).length > 0
+    const selfVct = hasShape ? findVctMove(board, toPlay, vctOpts) !== null : false
+    if (!selfVct) sustainedVct = false
+    const oppVct = selfVct ? findVctMove(board, opp, vctOpts) !== null : false
+    const score =
+      (oppVct ? 0 : 5_000_000) +
+      (selfVct ? 1_000_000 : 0) +
+      clearedOppForks * 2_000_000 +
+      myForks * 1_000 -
+      oppForks * 2_000 -
+      (onOppFork ? 300_000 : 0)
+    if (score < worst) worst = score
+    board[d.row]![d.col] = 0
+  }
+  board[move.row]![move.col] = 0
+  return {
+    sustainedVct,
+    createsOpenFour,
+    onOppFork,
+    score: Number.isFinite(worst) ? worst : Number.NEGATIVE_INFINITY,
+  }
+}
+
+/** continuity 分值快捷接口 */
+export function scoreAttackContinuity(
+  board: number[][],
+  toPlay: AiPlayer,
+  move: AiMove,
+  rules: RuleSetId = DEFAULT_RULE_SET,
+  radius = NEIGHBOR_RADIUS,
+  vctMaxPly = 14
+): number {
+  return evaluateAttackContinuity(board, toPlay, move, rules, radius, vctMaxPly).score
+}
+
+/**
+ * 叉对杀同分用的轻量顺序分：只看消叉 / 兼攻 / 挡后残留形，不跑 VCT。
+ */
+function scoreAttackOrderLight(
+  board: number[][],
+  toPlay: AiPlayer,
+  move: AiMove,
+  rules: RuleSetId,
+  radius: number
+): number {
+  if (board[move.row]![move.col] !== 0) return Number.NEGATIVE_INFINITY
+  const opp = other(toPlay)
+  const onOppFork = findForkThreeMoves(board, opp, rules, radius).some(
+    (f) => f.row === move.row && f.col === move.col
+  )
+  const oppForksBefore = findForkThreeMoves(board, opp, rules, radius).length
+
+  board[move.row]![move.col] = toPlay
+  const openFours = findOpenFourMoves(board, toPlay, rules, radius)
+  const oppForksAfter = findForkThreeMoves(board, opp, rules, radius).length
+  const clearedOppForks = onOppFork ? 0 : Math.max(0, oppForksBefore - oppForksAfter)
+
+  if (openFours.length === 0) {
+    board[move.row]![move.col] = 0
+    return Number.NEGATIVE_INFINITY
+  }
+
+  let worst = Number.POSITIVE_INFINITY
+  for (const d of openFours) {
+    if (board[d.row]![d.col] !== 0) continue
+    board[d.row]![d.col] = opp
+    const myForks = findForkThreeMoves(board, toPlay, rules, radius).length
+    const myOF = findOpenFourMoves(board, toPlay, rules, radius).length
+    const myFour = findFourThreatMoves(board, toPlay, rules, radius).length
+    const oppForks = findForkThreeMoves(board, opp, rules, radius).length
+    const score =
+      clearedOppForks * 2_000_000 +
+      (myForks + myOF + myFour > 0 ? 100_000 : 0) +
+      myForks * 1_000 -
+      oppForks * 2_000 -
+      (onOppFork ? 300_000 : 0)
+    if (score < worst) worst = score
+    board[d.row]![d.col] = 0
+  }
+  board[move.row]![move.col] = 0
+  return Number.isFinite(worst) ? worst : Number.NEGATIVE_INFINITY
+}
+
+/**
+ * 对方软叉下：活四续攻且每一挡后仍有确认 VCT 的候选中 continuity 最高者（074/080）。
+ */
+function pickAttackOrderMove(
+  board: number[][],
+  toPlay: AiPlayer,
+  candidates: AiMove[],
+  rules: RuleSetId,
+  radius: number,
+  vctMaxPly: number
+): AiMove | null {
+  let best: AiMove | null = null
+  let bestScore = Number.NEGATIVE_INFINITY
+  for (const m of uniqueCandidateMoves(candidates)) {
+    if (board[m.row]![m.col] !== 0) continue
+    const ev = evaluateAttackContinuity(board, toPlay, m, rules, radius, vctMaxPly)
+    if (!ev.createsOpenFour || !ev.sustainedVct) continue
+    if (ev.score > bestScore) {
+      bestScore = ev.score
+      best = m
+    }
+  }
+  return best
+}
+
 /**
  * 双方有叉、盘上尚无「可成活四」时：仅当己方最强叉**严格强于**对方时抢攻。
  * 杀伤持平则先挡（持平抢攻会放过对方叉，见 03-19-46）。
  * 假双挡后无残留不当杀伤（academy 050 g9）。
+ * 杀伤同分时按模式 J continuity 择优（071 i9 先于后手 h10）。
  */
 export function pickForkRaceMove(
   board: number[][],
@@ -158,16 +356,19 @@ export function pickForkRaceMove(
     return L
   }
 
-  let bestOwn: AiMove | null = null
   let bestOwnL = Number.NEGATIVE_INFINITY
+  const topForks: AiMove[] = []
   for (const f of myForks) {
     const L = lethality(toPlay, f)
     if (L > bestOwnL) {
       bestOwnL = L
-      bestOwn = f
+      topForks.length = 0
+      topForks.push(f)
+    } else if (L === bestOwnL && L >= RACE_MIN_LETHALITY) {
+      topForks.push(f)
     }
   }
-  if (!bestOwn || bestOwnL < RACE_MIN_LETHALITY) return null
+  if (topForks.length === 0 || bestOwnL < RACE_MIN_LETHALITY) return null
 
   let bestOppL = Number.NEGATIVE_INFINITY
   for (const f of oppForks) {
@@ -175,8 +376,31 @@ export function pickForkRaceMove(
     if (L > bestOppL) bestOppL = L
   }
 
-  if (bestOwnL > bestOppL) return bestOwn
-  return null
+  if (bestOwnL <= bestOppL) return null
+  if (topForks.length === 1) return topForks[0]!
+
+  // 模式 J：仅「活四续攻」叉才按轻量 continuity 重排（不做 VCT 探测，控时延）
+  const ofForks: AiMove[] = []
+  for (const m of topForks) {
+    if (board[m.row]![m.col] !== 0) continue
+    board[m.row]![m.col] = toPlay
+    const of = findOpenFourMoves(board, toPlay, rules, radius).length > 0
+    board[m.row]![m.col] = 0
+    if (of) ofForks.push(m)
+  }
+  if (ofForks.length === 0) return topForks[0]!
+
+  let best: AiMove = ofForks[0]!
+  let bestScore = scoreAttackOrderLight(board, toPlay, best, rules, radius)
+  for (let i = 1; i < ofForks.length; i++) {
+    const m = ofForks[i]!
+    const score = scoreAttackOrderLight(board, toPlay, m, rules, radius)
+    if (score > bestScore) {
+      bestScore = score
+      best = m
+    }
+  }
+  return best
 }
 
 /**
@@ -606,16 +830,27 @@ export function planRootPhase(
       const o = inspectForcingOutcome(board, toPlay, bestForce, vctOpts, vcfOpts, rules, radius)
       // 抢过软活四须真双/双胜，或四三且应手后对方无 VCT（避假四三抢攻，回归 09-00-46）
       if (o && canRaceSoftDefense(o)) {
-        // 节奏冲四不得压过对方已可证 VCT 必防
-        if (vctMaxPly > 0 && o.forceWins === 1 && o.openFourCount === 0) {
-          const vctBlocks = findVctDefense(board, toPlay, {
-            ...vctOpts,
-            maxNodes: Math.min(20_000, options.vctMaxNodes ?? 20_000),
-          })
-          if (vctBlocks.length > 0) {
-            return terminal(
-              pickBestForcedReply(board, toPlay, vctBlocks, rules, radius) ?? vctBlocks[0]!
-            )
+        // 节奏冲四不得压过对方已可证 VCT / 待破 VCF
+        if (o.forceWins === 1 && o.openFourCount === 0) {
+          if (vctMaxPly > 0) {
+            const vctBlocks = findVctDefense(board, toPlay, {
+              ...vctOpts,
+              maxNodes: Math.min(20_000, options.vctMaxNodes ?? 20_000),
+            })
+            if (vctBlocks.length > 0) {
+              return terminal(
+                pickBestForcedReply(board, toPlay, vctBlocks, rules, radius) ?? vctBlocks[0]!
+              )
+            }
+          }
+          if (vcfMaxPly > 0) {
+            const analysis = analyzeVcfDefense(board, toPlay, vcfOpts)
+            if (analysis.status === 'broken') {
+              const move =
+                pickBestForcedReply(board, toPlay, analysis.blocks, rules, radius) ??
+                analysis.blocks[0]!
+              return terminal(move)
+            }
           }
         }
         return terminal(bestForce)
@@ -649,7 +884,7 @@ export function planRootPhase(
   const race = pickForkRaceMove(board, toPlay, rules, radius)
   if (race) return terminal(race)
 
-  // —— 5. 对方叉：硬强迫（同软活四门槛）→ 冲四留叉（须硬残留）→ 软搜 ——
+  // —— 5. 对方叉：硬强迫（同软活四门槛）→ 模式 J 攻势顺序 → 冲四留叉（须硬残留）→ 软搜 ——
   if (oppForks.length > 0 && defense.length > 0) {
     const forcing = [
       ...findFourThreatMoves(board, toPlay, rules, radius),
@@ -662,6 +897,16 @@ export function planRootPhase(
     }
     {
       const rush = findRushFourIntoForkMove(board, toPlay, { rules, radius })
+      // 模式 J：叉 / 冲四留叉 / 单活四续攻 — 挡后确认 VCT 的维持攻势着可压过软挡（074/080）
+      const orderCands = [
+        ...findForkThreeMoves(board, toPlay, rules, radius),
+        ...(rush ? [rush] : []),
+      ]
+      // 仅唐僧等开启 VCT 时做确认续攻（控孙悟空时延）
+      if (vctMaxPly > 0) {
+        const ordered = pickAttackOrderMove(board, toPlay, orderCands, rules, radius, vctMaxPly)
+        if (ordered) return terminal(ordered)
+      }
       if (rush && board[rush.row]![rush.col] === 0) {
         board[rush.row]![rush.col] = toPlay
         const myWins = findWinningMoves(board, toPlay, rules, radius).length

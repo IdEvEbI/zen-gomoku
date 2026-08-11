@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "boardSize": 15,
+  "moves": [
+    {
+      "r": 7,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 7,
+      "c": 8,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 7,
+      "player": 1
+    },
+    {
+      "r": 9,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 8,
+      "c": 6,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 10,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 5,
+      "c": 10,
+      "player": 1
+    },
+    {
+      "r": 6,
+      "c": 7,
+      "player": 2
+    },
+    {
+      "r": 6,
+      "c": 8,
+      "player": 1
+    },
+    {
+      "r": 5,
+      "c": 9,
+      "player": 2
+    },
+    {
+      "r": 11,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 6,
+      "player": 2
+    },
+    {
+      "r": 9,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 10,
+      "c": 4,
+      "player": 2
+    },
+    {
+      "r": 12,
+      "c": 5,
+      "player": 1
+    },
+    {
+      "r": 8,
+      "c": 5,
+      "player": 2
+    },
+    {
+      "r": 13,
+      "c": 5,
+      "player": 1
+    }
+  ],
+  "rules": "freestyle-v1",
+  "status": "black_win",
+  "meta": {
+    "title": "人机实战：过早经营己方双活三 · 放过对方 VCF/VCT",
+    "date": "2026-08-11",
+    "source": "Downloads/zen-gomoku-2026-08-11-07-53-01.json",
+    "black": "human",
+    "white": "tang",
+    "result": "black_win",
+    "moves": 23,
+    "decisive": "f 路竖杀：f6 后硬点 e5；再双胜点 f7/f2，白挡 f7 黑 f2 成五",
+    "note": "模式 K 后白更敢抢：#12 j9、#14 h9 经营右侧双活三/VCT；黑 i9 起 VCF(j10)，再转 f5…f2。#18 挡 g5 契约正确（j11 非强迫）。失败在更早选错半盘。",
+    "failureMode": "premature-own-dual-three",
+    "related": ["L", "#105", "K"],
+    "keyTurns": {
+      "W12": {
+        "played": "j9",
+        "issue": "己方攻形 terminal，未打断黑 f 路成型"
+      },
+      "W14": {
+        "played": "h9",
+        "issue": "己方 VCT/rush，黑稍后出现 VCF"
+      },
+      "W16": {
+        "played": "j10",
+        "ok": "挡黑软活四/VCF 点"
+      },
+      "W18": {
+        "played": "g5",
+        "ok": "挡软活四；j11 非必应不得抢"
+      }
+    }
+  }
+}

@@ -439,6 +439,35 @@ function canRaceSoftDefense(o: ForcingOutcome): boolean {
   return false
 }
 
+/** 模式 F：杀棋首着与强迫着都成立时，硬残留分更高者优先 */
+function preferBetterForcing(
+  board: number[][],
+  toPlay: AiPlayer,
+  killMove: AiMove,
+  vctOpts: VctOptions,
+  vcfOpts: VcfOptions,
+  rules: RuleSetId,
+  radius: number
+): AiMove {
+  const forcing = [
+    ...findFourThreatMoves(board, toPlay, rules, radius),
+    ...findForkThreeMoves(board, toPlay, rules, radius),
+  ]
+  const bestForce = pickBestForcingMove(board, toPlay, forcing, vctOpts, vcfOpts, rules, radius)
+  if (!bestForce) return killMove
+  const oKill = inspectForcingOutcome(board, toPlay, killMove, vctOpts, vcfOpts, rules, radius)
+  const oForce = inspectForcingOutcome(board, toPlay, bestForce, vctOpts, vcfOpts, rules, radius)
+  if (
+    oKill &&
+    oForce &&
+    scoreForcingOutcome(oForce) > scoreForcingOutcome(oKill) &&
+    (oForce.immediateWin || oForce.forceWins >= 1 || oForce.trueDual || oForce.fourThree)
+  ) {
+    return bestForce
+  }
+  return killMove
+}
+
 function uniqueCandidateMoves(moves: AiMove[]): AiMove[] {
   const seen = new Set<string>()
   const out: AiMove[] = []
@@ -538,10 +567,18 @@ export function planRootPhase(
     if (dual) return terminal(dual)
   }
 
-  // —— 2. 己方 VCF（冲四强迫）——
+  // —— 2. 己方 VCF（冲四强迫）；有软威胁时与强迫着比硬残留（模式 F · 046）——
   if (vcfMaxPly > 0) {
     const myVcf = findVcfMove(board, toPlay, vcfOpts)
-    if (myVcf) return terminal(myVcf)
+    if (myVcf) {
+      const softThreat =
+        listSoftDefenseCandidates(board, toPlay, rules, radius).length > 0 ||
+        findForkThreeMoves(board, opp, rules, radius).length > 0
+      if (softThreat) {
+        return terminal(preferBetterForcing(board, toPlay, myVcf, vctOpts, vcfOpts, rules, radius))
+      }
+      return terminal(myVcf)
+    }
   }
 
   // —— 3. 对方活三/可成活四威胁：先试己方真双/强迫杀，再挡（academy 057）——
@@ -604,7 +641,10 @@ export function planRootPhase(
   }
   if (oppForks.length > 0 && vctMaxPly > 0) {
     const myVct = findVctMove(board, toPlay, vctOpts)
-    if (myVct) return terminal(myVct)
+    if (myVct) {
+      // 模式 F：VCT 与强迫着比硬残留（046 同类）
+      return terminal(preferBetterForcing(board, toPlay, myVct, vctOpts, vcfOpts, rules, radius))
+    }
   }
   const race = pickForkRaceMove(board, toPlay, rules, radius)
   if (race) return terminal(race)

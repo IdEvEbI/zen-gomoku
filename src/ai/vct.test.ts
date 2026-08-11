@@ -560,4 +560,41 @@ describe('vct', () => {
     expect(s).toBe('c7')
     expect(s).not.toBe('g8')
   }, 20_000)
+
+  it('mode L: #12 must not race j9 into mutual VCT (#105)', async () => {
+    const raw = JSON.parse(
+      readFileSync(
+        'fixtures/records/playtests/tang-premature-dual-three-2026-08-11-07-53-01.json',
+        'utf8'
+      )
+    ) as { moves: Array<{ r: number; c: number; player: number }> }
+    const board = Array.from({ length: 15 }, () => Array(15).fill(0))
+    for (let i = 0; i < 11; i++) {
+      const m = raw.moves[i]!
+      board[m.r]![m.c] = m.player
+    }
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      2,
+      {
+        vcfMaxPly: 14,
+        vctMaxPly: 16,
+        vctMaxNodes: 80_000,
+      }
+    )
+    expect(phase.type).toBe('search')
+    if (phase.type === 'search') {
+      expect(phase.defenseFloor.length).toBeGreaterThan(0)
+      // j9 可在 restrict 攻击侧，但不得作 terminal 抢攻
+      expect(phase.defenseFloor.some((m) => site(m.row, m.col) === 'j9')).toBe(false)
+    }
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    expect(site(move!.row, move!.col)).not.toBe('j9')
+    expect(
+      phase.type === 'search' &&
+        phase.defenseFloor.some((m) => m.row === move!.row && m.col === move!.col)
+    ).toBe(true)
+  }, 60_000)
 })

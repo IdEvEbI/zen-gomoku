@@ -769,26 +769,38 @@ describe('regression: zen-gomoku-2026-08-10-01-53-06 forcing reply (#81)', () =>
     })
   }, 30_000)
 
-  it('pickBestForcingMove and planRootPhase choose f9 not e10', () => {
+  it('pickBestForcingMove prefers f9; root may soft-search (mode L) but never e10', async () => {
     const board = emptyBoard()
     apply(board, afterBlackJ5)
     const fours = findFourThreatMoves(board, 2)
     const best = pickBestForcingMove(board, 2, fours, { maxPly: 12 }, { maxPly: 12 })
     expect(best).toEqual({ row: 6, col: 5 })
     const phase = planRootPhase(board, 2, { vcfMaxPly: 12, vctMaxPly: 12 })
-    expect(phase.type).toBe('terminal')
+    // 模式 L：互有 VCT 的旁路节奏冲四可交软搜；软挡后 f9 仍在
     if (phase.type === 'terminal') {
       expect(phase.move).toEqual({ row: 6, col: 5 })
+    } else {
+      expect(phase.type).toBe('search')
+      expect(phase.restrict?.some((m) => m.row === 6 && m.col === 5)).toBe(true) // f9
+      expect(phase.defenseFloor.length).toBeGreaterThan(0)
+    }
+    const agent = createAgentForDifficulty('tang')
+    for (let i = 0; i < 3; i++) {
+      const move = await agent.getNextMove(board.map((r) => r.slice()))
+      expect(move).not.toBeNull()
+      // 自杀冲四 e10 禁止；f9 或软挡均可
+      expect(move).not.toEqual({ row: 5, col: 4 })
     }
   }, 30_000)
 
-  it('Tang plays f9', async () => {
+  it('Tang never plays suicidal e10', async () => {
     const board = emptyBoard()
     apply(board, afterBlackJ5)
     const agent = createAgentForDifficulty('tang')
     for (let i = 0; i < 3; i++) {
-      const move = await agent.getNextMove(board)
-      expect(move).toEqual({ row: 6, col: 5 })
+      const move = await agent.getNextMove(board.map((r) => r.slice()))
+      expect(move).not.toBeNull()
+      expect(move).not.toEqual({ row: 5, col: 4 })
     }
   }, 30_000)
 })

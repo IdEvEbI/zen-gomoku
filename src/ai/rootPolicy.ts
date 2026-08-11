@@ -120,6 +120,7 @@ export function buildSoftRootRestrict(
 /**
  * 双方有叉、盘上尚无「可成活四」时：仅当己方最强叉**严格强于**对方时抢攻。
  * 杀伤持平则先挡（持平抢攻会放过对方叉，见 03-19-46）。
+ * 假双挡后无残留不当杀伤（academy 050 g9）。
  */
 export function pickForkRaceMove(
   board: number[][],
@@ -134,10 +135,33 @@ export function pickForkRaceMove(
   const myForks = findForkThreeMoves(board, toPlay, rules, radius)
   if (oppForks.length === 0 || myForks.length === 0) return null
 
+  const lethality = (side: AiPlayer, f: AiMove): number => {
+    const L = measureAttackLethality(board, side, f, rules, radius)
+    if (!Number.isFinite(L) || L < RACE_MIN_LETHALITY) return L
+    if (board[f.row]![f.col] !== 0) return Number.NEGATIVE_INFINITY
+    board[f.row]![f.col] = side
+    const ofs = findOpenFourMoves(board, side, rules, radius)
+    if (ofs.length >= 2 && !isTrueOpenFourDual(board, side, ofs, rules, radius)) {
+      const enemy = other(side)
+      const d = ofs[0]!
+      if (board[d.row]![d.col] === 0) {
+        board[d.row]![d.col] = enemy
+        const residual =
+          findForkThreeMoves(board, side, rules, radius).length +
+          findOpenFourMoves(board, side, rules, radius).length
+        board[d.row]![d.col] = 0
+        board[f.row]![f.col] = 0
+        return residual === 0 ? 0 : L
+      }
+    }
+    board[f.row]![f.col] = 0
+    return L
+  }
+
   let bestOwn: AiMove | null = null
   let bestOwnL = Number.NEGATIVE_INFINITY
   for (const f of myForks) {
-    const L = measureAttackLethality(board, toPlay, f, rules, radius)
+    const L = lethality(toPlay, f)
     if (L > bestOwnL) {
       bestOwnL = L
       bestOwn = f
@@ -147,7 +171,7 @@ export function pickForkRaceMove(
 
   let bestOppL = Number.NEGATIVE_INFINITY
   for (const f of oppForks) {
-    const L = measureAttackLethality(board, opp, f, rules, radius)
+    const L = lethality(opp, f)
     if (L > bestOppL) bestOppL = L
   }
 
@@ -251,12 +275,12 @@ function pickQuickDualWin(
  */
 export interface ForcingOutcome {
   immediateWin: boolean
-  /** 落子后己方胜点数（对方应之前） */
   forceWins: number
-  /** 落子后真双活四（挡一端仍有活四/胜点） */
+  openFourCount: number
   trueDual: boolean
-  /** 冲四+活三（四三） */
   fourThree: boolean
+  residualForks: number
+  residualOpenFours: number
   oppVct: boolean
   oppVcf: boolean
   selfVct: boolean
@@ -303,8 +327,11 @@ export function inspectForcingOutcome(
     return {
       immediateWin: true,
       forceWins: 0,
+      openFourCount: 0,
       trueDual: false,
       fourThree: false,
+      residualForks: 0,
+      residualOpenFours: 0,
       oppVct: false,
       oppVcf: false,
       selfVct: true,
@@ -315,6 +342,7 @@ export function inspectForcingOutcome(
   const wins = findWinningMoves(board, toPlay, rules, radius)
   const forceWins = wins.length
   const openFours = findOpenFourMoves(board, toPlay, rules, radius)
+  const openFourCount = openFours.length
   const trueDual =
     openFours.length >= 2 && isTrueOpenFourDual(board, toPlay, openFours, rules, radius)
   const fourThree = forceWins >= 1 && openFours.length >= 1
@@ -324,8 +352,11 @@ export function inspectForcingOutcome(
     return {
       immediateWin: false,
       forceWins: Math.max(forceWins, trueDual ? 2 : forceWins),
+      openFourCount,
       trueDual,
       fourThree,
+      residualForks: 0,
+      residualOpenFours: 0,
       oppVct: false,
       oppVcf: false,
       selfVct: true,
@@ -345,6 +376,8 @@ export function inspectForcingOutcome(
     board[block.row]![block.col] = opp
   }
 
+  const residualForks = findForkThreeMoves(board, toPlay, rules, radius).length
+  const residualOpenFours = findOpenFourMoves(board, toPlay, rules, radius).length
   const oppVcf = vcfExists(board, opp, opp, vcfO)
   const oppVct = oppVcf || vctExists(board, opp, opp, vctO)
   const selfVcf = vcfExists(board, toPlay, toPlay, vcfO)
@@ -356,8 +389,11 @@ export function inspectForcingOutcome(
   return {
     immediateWin: false,
     forceWins,
+    openFourCount,
     trueDual,
     fourThree,
+    residualForks,
+    residualOpenFours,
     oppVct,
     oppVcf,
     selfVct,
@@ -372,12 +408,17 @@ export function inspectForcingOutcome(
 export function scoreForcingOutcome(o: ForcingOutcome): number {
   if (o.immediateWin) return 1_000_000_000
   if (o.forceWins >= 2 || o.trueDual) return 100_000_000
+  const residual = o.residualForks + o.residualOpenFours
+  const emptyRushPenalty =
+    o.forceWins === 1 && o.openFourCount === 0 && residual === 0 ? -5_000_000 : 0
   return (
     (o.oppVct ? 0 : 10_000_000) +
     (o.selfVct ? 1_000_000 : 0) +
     (o.oppVcf ? 0 : 100_000) +
     (o.selfVcf ? 10_000 : 0) +
+    emptyRushPenalty +
     (o.fourThree ? 5_000 : 0) +
+    residual * 300 +
     o.forceWins * 100
   )
 }
@@ -540,16 +581,16 @@ export function planRootPhase(
     }
   }
 
-  // —— 4. 叉对杀：仅当对方已无待破 VCF ——
+  // —— 4. 真双优先于叉对杀；再叉对杀（仅当对方已无待破 VCF）——
+  {
+    const dual = findTrueDualMove(board, toPlay, { rules, radius })
+    if (dual) return terminal(dual)
+  }
   const race = pickForkRaceMove(board, toPlay, rules, radius)
   if (race) return terminal(race)
 
-  // —— 5. 对方叉：真双可抢 → 己方 VCT（确认）→ 统一强迫着 → 冲四留叉 ——
+  // —— 5. 对方叉：己方 VCT（确认）→ 统一强迫着 → 冲四留叉 ——
   if (oppForks.length > 0 && defense.length > 0) {
-    const dual = findTrueDualMove(board, toPlay, { rules, radius })
-    if (dual) return terminal(dual)
-
-    // VCT 先于裸冲四：findVctMove 内已 confirmRootVctAttack（拦 junction 假双）
     if (vctMaxPly > 0) {
       const myVct = findVctMove(board, toPlay, vctOpts)
       if (myVct) return terminal(myVct)

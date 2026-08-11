@@ -317,34 +317,25 @@ function attackNode(
 }
 
 /**
- * 真双活四：挡任一可成活四点后，仍有胜点或可成活四。
- * 同线活三两端挡一即尽 → 假双。用于根确认（搜索层仍野心 A 短路）。
+ * 已强制双威胁（根契约 · tang-seng §3.2）：
+ * 盘上攻方胜点 ≥2（含已成活四两端；挡一仍必应另一胜点）。
+ *
+ * **不含**「可成活四双苗」：仅有 ≥2 个再下一手才成活四的空点、本手对方不必应。
+ * `ends` 保留兼容调用方；判定以胜点为准。
  */
-/** 真双活四：挡任一活四端后仍有胜点或活四（排除同线假双）。 */
 export function isTrueOpenFourDual(
   board: number[][],
   attacker: AiPlayer,
-  ends: AiMove[],
+  _ends: AiMove[],
   rules: RuleSetId = DEFAULT_RULE_SET,
   radius = NEIGHBOR_RADIUS
 ): boolean {
-  if (ends.length < 2) return false
-  const defender = other(attacker)
-  for (const d of ends) {
-    if (board[d.row]![d.col] !== 0) continue
-    board[d.row]![d.col] = defender
-    const still =
-      findWinningMoves(board, attacker, rules, radius).length > 0 ||
-      findOpenFourMoves(board, attacker, rules, radius).length > 0
-    board[d.row]![d.col] = 0
-    if (!still) return false
-  }
-  return true
+  return findWinningMoves(board, attacker, rules, radius).length >= 2
 }
 
 /**
- * 一步造成真双活四的点（双活三题 / 对方软叉下可抢攻）。
- * 候选：叉 + 活三；按「新增真双」优先。
+ * 一步造成已强制双威胁的点（可压过对方软活四/软叉）。
+ * 候选：叉 + 活三；须落子后胜点 ≥2（或直接成五）。
  */
 export function findTrueDualMove(
   board: number[][],
@@ -364,8 +355,7 @@ export function findTrueDualMove(
       board[m.row]![m.col] = 0
       return m
     }
-    const of = uniqueMoves(findOpenFourMoves(board, player, rules, radius))
-    const ok = of.length >= 2 && isTrueOpenFourDual(board, player, of, rules, radius)
+    const ok = findWinningMoves(board, player, rules, radius).length >= 2
     board[m.row]![m.col] = 0
     if (ok) return m
   }

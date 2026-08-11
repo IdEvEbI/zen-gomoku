@@ -9,8 +9,7 @@
 - 本文是「计划创建 / 已创建 GitHub Issue」的待办池。
 - Backlog 内 **§编号** 与 GitHub Issue **#编号** 不必一一对应；PR 请写实际 `#n`。
 - **当前优先级**：~~VCF~~ → ~~VCT（#70）~~ → ~~多威胁必防（#81）~~ → ~~VCT 题集（#83）~~ →  
-  ~~VCT 预算（#85）~~ → ~~学堂初级 bench（#87）~~ →  
-  **根真双契约收紧**（[tang-seng-strength.md](../design/tang-seng-strength.md) §3.2）→  
+  ~~VCT 预算（#85）~~ → ~~学堂初级 bench（#87）~~ → ~~真双契约文档（#89）~~ → ~~真双实现（#91）~~ →  
   academy beginner 首着门禁 A（F/G/J/I）→ 中级/高级题 → 禁手 → 人设 #71 →  
   学堂闯关（#74）→ 打谱+分析（#73）→ 小程序壳 → 人人与段位 → ML 如来。  
   （契约变更文档先行，见 tang-seng §0。）
@@ -56,21 +55,22 @@
 
 ## M1 — 棋力与练习（H5）· 当前主战场
 
-| #     | GitHub                                                 | 标题                         | 描述                                                                                                                |
-| ----- | ------------------------------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| M1.1  | [#69](https://github.com/IdEvEbI/zen-gomoku/issues/69) | **feat: 完整 VCF 求解器**    | ✅ 已合入 PR [#78](https://github.com/IdEvEbI/zen-gomoku/pull/78)；见 [vcf.md](../design/vcf.md)                    |
-| M1.2  | [#70](https://github.com/IdEvEbI/zen-gomoku/issues/70) | **feat: VCT 威胁搜索**       | ✅ 已合入 PR [#80](https://github.com/IdEvEbI/zen-gomoku/pull/80)；见 [vct.md](../design/vct.md)                    |
-| M1.2b | [#81](https://github.com/IdEvEbI/zen-gomoku/issues/81) | **feat: 多威胁必防**         | ✅ 已合入 PR [#82](https://github.com/IdEvEbI/zen-gomoku/pull/82)                                                   |
-| M1.2c | [#83](https://github.com/IdEvEbI/zen-gomoku/issues/83) | **test: VCT 题集验证**       | ✅ 已合入 PR [#84](https://github.com/IdEvEbI/zen-gomoku/pull/84)                                                   |
-| M1.2d | [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) | **feat: VCT 预算加深**       | ✅ 已合入 PR [#86](https://github.com/IdEvEbI/zen-gomoku/pull/86)                                                   |
-| M1.2e | [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87) | **feat: 学堂初级题 bench**   | ✅ 已合入 PR [#88](https://github.com/IdEvEbI/zen-gomoku/pull/88)；假叉/顺序/真双另开刀                             |
-| M1.2f | [#89](https://github.com/IdEvEbI/zen-gomoku/issues/89) | **docs: 根真双契约**         | 契约文档先行；合入后另开实现：收紧真双 + j11 回归；见 [tang-seng-strength.md](../design/tang-seng-strength.md) §3.2 |
-| M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71) | **feat: 四级人设重做**       | 唐僧定型后：沙=噪声；猪守；悟攻；唐均衡最强                                                                         |
-| M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72) | **feat: Agent 预留如来佛**   | `rulai` 占位；无模型不可选                                                                                          |
-| M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) | **feat: 学堂闯关（题包）**   | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**                           |
-| M1.6  | [#73](https://github.com/IdEvEbI/zen-gomoku/issues/73) | **feat: 26 开局打谱+分析**   | 照谱落子 + **每步盘面分析**（依赖唐僧 VCF/VCT）；见 teaching.md                                                     |
-| M1.7  | [#75](https://github.com/IdEvEbI/zen-gomoku/issues/75) | **docs/chore: 引擎公开评测** | 唐僧 vs gobang / Rapfi                                                                                              |
-| M1.8  | [#76](https://github.com/IdEvEbI/zen-gomoku/issues/76) | **feat: 音频（H5）**         | BGM 可关 + 落子音效                                                                                                 |
+| #     | GitHub                                                 | 标题                         | 描述                                                                                                             |
+| ----- | ------------------------------------------------------ | ---------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| M1.1  | [#69](https://github.com/IdEvEbI/zen-gomoku/issues/69) | **feat: 完整 VCF 求解器**    | ✅ 已合入 PR [#78](https://github.com/IdEvEbI/zen-gomoku/pull/78)；见 [vcf.md](../design/vcf.md)                 |
+| M1.2  | [#70](https://github.com/IdEvEbI/zen-gomoku/issues/70) | **feat: VCT 威胁搜索**       | ✅ 已合入 PR [#80](https://github.com/IdEvEbI/zen-gomoku/pull/80)；见 [vct.md](../design/vct.md)                 |
+| M1.2b | [#81](https://github.com/IdEvEbI/zen-gomoku/issues/81) | **feat: 多威胁必防**         | ✅ 已合入 PR [#82](https://github.com/IdEvEbI/zen-gomoku/pull/82)                                                |
+| M1.2c | [#83](https://github.com/IdEvEbI/zen-gomoku/issues/83) | **test: VCT 题集验证**       | ✅ 已合入 PR [#84](https://github.com/IdEvEbI/zen-gomoku/pull/84)                                                |
+| M1.2d | [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) | **feat: VCT 预算加深**       | ✅ 已合入 PR [#86](https://github.com/IdEvEbI/zen-gomoku/pull/86)                                                |
+| M1.2e | [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87) | **feat: 学堂初级题 bench**   | ✅ 已合入 PR [#88](https://github.com/IdEvEbI/zen-gomoku/pull/88)；假叉/顺序/真双另开刀                          |
+| M1.2f | [#89](https://github.com/IdEvEbI/zen-gomoku/issues/89) | **docs: 根真双契约**         | ✅ 已合入 PR [#90](https://github.com/IdEvEbI/zen-gomoku/pull/90)                                                |
+| M1.2g | [#91](https://github.com/IdEvEbI/zen-gomoku/issues/91) | **fix: 根真双契约收紧**      | 已强制真双 = 胜点 ≥2；VCT 先于叉对杀；j11 回归；见 [tang-seng-strength.md](../design/tang-seng-strength.md) §3.2 |
+| M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71) | **feat: 四级人设重做**       | 唐僧定型后：沙=噪声；猪守；悟攻；唐均衡最强                                                                      |
+| M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72) | **feat: Agent 预留如来佛**   | `rulai` 占位；无模型不可选                                                                                       |
+| M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74) | **feat: 学堂闯关（题包）**   | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**                        |
+| M1.6  | [#73](https://github.com/IdEvEbI/zen-gomoku/issues/73) | **feat: 26 开局打谱+分析**   | 照谱落子 + **每步盘面分析**（依赖唐僧 VCF/VCT）；见 teaching.md                                                  |
+| M1.7  | [#75](https://github.com/IdEvEbI/zen-gomoku/issues/75) | **docs/chore: 引擎公开评测** | 唐僧 vs gobang / Rapfi                                                                                           |
+| M1.8  | [#76](https://github.com/IdEvEbI/zen-gomoku/issues/76) | **feat: 音频（H5）**         | BGM 可关 + 落子音效                                                                                              |
 
 ---
 
@@ -130,7 +130,7 @@
 1. 从本表复制标题与描述 → GitHub New Issue。
 2. Milestone 选 M1～M5（仓库已建）。
 3. 开发分支 `feature/...`，PR 写 `Closes #n`。
-4. **下一刀建议**：[#89](https://github.com/IdEvEbI/zen-gomoku/issues/89) 文档合入后，开实现 PR（收紧真双 + j11）；  
+4. **下一刀建议**：[#91](https://github.com/IdEvEbI/zen-gomoku/issues/91) 合入后，按 RESULTS 一类一 PR（G/F/J/I）；  
    beginner 首着门禁 A 后再 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)；人设 [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71) 更后。
 
 ---
@@ -147,3 +147,4 @@
 | 2026-08-10 | #83 合入；开 [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85) VCT 预算加深              |
 | 2026-08-10 | 开 [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87) 学堂初级题 bench + 根策略 hardening |
 | 2026-08-11 | #85/#87 合入；下一刀 M1.2f 真双契约；#74/#71 后移至 beginner 门禁后                           |
+| 2026-08-11 | #89 文档合入；开 [#91](https://github.com/IdEvEbI/zen-gomoku/issues/91) 真双实现              |

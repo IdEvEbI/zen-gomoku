@@ -2,7 +2,14 @@ import { readFileSync } from 'node:fs'
 import { describe, it, expect } from 'vitest'
 import { parseGameRecord, rebuildFromRecord } from '../core/gameRecord'
 import { findVcfMove, vcfExists } from './vcf'
-import { findRushFourIntoForkMove, findVctMove, hasVct, vctExists, findVctDefense } from './vct'
+import {
+  findRushFourIntoForkMove,
+  findTrueDualMove,
+  findVctMove,
+  hasVct,
+  vctExists,
+  findVctDefense,
+} from './vct'
 import { findOpenFourMoves, findOpenThreeMoves } from './threats'
 import { planRootPhase } from './rootPolicy'
 import { createAgentForDifficulty } from './difficulty'
@@ -329,4 +336,40 @@ describe('vct', () => {
       expect(site(move!.row, move!.col)).toBe(first)
     }
   }, 60_000)
+
+  it('playtest: soft OF f8/j4 beats false dual-seed j11 (#91)', async () => {
+    const raw = JSON.parse(
+      readFileSync('fixtures/records/playtests/tang-false-dual-j11-2026-08-11.json', 'utf8')
+    ) as unknown
+    const parsed = parseGameRecord(raw)
+    expect(parsed.ok).toBe(true)
+    if (!parsed.ok) return
+    const before = {
+      ...parsed.record,
+      moves: parsed.record.moves.slice(0, -1),
+      status: 'playing' as const,
+    }
+    const rebuilt = rebuildFromRecord(before)
+    expect('error' in rebuilt).toBe(false)
+    if ('error' in rebuilt) return
+    const { board, currentPlayer } = rebuilt
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    expect(findTrueDualMove(board, currentPlayer as 1 | 2)).toBeNull()
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      currentPlayer as 1 | 2,
+      { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+    )
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      const s = site(phase.move.row, phase.move.col)
+      expect(['f8', 'j4']).toContain(s)
+      expect(s).not.toBe('j11')
+    }
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    const s = site(move!.row, move!.col)
+    expect(['f8', 'j4']).toContain(s)
+    expect(s).not.toBe('j11')
+  }, 15_000)
 })

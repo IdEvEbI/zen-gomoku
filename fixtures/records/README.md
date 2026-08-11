@@ -49,7 +49,8 @@
 | `gaojiti-221-solution.json` | 人机正解 `i5…e6 (d7) i2`（已成五）；根上引擎首着 **f10** |
 | `gaojiti-222-solution.json` | 人机正解 `i7…i6 (i8) i3`（已成五）；引擎首着 **h7**      |
 
-对局 playtest：`playtests/tang-gaojiti-210-2026-08-10-05-17-21.json`、`220-…`、`221-…`、`222-…`。
+对局 playtest：`playtests/tang-gaojiti-210-2026-08-10-05-17-21.json`、`220-…`、`221-…`、`222-…`；  
+实战软逼应：`playtests/tang-soft-squeeze-2026-08-11-06-16-30.json`（黑胜；白硬防未漏、软威胁下只挡不抢）。
 
 生成：`npx tsx scripts/build-gaojiti-study-records.ts`。非站点官方唯一解；`meta.complete=false` 表示尚未收到成五。
 

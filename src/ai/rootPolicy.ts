@@ -424,6 +424,21 @@ function isSuicidalForcing(o: ForcingOutcome): boolean {
   return o.oppVct && !o.selfVct
 }
 
+/**
+ * 可否压过对方软活四/软叉抢攻（契约 · RESULTS 模式 G）：
+ * - 立刻胜 / 已强制双威胁 / 四三且应后对方无 VCT
+ * - 或纯节奏冲四（挡后无叉/活四残留；回归 10-17-10）
+ * 挡后仅「留叉」的裸冲四不得短路（048 g6 / 076 e9）。
+ */
+function canRaceSoftDefense(o: ForcingOutcome): boolean {
+  if (o.immediateWin || o.trueDual || o.forceWins >= 2) return true
+  if (o.fourThree && !o.oppVct && !isSuicidalForcing(o)) return true
+  const residual = o.residualForks + o.residualOpenFours
+  // 纯节奏冲四（挡后无叉/活四残留）；对方已有 VCT 时由调用方先必防
+  if (o.forceWins === 1 && o.openFourCount === 0 && residual === 0) return true
+  return false
+}
+
 function uniqueCandidateMoves(moves: AiMove[]): AiMove[] {
   const seen = new Set<string>()
   const out: AiMove[] = []
@@ -553,13 +568,19 @@ export function planRootPhase(
     if (bestForce) {
       const o = inspectForcingOutcome(board, toPlay, bestForce, vctOpts, vcfOpts, rules, radius)
       // 抢过软活四须真双/双胜，或四三且应手后对方无 VCT（避假四三抢攻，回归 09-00-46）
-      if (
-        o &&
-        (o.immediateWin ||
-          o.trueDual ||
-          o.forceWins >= 2 ||
-          (o.fourThree && !o.oppVct && !isSuicidalForcing(o)))
-      ) {
+      if (o && canRaceSoftDefense(o)) {
+        // 节奏冲四不得压过对方已可证 VCT 必防
+        if (vctMaxPly > 0 && o.forceWins === 1 && o.openFourCount === 0) {
+          const vctBlocks = findVctDefense(board, toPlay, {
+            ...vctOpts,
+            maxNodes: Math.min(20_000, options.vctMaxNodes ?? 20_000),
+          })
+          if (vctBlocks.length > 0) {
+            return terminal(
+              pickBestForcedReply(board, toPlay, vctBlocks, rules, radius) ?? vctBlocks[0]!
+            )
+          }
+        }
         return terminal(bestForce)
       }
     }
@@ -588,14 +609,17 @@ export function planRootPhase(
   const race = pickForkRaceMove(board, toPlay, rules, radius)
   if (race) return terminal(race)
 
-  // —— 5. 对方叉：统一强迫着 → 冲四留叉 ——
+  // —— 5. 对方叉：硬强迫（同软活四门槛）→ 冲四留叉（须硬残留）→ 软搜 ——
   if (oppForks.length > 0 && defense.length > 0) {
     const forcing = [
       ...findFourThreatMoves(board, toPlay, rules, radius),
       ...findForkThreeMoves(board, toPlay, rules, radius),
     ]
     const bestForce = pickBestForcingMove(board, toPlay, forcing, vctOpts, vcfOpts, rules, radius)
-    if (bestForce) return terminal(bestForce)
+    if (bestForce) {
+      const o = inspectForcingOutcome(board, toPlay, bestForce, vctOpts, vcfOpts, rules, radius)
+      if (o && canRaceSoftDefense(o)) return terminal(bestForce)
+    }
     {
       const rush = findRushFourIntoForkMove(board, toPlay, { rules, radius })
       if (rush && board[rush.row]![rush.col] === 0) {

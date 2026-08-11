@@ -4,9 +4,9 @@
  * 紧迫阶梯（高 → 低），由 `planRootPhase` 按相位推进，避免散落 if 补丁：
  * 1. 一步胜 / 硬必防 / 己方活四 / 双胜点快路径
  * 2. 己方 VCF
- * 3. 对方活四端（残留威胁择优）→ 对方 VCF 必防
- * 4. 叉对杀抢攻（仅当对方无待破 VCF）
- * 5. 对方叉：统一强迫着 → 冲四留叉 → 己方 VCT（单活四）→ 否则软搜
+ * 3. 对方活四端：已强制真双 / 四三 → 否则软挡；对方 VCF 必防
+ * 4. 已强制真双；对方叉时确认 VCT 先于叉对杀
+ * 5. 对方叉：统一强迫着 → 冲四留叉 → 否则软搜
  * 6. 冲四/单活四留叉 → 己方 VCT → 对方 VCT 必防
  * 7. 其余软威胁 / 全盘 αβ
  */
@@ -216,13 +216,8 @@ export function resolveSearchWithDefenseFloor(
     board[searchMove.row]![searchMove.col] = 0
 
     if (stillWin > 0) return floor
-    // 己方冲四：对方必须应一手，可压过「挡叉」底线抢先手
+    // 己方冲四/活四胜点：对方必须应一手，可压过「挡叉」底线抢先手
     if (myWinThreats > 0) return searchMove
-    // 真双活四：即使对方仍有叉，挡不住两边
-    const myOpen = findOpenFourMoves(board, toPlay, rules, radius)
-    if (myOpen.length >= 2 && isTrueOpenFourDual(board, toPlay, myOpen, rules, radius)) {
-      return searchMove
-    }
     // 双活四抢攻仅当对方已无活三/叉可兑（假双须对方无叉）
     if (myOF >= 2 && stillOF === 0 && stillFork === 0) return searchMove
     if (stillOF > 0 || stillFork > 0) return floor
@@ -343,8 +338,8 @@ export function inspectForcingOutcome(
   const forceWins = wins.length
   const openFours = findOpenFourMoves(board, toPlay, rules, radius)
   const openFourCount = openFours.length
-  const trueDual =
-    openFours.length >= 2 && isTrueOpenFourDual(board, toPlay, openFours, rules, radius)
+  // 已强制：胜点 ≥2；可成活四双苗不算 trueDual（§3.2）
+  const trueDual = forceWins >= 2
   const fourThree = forceWins >= 1 && openFours.length >= 1
 
   if (forceWins >= 2 || trueDual) {
@@ -581,21 +576,20 @@ export function planRootPhase(
     }
   }
 
-  // —— 4. 真双优先于叉对杀；再叉对杀（仅当对方已无待破 VCF）——
+  // —— 4. 已强制真双；对方有叉时确认 VCT 先于叉对杀（契约：软防仅强制/VCT 可抢）——
   {
     const dual = findTrueDualMove(board, toPlay, { rules, radius })
     if (dual) return terminal(dual)
   }
+  if (oppForks.length > 0 && vctMaxPly > 0) {
+    const myVct = findVctMove(board, toPlay, vctOpts)
+    if (myVct) return terminal(myVct)
+  }
   const race = pickForkRaceMove(board, toPlay, rules, radius)
   if (race) return terminal(race)
 
-  // —— 5. 对方叉：己方 VCT（确认）→ 统一强迫着 → 冲四留叉 ——
+  // —— 5. 对方叉：统一强迫着 → 冲四留叉 ——
   if (oppForks.length > 0 && defense.length > 0) {
-    if (vctMaxPly > 0) {
-      const myVct = findVctMove(board, toPlay, vctOpts)
-      if (myVct) return terminal(myVct)
-    }
-
     const forcing = [
       ...findFourThreatMoves(board, toPlay, rules, radius),
       ...findForkThreeMoves(board, toPlay, rules, radius),

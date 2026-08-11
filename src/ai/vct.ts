@@ -317,10 +317,10 @@ function attackNode(
 }
 
 /**
- * 真双活四：挡任一可成活四点后，仍有胜点或可成活四。
- * 同线活三两端挡一即尽 → 假双。用于根确认（搜索层仍野心 A 短路）。
+ * 搜索/根确认用：挡任一可成活四点后，仍有胜点或可成活四（排除同线假双）。
+ * 用于 `confirmRootVctAttack` 等；**不**等于根短路「已强制真双」（见 `findTrueDualMove`）。
  */
-/** 真双活四：挡任一活四端后仍有胜点或活四（排除同线假双）。 */
+/** 挡后仍有胜点或可成活四（排除同线假双）。 */
 export function isTrueOpenFourDual(
   board: number[][],
   attacker: AiPlayer,
@@ -343,8 +343,9 @@ export function isTrueOpenFourDual(
 }
 
 /**
- * 一步造成真双活四的点（双活三题 / 对方软叉下可抢攻）。
- * 候选：叉 + 活三；按「新增真双」优先。
+ * 一步造成已强制双威胁的点（可压过对方软活四/软叉 · tang-seng §3.2）。
+ * 候选：叉 + 活三；须落子后胜点 ≥2（或直接成五）。
+ * **不含**可成活四双苗（再下一手才成活四、本手对方不必应）。
  */
 export function findTrueDualMove(
   board: number[][],
@@ -364,8 +365,7 @@ export function findTrueDualMove(
       board[m.row]![m.col] = 0
       return m
     }
-    const of = uniqueMoves(findOpenFourMoves(board, player, rules, radius))
-    const ok = of.length >= 2 && isTrueOpenFourDual(board, player, of, rules, radius)
+    const ok = findWinningMoves(board, player, rules, radius).length >= 2
     board[m.row]![m.col] = 0
     if (ok) return m
   }

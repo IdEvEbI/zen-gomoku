@@ -106,6 +106,8 @@ openingBook.ts         → 开局定式
 
 **下一刀实现目标**：根短路抢攻不得用「可成活四双苗」压过对方软活四/软叉；academy 061/081–085 不回退；增加上述对局回归。
 
+> **#91**：`isTrueOpenFourDual` / `findTrueDualMove` 以胜点 ≥2 为准；j11 playtest 回归已入库。
+
 ### 3.3 防守底线（`resolveSearchWithDefenseFloor`）
 
 - 搜索着若不在软挡集合内：对方仍有胜点 / 活三端 / **叉** → 回退底线最优挡
@@ -140,7 +142,7 @@ openingBook.ts         → 开局定式
 
 - [x] `threats` / `vcf` / `vct` / 棋谱回归（junction、gaojiti、academy 061/081–085）
 - [x] CI / `vitest` AI 套件
-- [ ] **真双契约**：j11 对局回归 + 阶梯契约最小局面（待下一刀）
+- [x] **真双契约**：j11 对局回归（`tang-false-dual-j11-2026-08-11`）；根短路仅认胜点 ≥2（#91）
 - [ ] academy beginner **首着**全中（门禁 A；见 `fixtures/records/academy/beginner/RESULTS.md`）
 
 ### 5.2 产品体验（持续）
@@ -188,3 +190,4 @@ openingBook.ts         → 开局定式
 | 2026-08-07 | #81：`ThreatResidual` 统一必防；多活四/双 VCF 分析 API                |
 | 2026-08-10 | #81：有叉时强迫着按应手后 VCT 残留择优（`inspectForcingOutcome`）     |
 | 2026-08-11 | #85/#87 合入；§0 研发约定；§3 契约化；真双语义债务与 VCF⊆VCT 混用说明 |
+| 2026-08-11 | #91：真双 = 胜点 ≥2；j11 假双苗回归；勾选 §5.1 真双契约               |

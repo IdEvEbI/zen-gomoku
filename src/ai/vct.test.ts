@@ -372,4 +372,35 @@ describe('vct', () => {
     expect(['f8', 'j4']).toContain(s)
     expect(s).not.toBe('j11')
   }, 15_000)
+
+  it('academy mode G: bare rush-with-fork residual must not terminal (048/076)', async () => {
+    const cases: Array<{ id: string; forbidden: string[] }> = [
+      { id: '048', forbidden: ['g6'] },
+      { id: '076', forbidden: ['e9'] },
+    ]
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    for (const { id, forbidden } of cases) {
+      const raw = JSON.parse(
+        readFileSync(`fixtures/records/academy/beginner/${id}.json`, 'utf8')
+      ) as unknown
+      const parsed = parseGameRecord(raw)
+      expect(parsed.ok).toBe(true)
+      if (!parsed.ok) return
+      const rebuilt = rebuildFromRecord(parsed.record)
+      expect('error' in rebuilt).toBe(false)
+      if ('error' in rebuilt) return
+      const { board, currentPlayer } = rebuilt
+      const phase = planRootPhase(
+        board.map((r) => r.slice()),
+        currentPlayer as 1 | 2,
+        { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+      )
+      if (phase.type === 'terminal') {
+        expect(forbidden).not.toContain(site(phase.move.row, phase.move.col))
+      }
+      const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+      expect(move).not.toBeNull()
+      expect(forbidden).not.toContain(site(move!.row, move!.col))
+    }
+  }, 30_000)
 })

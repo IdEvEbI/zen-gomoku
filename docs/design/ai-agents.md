@@ -113,7 +113,7 @@ interface IAgent {
 
 ### 4.2 算法骨架
 
-1. 根节点：由 `rootPolicy.planRootPhase` 统一决策——一步胜 / 硬必防 / 己方活四；**己方 VCF**；**对方活四端 → 对方 VCF 必防**；叉对杀；有叉时**统一强迫着**（应手后比杀）否则软搜；**己方 VCT → 对方 VCT 必防**（[vct.md](./vct.md)）；再 αβ。必防见 `measureThreatResidual`。
+1. 根节点：由 `rootPolicy.planRootPhase` 按**紧迫阶梯契约**决策（完整契约见 [tang-seng-strength.md](./tang-seng-strength.md) §3）：一步胜 / 硬必防 / 己方活四 / 双胜点；**己方 VCF**；对方活四 / VCF 必防；**已强制真双**；叉对杀；有叉时 **VCT（confirm）→ 强迫着 → 冲四+四三**；冲四留叉 → **己方 VCT → 对方 VCT 必防**（[vct.md](./vct.md) §1.1：VCF⊆VCT 混用）；再 αβ。必防见 `measureThreatResidual`。
 2. **走法生成**：`listThreatCandidates`（胜/硬软防守/冲四/叉）优先，再 `listOrderedCandidates` 启发补齐；威胁点截断前必留。
 3. **递归**：交替落子；α-β 剪枝；触达深度或终局停止；层内同样威胁优先。
 4. **叶子评估**：赢法计数分 + 形分（冲四/活三数量加权）。
@@ -202,3 +202,4 @@ Phase 3（预留）：`AlphaZeroAgent`，仍实现 `IAgent`，与本文四级正
 | 2026-08-07 | #69：`vcf.ts`；唐僧 `vcfMaxPly=12` / `vcfBudgetMs=400` |
 | 2026-08-07 | 链到 [vcf.md](./vcf.md)；根相位描述与实现对齐          |
 | 2026-08-07 | #70：VCT（仅唐僧）；根序 VCF/VCT 优先于软挡            |
+| 2026-08-11 | 根序指向 tang-seng §3 契约；注明 VCF⊆VCT 混用          |

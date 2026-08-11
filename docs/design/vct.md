@@ -1,7 +1,7 @@
 # VCT 求解器（as-built · #70）
 
-> 实现：`src/ai/vct.ts`。根策略见 [tang-seng-strength.md](./tang-seng-strength.md)；VCF 子集见 [vcf.md](./vcf.md)。  
-> Issue：[#70](https://github.com/IdEvEbI/zen-gomoku/issues/70)。
+> 实现：`src/ai/vct.ts`。根策略契约见 [tang-seng-strength.md](./tang-seng-strength.md) §0–§3；VCF 子集见 [vcf.md](./vcf.md)。  
+> Issue：[#70](https://github.com/IdEvEbI/zen-gomoku/issues/70)；预算 [#85](https://github.com/IdEvEbI/zen-gomoku/issues/85)；academy [#87](https://github.com/IdEvEbI/zen-gomoku/issues/87)。
 
 | 项       | 决策 / 落地                                                                    |
 | -------- | ------------------------------------------------------------------------------ |
@@ -23,6 +23,23 @@
 
 禁手：形检测与合法着依赖现有规则钩子；MVP 以 freestyle 回归为主。
 
+### 1.1 VCF ⊆ VCT 混用（为何「不是二选一」）
+
+实战杀棋很少是「纯 VCF」或「纯活三」整条线到底，常见是：
+
+```txt
+活三/叉起势 → 冲四逼应 → 再活三/叉 → … → 双杀/成五
+```
+
+| 层                | 做什么                                                                |
+| ----------------- | --------------------------------------------------------------------- |
+| `vcf.ts`          | 只搜连续冲四；便宜、好证、好防                                        |
+| `vct.ts` 攻方节点 | 有冲四/胜点 → **先** `vcfExists` 短路；否则扩展活三/叉再递归          |
+| `findVctMove`     | **先**整盘 `findVcfMove`；再完整 VCT + `confirmRootVctAttack`         |
+| 根策略            | 廉价 VCF → 真双/四三/叉相位 → 冲四留叉桥梁 → 完整 VCT → 对方 VCT 必防 |
+
+因此「混用」= **同一条紧迫阶梯上的廉价子集 + 完整超集**，不是两套并行引擎抢决策权。契约见 [tang-seng-strength.md](./tang-seng-strength.md) §3.0–§3.1。
+
 ---
 
 ## 2. 搜索结构
@@ -35,29 +52,37 @@ attackNode（OR）
 
 defendNode（AND）
   ├─ 守方一步胜 → 失败
-  ├─ 攻方胜点≥2 或 可成活四点≥2 → 胜（双威胁）
+  ├─ 攻方胜点≥2 或 可成活四点≥2 → 胜（双威胁；搜索层野心 A）
   ├─ 挡点 = 胜点 → 可成活四点 → 冲四点（窄于 listForcedReplies）
   ├─ 挡点过多 → 未证（失败，不误报胜）
   └─ 每个挡点后攻方仍 VCT → 胜
 ```
 
 搜索层 `forcedDefenseBlocks`：野心 A 下可成活四点≥2 仍 dual 短路（保 222 等可证）。  
-根确认 `confirmRootVctAttack`：真双活四放行；假双须挡后硬续且**不含裸叉**（拦 072 `k12` / 079 `f9`）；单冲四挡后不含裸叉（拦 220 `g6`）。  
-`findTrueDualMove`：一步真双；对方软叉时根上优先抢（academy 081–084）。  
-`findRushFourIntoForkMove`：冲四留叉 + 单活四留叉。无对方叉时优先；有对方叉时 **VCT（已确认）先于裸冲四**。
+根确认 `confirmRootVctAttack`：真双活四放行；假双须挡后硬续且**不含裸叉**（拦 072 `k12` / 079 `f9`）；单冲四挡后不含裸叉（拦 220 `g6`）。
 
-### 2.1 根策略顺序（唐僧 · #81）
+### 2.1 根策略顺序（唐僧）
+
+与 [tang-seng-strength.md](./tang-seng-strength.md) §3.1 对齐；此处只列杀棋相关要点：
 
 1. 一步胜 / 硬必防 / 己方活四 / 双胜点快路径
 2. **己方 VCF**
-3. **对方活三/可成活四**：先试真双 /（四三且应后对方无 VCT）→ 再软挡
-4. 叉对杀抢攻（仅当对方无待破 VCF）
-5. 对方叉：**真双** → **己方 VCT（confirm）** → 强迫着择优 → 冲四+四三 → 软搜  
-   （222 `h7`；academy 061/081–084；junction 仍靠 confirm 拦假双）
-6. **真双** → **冲四留叉** → **己方 VCT** → **对方 VCT 必防**
+3. **对方活三/可成活四**：先试**已强制真双** /（四三且应后对方无 VCT）→ 再软挡
+4. 叉对杀抢攻（仅当对方无待破 VCF；假双空残留不抢）
+5. 对方叉：**已强制真双** → **己方 VCT（confirm）** → 强迫着择优 → 冲四+四三 → 软搜
+6. **冲四留叉** → **己方 VCT** → **对方 VCT 必防**
 7. 其余软威胁 → αβ
 
-### 2.2 参数（唐僧）
+`findRushFourIntoForkMove`：冲四留叉 + 单活四留叉。无对方叉时优先；有对方叉时 **VCT（已确认）先于裸冲四**。
+
+### 2.2 「真双」与搜索层双威胁（债务）
+
+| 层     | 行为                                                             | 注意                                                      |
+| ------ | ---------------------------------------------------------------- | --------------------------------------------------------- |
+| 搜索层 | 可成活四点 ≥2 仍可作 dual 短路（野心 A，证杀）                   | 可证局面（如 222）依赖此启发                              |
+| 根短路 | **仅**「已强制真双」可压过软防；不得把「可成活四双苗」当强制抢攻 | 见 tang-seng §3.2；实战 j11 昏招待收紧 `findTrueDualMove` |
+
+### 2.3 参数（唐僧）
 
 | 参数                        | 值                                                     |
 | --------------------------- | ------------------------------------------------------ |
@@ -74,7 +99,9 @@ defendNode（AND）
 - [x] `vct.test.ts`：覆盖 VCF 子集、非 VCF 的短 VCT、叉 VCT、根上 VCF 优先于软挡、VCF 必防
 - [x] `vcf.test.ts` 不回归
 - [x] 精选 VCT 题 fixtures + `npm run verify:vct`（#83；见 `fixtures/records/vct/`）
-- [ ] 人机体感：唐僧中盘连续威胁
+- [x] #85 预算加深；#87 academy beginner bench 与根 hardening
+- [ ] 根真双契约收紧 + j11 对局回归（见 tang-seng §3.2 / §5.1）
+- [ ] 人机体感：唐僧中盘连续威胁、无明显假双抢攻
 
 ---
 
@@ -82,7 +109,7 @@ defendNode（AND）
 
 Allis TSS 思想、RAOTS 着法分类、Rapfi「探针+αβ」、Pela 验题；根序教训（软着压过杀棋）已修。
 
-猪/悟开 VCT、Worker、更深求解 → 另开 Issue（#83 结论：优先加深预算，再进 #74）。
+猪/悟开 VCT、Worker、更深求解 → 另开 Issue（#83/#85 结论：预算已加深；人设 #71 待唐僧定型）。
 
 ---
 
@@ -102,3 +129,4 @@ Allis TSS 思想、RAOTS 着法分类、Rapfi「探针+αβ」、Pela 验题；�
 | 2026-08-10 | 210：根上 `g6` 命中；`g6…m13` 后 `h12`/`k9` 为假双活三（挡后无 VCF）；人机成五线 `g11…d8`  |
 | 2026-08-10 | 根确认真双活四 + `findRushFourIntoForkMove`；搜索层仍野心 A；210/220/221/222/junction 回归 |
 | 2026-08-10 | academy：真双/`findTrueDualMove` 可抢软叉；对方叉时 VCT 先于裸冲四；假双确认去裸叉         |
+| 2026-08-11 | §1.1 VCF⊆VCT 混用；§2.2 根真双债务；根序与 tang-seng 契约对齐；#85/#87 验收勾选            |

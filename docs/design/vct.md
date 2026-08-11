@@ -69,12 +69,12 @@ defendNode（AND）
 2. **己方 VCF**
 3. **对方活三/可成活四**：先试**已强制真双** /（四三且应后对方无 VCT）→ 再软挡
 4. **已强制真双** → 对方有叉时 **己方 VCT（confirm）** → 叉对杀（假双空残留不抢）
-5. 对方叉：强迫着择优 → **模式 J 活四续攻顺序** → 冲四+四三 → 软搜
+5. 对方叉：**模式 I 软起手认序** → 确认 VCT → 强迫着择优 → **模式 J 活四续攻顺序** → 冲四+四三 → 软搜
 6. **冲四留叉** → **己方 VCT** → **对方 VCT 必防**
 7. 其余软威胁 → αβ
 
-`findRushFourIntoForkMove`：冲四留叉 + 单活四留叉。无对方叉时优先；有对方叉时 **VCT（已确认）先于裸冲四**。  
-模式 J：`evaluateAttackContinuity` / 叉对杀同分择优；见 [tang-seng-strength.md](./tang-seng-strength.md) §3.1。
+`findRushFourIntoForkMove`：冲四留叉 + 单活四留叉。无对方叉时优先；有对方叉时 **VCT（已确认）先于裸冲四**（模式 I 可让单活四软起手压过双苗 VCT 首着）。  
+模式 J/I：`evaluateAttackContinuity` / 认序分；见 [tang-seng-strength.md](./tang-seng-strength.md) §3.1。
 
 ### 2.2 「真双」与搜索层双威胁
 

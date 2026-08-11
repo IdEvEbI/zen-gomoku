@@ -3,13 +3,13 @@
 > 实现：`src/ai/vct.ts`。根策略见 [tang-seng-strength.md](./tang-seng-strength.md)；VCF 子集见 [vcf.md](./vcf.md)。  
 > Issue：[#70](https://github.com/IdEvEbI/zen-gomoku/issues/70)。
 
-| 项       | 决策 / 落地                                                  |
-| -------- | ------------------------------------------------------------ |
-| 状态     | **已实现**（`feature/vct-solver`）                           |
-| 野心     | **A**：可用中短 VCT，非完美长杀求解器                        |
-| 启用范围 | **仅唐僧**（`vctMaxPly=12`，`vctBudgetMs=400`）；猪/悟为 0   |
-| 骨架     | AND-OR；冲四线优先复用 VCF；活三/叉扩展；守方窄挡点 + 分支帽 |
-| API      | `findVctMove` / `findVctDefense` / `vctExists` / `hasVct`    |
+| 项       | 决策 / 落地                                                                    |
+| -------- | ------------------------------------------------------------------------------ |
+| 状态     | **已实现**（`feature/vct-solver`）                                             |
+| 野心     | **A**：可用中短 VCT，非完美长杀求解器                                          |
+| 启用范围 | **仅唐僧**（`vctMaxPly=16`，`vctBudgetMs=1200`，`vctMaxNodes=80k`）；猪/悟为 0 |
+| 骨架     | AND-OR；冲四线优先复用 VCF；活三/叉扩展；守方窄挡点 + 分支帽                   |
+| API      | `findVctMove` / `findVctDefense` / `vctExists` / `hasVct`                      |
 
 ---
 
@@ -57,9 +57,11 @@ defendNode（AND）
 
 | 参数                        | 值                                                     |
 | --------------------------- | ------------------------------------------------------ |
-| `vcfMaxPly` / `vcfBudgetMs` | 12 / 300                                               |
-| `vctMaxPly` / `vctBudgetMs` | 12 / 400                                               |
-| 战术时限                    | 自 `getNextMove` 起 VCF 窗 + VCT 窗，且不超过总 1000ms |
+| `vcfMaxPly` / `vcfBudgetMs` | 14 / 300                                               |
+| `vcfMaxNodes`               | 50_000                                                 |
+| `vctMaxPly` / `vctBudgetMs` | 16 / 1200                                              |
+| `vctMaxNodes`               | 80_000                                                 |
+| 战术时限                    | 自 `getNextMove` 起 VCF 窗 + VCT 窗，且不超过总 1500ms |
 
 ---
 
@@ -89,3 +91,4 @@ Allis TSS 思想、RAOTS 着法分类、Rapfi「探针+αβ」、Pela 验题；�
 | 2026-08-07 | #81：残留威胁模型；活四先于 VCF 必防；己方 VCT 先于软叉 |
 | 2026-08-10 | #81：有叉时统一强迫着（应手后比 VCT，禁假冲四）         |
 | 2026-08-10 | #83：手拣题集 + `verify:vct` 能力表                     |
+| 2026-08-10 | #85：唐僧 VCT/VCF 预算与节点加深；嵌套 VCF 共用剩余节点 |

@@ -94,12 +94,12 @@ interface IAgent {
 
 ### 3.2 已定参数（#44 + #66）
 
-| 等级   | Agent             | 关键参数                                                                                                                                           |
-| ------ | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 沙和尚 | `ShaHeshangAgent` | Top-K=`4`，`bestMoveChance=0.55`；必应一步胜/`listForcedReplies`；无全盘随机                                                                       |
-| 猪八戒 | `HeuristicAgent`  | 0 层赢法启发 + 形分；必应同上                                                                                                                      |
-| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`candidateLimit=12`，`timeLimitMs=180`；威胁候选优先；无威胁 DFS                                                                     |
-| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + 迭代加深，`candidateLimit=16`，`timeLimitMs=1000`，`vcfMaxPly=12`，`vcfBudgetMs=300`，`vctMaxPly=12`，`vctBudgetMs=400`，软根含对杀 |
+| 等级   | Agent             | 关键参数                                                                                                                                                                                  |
+| ------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 沙和尚 | `ShaHeshangAgent` | Top-K=`4`，`bestMoveChance=0.55`；必应一步胜/`listForcedReplies`；无全盘随机                                                                                                              |
+| 猪八戒 | `HeuristicAgent`  | 0 层赢法启发 + 形分；必应同上                                                                                                                                                             |
+| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`candidateLimit=12`，`timeLimitMs=180`；威胁候选优先；无威胁 DFS                                                                                                            |
+| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + 迭代加深，`candidateLimit=16`，`timeLimitMs=1500`，`vcfMaxPly=14`，`vcfBudgetMs=300`，`vcfMaxNodes=50k`，`vctMaxPly=16`，`vctBudgetMs=1200`，`vctMaxNodes=80k`，软根含对杀 |
 
 默认等级：**猪八戒**。切换等级仅影响后续 AI 手数（不强制重开）。
 

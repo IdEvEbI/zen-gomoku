@@ -39,6 +39,10 @@ export interface MinimaxAgentOptions {
   vctMaxPly?: number
   /** VCT 预算（ms）；与 VCF 串在战术时限内 */
   vctBudgetMs?: number
+  /** VCF 节点帽（根探针） */
+  vcfMaxNodes?: number
+  /** VCT 节点帽（根探针） */
+  vctMaxNodes?: number
   /** @deprecated 使用 vcfMaxPly */
   threatSearchPly?: number
   /** @deprecated 使用 vcfBudgetMs */
@@ -60,6 +64,8 @@ export class MinimaxAgent implements IAgent {
   private readonly vcfBudgetMs: number
   private readonly vctMaxPly: number
   private readonly vctBudgetMs: number
+  private readonly vcfMaxNodes: number | undefined
+  private readonly vctMaxNodes: number | undefined
   private readonly softRootLimit: number
   private readonly boardSize: number
   private readonly rules: RuleSetId
@@ -78,6 +84,8 @@ export class MinimaxAgent implements IAgent {
     this.vcfBudgetMs = options.vcfBudgetMs ?? options.threatSearchBudgetMs ?? 250
     this.vctMaxPly = options.vctMaxPly ?? 0
     this.vctBudgetMs = options.vctBudgetMs ?? 0
+    this.vcfMaxNodes = options.vcfMaxNodes
+    this.vctMaxNodes = options.vctMaxNodes
     this.softRootLimit = options.softRootLimit ?? 16
     this.boardSize = options.boardSize ?? 15
     this.rules = options.rules ?? DEFAULT_RULE_SET
@@ -122,8 +130,10 @@ export class MinimaxAgent implements IAgent {
       radius: this.neighborRadius,
       softRootLimit: this.softRootLimit,
       vcfMaxPly: this.vcfMaxPly,
+      vcfMaxNodes: this.vcfMaxNodes,
       shouldAbortVcf: () => Date.now() >= vcfBudgetEnd || this.timedOut(),
       vctMaxPly: this.vctMaxPly,
+      vctMaxNodes: this.vctMaxNodes,
       shouldAbortVct: () => Date.now() >= vctBudgetEnd || this.timedOut(),
     })
 

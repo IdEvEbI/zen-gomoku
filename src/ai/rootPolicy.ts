@@ -61,9 +61,13 @@ export interface RootPolicyOptions {
   softRootLimit?: number
   /** VCF 半步上限；0 关闭 */
   vcfMaxPly?: number
+  /** VCF 节点帽；缺省用求解器默认 */
+  vcfMaxNodes?: number
   shouldAbortVcf?: () => boolean
   /** VCT 半步上限；0 关闭（#70 仅唐僧开启） */
   vctMaxPly?: number
+  /** VCT 节点帽；缺省用求解器默认 */
+  vctMaxNodes?: number
   shouldAbortVct?: () => boolean
 }
 
@@ -408,17 +412,19 @@ export function planRootPhase(
   const vcfMaxPly = options.vcfMaxPly ?? 0
   const vctMaxPly = options.vctMaxPly ?? 0
   const opp = other(toPlay)
-  const vcfOpts = {
+  const vcfOpts: VcfOptions = {
     maxPly: vcfMaxPly,
     rules,
     radius,
     shouldAbort: options.shouldAbortVcf,
+    maxNodes: options.vcfMaxNodes,
   }
-  const vctOpts = {
+  const vctOpts: VctOptions = {
     maxPly: vctMaxPly,
     rules,
     radius,
     shouldAbort: options.shouldAbortVct,
+    maxNodes: options.vctMaxNodes,
   }
 
   // —— 1. 瞬时胜负与硬形 ——

@@ -14,12 +14,12 @@
 
 ## 1. 四级难度（与代码一致）
 
-| 等级   | 实现              | 参数（`difficulty.ts`）                                                                                                                              |
-| ------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 沙和尚 | `ShaHeshangAgent` | Top-K + `listForcedReplies` 必应                                                                                                                     |
-| 猪八戒 | `HeuristicAgent`  | 赢法启发 + 形分；`listForcedReplies`                                                                                                                 |
-| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`timeLimitMs=180`，`candidateLimit=12`；无威胁 DFS                                                                                     |
-| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + ID，`timeLimitMs=1000`，`candidateLimit=16`，`vcfMaxPly=12`，`vcfBudgetMs=300`，`vctMaxPly=12`，`vctBudgetMs=400`，`softRootLimit=16` |
+| 等级   | 实现              | 参数（`difficulty.ts`）                                                                                                                                                                     |
+| ------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 沙和尚 | `ShaHeshangAgent` | Top-K + `listForcedReplies` 必应                                                                                                                                                            |
+| 猪八戒 | `HeuristicAgent`  | 赢法启发 + 形分；`listForcedReplies`                                                                                                                                                        |
+| 孙悟空 | `MinimaxAgent`    | `maxDepth=2`，`timeLimitMs=180`，`candidateLimit=12`；无威胁 DFS                                                                                                                            |
+| 唐僧   | `MinimaxAgent`    | `maxDepth=6` + ID，`timeLimitMs=1500`，`candidateLimit=16`，`vcfMaxPly=14`，`vcfBudgetMs=300`，`vcfMaxNodes=50k`，`vctMaxPly=16`，`vctBudgetMs=1200`，`vctMaxNodes=80k`，`softRootLimit=16` |
 
 开局：`openingBook.ts`（花月/浦月/斜二等 + 八对称）——改善开局单调，**不**解决中盘战术洞。
 

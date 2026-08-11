@@ -12,8 +12,8 @@
   ~~VCT 预算（#85）~~ → ~~学堂初级 bench（#87）~~ → ~~真双契约文档（#89）~~ → ~~真双实现（#91）~~ →  
   ~~冲四假 terminal（#93 · G）~~ → ~~多冲四选点（#95 · F）~~ → ~~攻势顺序（#97 · J）~~ →  
   ~~软起手短 VCT（#99 · I）~~ → ~~其余 F（#101）~~ → ~~软威胁抢攻（#103 · K）~~ →  
-  ~~L 契约（#105 / PR #106）~~ → **软叉关键点（#107 · M）** → L 实现 →  
-  academy beginner 首着门禁 A / 剩余 F（048/058）→  
+  ~~L 契约（#105 / PR #106）~~ → ~~M 契约（#107 / PR #108）~~ → **软叉关键点实现（#107 · M）** →  
+  L 实现 → academy beginner 首着门禁 A / 剩余 F（048/058）→  
   中级/高级题 → 禁手 → 人设 #71 →  
   学堂闯关（#74）→ 打谱+分析（#73）→ 小程序壳 → 人人与段位 → ML 如来。  
   （契约变更文档先行，见 tang-seng §0。）
@@ -76,7 +76,7 @@
 | M1.2l | [#101](https://github.com/IdEvEbI/zen-gomoku/issues/101) | **fix: 其余多冲四选点（F 续）**   | ✅ 已合入 PR [#102](https://github.com/IdEvEbI/zen-gomoku/pull/102)；060/070；048/058 仍待       |
 | M1.2m | [#103](https://github.com/IdEvEbI/zen-gomoku/issues/103) | **fix: 软威胁逼应抢攻（K）**      | ✅ 已合入 PR [#104](https://github.com/IdEvEbI/zen-gomoku/pull/104)；soft-squeeze #14 `c7`       |
 | M1.2n | [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) | **fix: 先破对方短杀（L）**        | ✅ 契约合入 PR [#106](https://github.com/IdEvEbI/zen-gomoku/pull/106)；实现另开                  |
-| M1.2o | [#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) | **fix: 软叉丛关键点（M）**        | `08-06-48` #10 应 `j8`；残留叉→多活四苗重罚；契约文档先行                                        |
+| M1.2o | [#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) | **fix: 软叉丛关键点（M）**        | ✅ 契约 PR [#108](https://github.com/IdEvEbI/zen-gomoku/pull/108)；实现 `forkMultiOfCount`       |
 | M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71)   | **feat: 四级人设重做**            | 唐僧定型后：沙=噪声；猪守；悟攻；唐均衡最强                                                      |
 | M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72)   | **feat: Agent 预留如来佛**        | `rulai` 占位；无模型不可选                                                                       |
 | M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)   | **feat: 学堂闯关（题包）**        | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**        |
@@ -162,3 +162,4 @@
 | 2026-08-11 | #89 文档合入；开 [#91](https://github.com/IdEvEbI/zen-gomoku/issues/91) 真双实现                                                                      |
 | 2026-08-11 | #103/#104 合入；开 [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) L、[#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) M；实战优先 M |
 | 2026-08-11 | #105 契约合入 PR [#106](https://github.com/IdEvEbI/zen-gomoku/pull/106)；下一刀 [#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) M            |
+| 2026-08-11 | #107 契约合入 PR [#108](https://github.com/IdEvEbI/zen-gomoku/pull/108)；实现 forkMultiOfCount（#10 → `j8`）                                          |

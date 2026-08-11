@@ -321,7 +321,8 @@ export function listForcedReplies(
 /**
  * 攻方在当前盘面的残留威胁（守方视角：越大越糟）。
  *
- * 紧迫级（高 → 低）：胜点 → 多活四端 → 活四双胜杀伤 → 叉双杀 → 叉数。
+ * 紧迫级（高 → 低）：胜点 → 多活四端 → 可放多活四苗的残留叉数（模式 M）→
+ * 活四双胜杀伤 → 叉双杀 → 叉数。
  * 评分与择优统一走这套，避免「forkMode / 活三Mode」分叉把双活四排到叉后面。
  */
 export interface ThreatResidual {
@@ -338,6 +339,11 @@ export interface ThreatResidual {
   forkMaxDual: number
   forkMaxOF: number
   forkSumOF: number
+  /**
+   * 落下后出现 ≥2 活四苗的残留叉个数（一手无法兼顾）。
+   * 模式 M：挡「放一窝」时优先压低此项，勿被较低 forkMaxDual 带偏。
+   */
+  forkMultiOfCount: number
 }
 
 /**
@@ -363,6 +369,7 @@ export function measureThreatResidual(
   let forkSumOF = 0
   let forkMaxDual = 0
   let forkMaxWins = 0
+  let forkMultiOfCount = 0
   for (const f of forks) {
     board[f.row]![f.col] = attacker
     const ofs = findOpenFourMoves(board, attacker, rules, radius)
@@ -378,6 +385,7 @@ export function measureThreatResidual(
     forkSumOF += ofs.length
     forkMaxDual = Math.max(forkMaxDual, dual)
     forkMaxWins = Math.max(forkMaxWins, wins)
+    if (ofs.length >= 2) forkMultiOfCount += 1
   }
 
   return {
@@ -389,6 +397,7 @@ export function measureThreatResidual(
     forkMaxDual,
     forkMaxOF,
     forkSumOF,
+    forkMultiOfCount,
   }
 }
 
@@ -404,6 +413,8 @@ export function scoreThreatResidual(r: ThreatResidual): number {
     r.openFourDualSum * 10_000_000 +
     (r.forkMaxWins >= 2 ? r.forkMaxWins * 1_000_000 : 0) +
     r.forkMaxDual * 100_000 +
+    // 模式 M：每个「叉→≥2 活四苗」与 1 档 forkMaxDual 同阶，累加可压过「低 dual、多窝」
+    r.forkMultiOfCount * 100_000 +
     r.forkMaxOF * 1_000 +
     r.forkCount * 10 +
     r.forkSumOF

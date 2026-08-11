@@ -115,9 +115,9 @@ openingBook.ts         → 开局定式
 >
 > **模式 M（#107 · wrong soft-fork key）**：软叉丛里的关键点择优。
 >
-> - `scoreThreatResidual` / `pickBestForcedReply`：若某残留叉落下后出现 **≥2 活四苗**（一手无法兼顾），紧迫级须接近「盘上已有多活四端」，**不得**被较低的 `forkMaxDual` 带去挡「单叉双杀分好看、却放一窝」的点。
-> - 回归：`playtests/tang-wrong-soft-fork-key-2026-08-11-08-06-48.json` 白 #10 → **`j8`**（非历史 / 现引擎 `h7`）。
-> - **不回退**：既有 `pickBestForcedReply` 双活四叉回归、模式 K（`c7`）、G/J/I/F；模式 L 实现另开。
+> - `scoreThreatResidual` / `pickBestForcedReply`：统计残留叉中「落下后 ≥2 活四苗」的个数（`forkMultiOfCount`），与 `forkMaxDual` **同阶累加**，**不得**被较低的 dual 带去挡「单叉双杀分好看、却放一窝」的点。
+> - 回归：`playtests/tang-wrong-soft-fork-key-2026-08-11-08-06-48.json` 白 #10 → **`j8`**（非历史 / 旧引擎 `h7`）。
+> - **不回退**：既有 `pickBestForcedReply` 双活四叉 / junction 回归、模式 K（`c7`）、G/J/I/F；模式 L 实现另开。
 
 ### 3.2 「真双」语义（下一刀必须收紧）
 

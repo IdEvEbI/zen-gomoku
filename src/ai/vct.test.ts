@@ -867,4 +867,37 @@ describe('vct', () => {
     expect(['f8', 'i5']).toContain(ms)
     expect(ms).not.toBe('g9')
   }, 20_000)
+
+  it('mode O midgame soft-squeeze: rush four j9 over soft block i3 (#125)', async () => {
+    const raw = JSON.parse(
+      readFileSync(
+        'fixtures/records/playtests/tang-human-midgame-soft-squeeze-2026-08-12-02-43-22.json',
+        'utf8'
+      )
+    ) as { moves: Array<{ r: number; c: number; player: number }> }
+    const board = Array.from({ length: 15 }, () => Array(15).fill(0))
+    // 白第 28 手之前（前 27 手）
+    for (let i = 0; i < 27; i++) {
+      const m = raw.moves[i]!
+      board[m.r]![m.c] = m.player
+    }
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    expect(site(raw.moves[27]!.r, raw.moves[27]!.c)).toBe('i3')
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      2,
+      { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+    )
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      const s = site(phase.move.row, phase.move.col)
+      expect(['j9', 'k9']).toContain(s)
+      expect(s).not.toBe('i3')
+    }
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    const ms = site(move!.row, move!.col)
+    expect(['j9', 'k9']).toContain(ms)
+    expect(ms).not.toBe('i3')
+  }, 30_000)
 })

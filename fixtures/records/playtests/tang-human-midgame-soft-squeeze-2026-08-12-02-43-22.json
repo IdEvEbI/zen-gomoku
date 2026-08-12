@@ -229,5 +229,11 @@
     }
   ],
   "rules": "freestyle-v1",
-  "status": "black_win"
+  "status": "black_win",
+  "meta": {
+    "note": "人机黑胜。白硬应多对，中盘造势偏慢。模式 O：白 #28 应抢节奏冲四 j9/k9（非历史 i3）；终盘黑 k 路双杀 k10/k5。",
+    "related": ["O", "midgame-soft-squeeze", "#125"],
+    "expectWhite28": ["j9", "k9"],
+    "forbiddenWhite28": ["i3"]
+  }
 }

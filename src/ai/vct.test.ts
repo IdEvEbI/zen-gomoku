@@ -499,6 +499,72 @@ describe('vct', () => {
     }
   }, 400_000)
 
+  it('academy gate A rem-7: 041/045/047/056/059/069/079 (#123)', async () => {
+    const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
+      { id: '041', first: 'j10', forbidden: ['i9'] },
+      { id: '045', first: 'f9', forbidden: ['g10'] },
+      { id: '047', first: 'i6', forbidden: ['g9'] },
+      { id: '056', first: 'h9', forbidden: ['f8'] },
+      { id: '059', first: 'g11', forbidden: ['i5'] },
+      { id: '069', first: 'j12', forbidden: ['m9'] },
+      { id: '079', first: 'i7', forbidden: ['j9'] },
+    ]
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    for (const { id, first, forbidden } of cases) {
+      const raw = JSON.parse(
+        readFileSync(`fixtures/records/academy/beginner/${id}.json`, 'utf8')
+      ) as unknown
+      const parsed = parseGameRecord(raw)
+      expect(parsed.ok).toBe(true)
+      if (!parsed.ok) return
+      const rebuilt = rebuildFromRecord(parsed.record)
+      expect('error' in rebuilt).toBe(false)
+      if ('error' in rebuilt) return
+      const { board, currentPlayer } = rebuilt
+      const phase = planRootPhase(
+        board.map((r) => r.slice()),
+        currentPlayer as 1 | 2,
+        { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+      )
+      expect(phase.type).toBe('terminal')
+      if (phase.type === 'terminal') {
+        const s = site(phase.move.row, phase.move.col)
+        expect(s).toBe(first)
+        expect(forbidden).not.toContain(s)
+      }
+    }
+  }, 240_000)
+
+  it('academy 059: g11 over side four-three i5 (playtest #123)', async () => {
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    const wrong = JSON.parse(
+      readFileSync(
+        'fixtures/records/playtests/tang-academy-059-wrong-i5-2026-08-12-06-42-20.json',
+        'utf8'
+      )
+    ) as { moves: Array<{ r: number; c: number; player: number }> }
+    const board = Array.from({ length: 15 }, () => Array(15).fill(0))
+    for (let i = 0; i < 24; i++) {
+      const m = wrong.moves[i]!
+      board[m.r]![m.c] = m.player
+    }
+    expect(site(wrong.moves[24]!.r, wrong.moves[24]!.c)).toBe('i5')
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      1,
+      { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+    )
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(site(phase.move.row, phase.move.col)).toBe('g11')
+    }
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    const s = site(move!.row, move!.col)
+    expect(s).toBe('g11')
+    expect(s).not.toBe('i5')
+  }, 30_000)
+
   it('academy gate A: 050 i6 / 057 g8 / 064 j7 / 067 j8 (#117)', async () => {
     const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
       { id: '050', first: 'i6', forbidden: ['g9'] },

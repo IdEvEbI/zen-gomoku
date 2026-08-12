@@ -14,7 +14,7 @@
   ~~软起手短 VCT（#99 · I）~~ → ~~其余 F（#101）~~ → ~~软威胁抢攻（#103 · K）~~ →  
   ~~L（#105 / PR #106+#110）~~ → ~~M（#107 / PR #108+#109）~~ →  
   ~~双活四软挤（#111 · N）~~ →  
-  academy beginner 首着门禁 A / 剩余 F（048/058）→  
+  **剩余 F + 门禁 A（#115 · 048/058）** →  
   中级/高级题 → 禁手 → 人设 #71 →  
   学堂闯关（#74）→ 打谱+分析（#73）→ 小程序壳 → 人人与段位 → ML 如来。  
   （契约变更文档先行，见 tang-seng §0。）
@@ -78,7 +78,8 @@
 | M1.2m | [#103](https://github.com/IdEvEbI/zen-gomoku/issues/103) | **fix: 软威胁逼应抢攻（K）**      | ✅ 已合入 PR [#104](https://github.com/IdEvEbI/zen-gomoku/pull/104)；soft-squeeze #14 `c7`                                                   |
 | M1.2n | [#105](https://github.com/IdEvEbI/zen-gomoku/issues/105) | **fix: 先破对方短杀（L）**        | ✅ 契约 [#106](https://github.com/IdEvEbI/zen-gomoku/pull/106)；实现 [#110](https://github.com/IdEvEbI/zen-gomoku/pull/110)                  |
 | M1.2o | [#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) | **fix: 软叉丛关键点（M）**        | ✅ 合入 PR [#108](https://github.com/IdEvEbI/zen-gomoku/pull/108)/[#109](https://github.com/IdEvEbI/zen-gomoku/pull/109)；`forkMultiOfCount` |
-| M1.2p | [#111](https://github.com/IdEvEbI/zen-gomoku/issues/111) | **fix: 双活四软挤抢先手（N）**    | ✅ 契约 [#113](https://github.com/IdEvEbI/zen-gomoku/pull/113)；实现 `pickDualOpenFourSeedMove`（#6 `h10`/`f8`）                             |
+| M1.2p | [#111](https://github.com/IdEvEbI/zen-gomoku/issues/111) | **fix: 双活四软挤抢先手（N）**    | ✅ 契约 [#113](https://github.com/IdEvEbI/zen-gomoku/pull/113)；实现 [#114](https://github.com/IdEvEbI/zen-gomoku/pull/114)（#6 `h10`/`f8`） |
+| M1.2q | [#115](https://github.com/IdEvEbI/zen-gomoku/issues/115) | **fix: 剩余 F + 门禁 A**          | 048 `j4` / 058 `f6`\|`g6`（对称干净冲四对）；推进 beginner 首着全中                                                                          |
 | M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71)   | **feat: 四级人设重做**            | 唐僧定型后：沙=噪声；猪守；悟攻；唐均衡最强                                                                                                  |
 | M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72)   | **feat: Agent 预留如来佛**        | `rulai` 占位；无模型不可选                                                                                                                   |
 | M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)   | **feat: 学堂闯关（题包）**        | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**                                                    |
@@ -144,8 +145,8 @@
 1. 从本表复制标题与描述 → GitHub New Issue。
 2. Milestone 选 M1～M5（仓库已建）。
 3. 开发分支 `feature/...`，PR 写 `Closes #n`。
-4. **下一刀建议**：academy beginner 门禁 A / 剩余 F（048/058）；人机体感可续盯 `of-counter-snuff`；  
-   门禁后再 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)。
+4. **下一刀建议**：[\#115](https://github.com/IdEvEbI/zen-gomoku/issues/115) 剩余 F（048/058）与门禁 A；  
+   体感可续盯 `of-counter-snuff`；门禁后再 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)。
 
 ---
 
@@ -169,3 +170,5 @@
 | 2026-08-11 | #105 实现合入 PR [#110](https://github.com/IdEvEbI/zen-gomoku/pull/110)；开 [#111](https://github.com/IdEvEbI/zen-gomoku/issues/111) 模式 N（双活四软挤） |
 | 2026-08-11 | #112 playtest 入库；模式 N 契约：白 #6 → `h10` / `f8`；下一刀实现                                                                                         |
 | 2026-08-11 | #113 契约合入；下一刀 [#111](https://github.com/IdEvEbI/zen-gomoku/issues/111) N 实现；入库 `of-counter-snuff` 参考谱                                     |
+| 2026-08-12 | #111 实现合入 PR [#114](https://github.com/IdEvEbI/zen-gomoku/pull/114)；开 [#115](https://github.com/IdEvEbI/zen-gomoku/issues/115) 剩余 F（048/058）    |
+| 2026-08-12 | #115：强迫残留加延期四三 / 对称干净对 / 单叉双苗；048 `j4`、058 `f6`\|`g6`                                                                                |

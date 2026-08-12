@@ -1050,6 +1050,18 @@ function preferBetterForcing(
   // #123：VCF 择优
   if (oKill?.selfVcf) {
     if (!oForce?.selfVcf) return killMove
+    // 059：贴对方叉的丰双苗 VCF（g11）硬压旁路四三（i5）；须在 race 之前，
+    // 避免仅凭四三高分换掉人机正解（playtest 2026-08-12-06-42-20）。
+    if (
+      !oKill.fourThree &&
+      oKill.onOppFork &&
+      oKill.residualDualSeedForks >= 2 &&
+      oForce.fourThree &&
+      !oForce.onOppFork &&
+      !(oForce.immediateWin || oForce.forceWins >= 2 || oForce.trueDual)
+    ) {
+      return killMove
+    }
     const oppHasOF = findOpenFourMoves(board, other(toPlay), rules, radius).length > 0
     // 057/070：对方软活四时，显式找可抢的四三兼攻叉（勿依赖 pickBest 被干净冲四抢走）
     if (oppHasOF) {

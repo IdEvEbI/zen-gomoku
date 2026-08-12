@@ -535,6 +535,36 @@ describe('vct', () => {
     }
   }, 240_000)
 
+  it('academy 059: g11 over side four-three i5 (playtest #123)', async () => {
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    const wrong = JSON.parse(
+      readFileSync(
+        'fixtures/records/playtests/tang-academy-059-wrong-i5-2026-08-12-06-42-20.json',
+        'utf8'
+      )
+    ) as { moves: Array<{ r: number; c: number; player: number }> }
+    const board = Array.from({ length: 15 }, () => Array(15).fill(0))
+    for (let i = 0; i < 24; i++) {
+      const m = wrong.moves[i]!
+      board[m.r]![m.c] = m.player
+    }
+    expect(site(wrong.moves[24]!.r, wrong.moves[24]!.c)).toBe('i5')
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      1,
+      { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+    )
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      expect(site(phase.move.row, phase.move.col)).toBe('g11')
+    }
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    const s = site(move!.row, move!.col)
+    expect(s).toBe('g11')
+    expect(s).not.toBe('i5')
+  }, 30_000)
+
   it('academy gate A: 050 i6 / 057 g8 / 064 j7 / 067 j8 (#117)', async () => {
     const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
       { id: '050', first: 'i6', forbidden: ['g9'] },

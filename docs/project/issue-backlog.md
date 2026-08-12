@@ -15,7 +15,8 @@
   ~~L（#105 / PR #106+#110）~~ → ~~M（#107 / PR #108+#109）~~ →  
   ~~双活四软挤（#111 · N）~~ →  
   ~~剩余 F（#115 · 048/058）~~ →  
-  **门禁 A（#117 · 050/057）** →  
+  **门禁 A（#117 · 050/057 · PR #118 可暂缓）** →  
+  **067 续着 VCF（#119）** →  
   中级/高级题 → 禁手 → 人设 #71 →  
   学堂闯关（#74）→ 打谱+分析（#73）→ 小程序壳 → 人人与段位 → ML 如来。  
   （契约变更文档先行，见 tang-seng §0。）
@@ -81,7 +82,8 @@
 | M1.2o | [#107](https://github.com/IdEvEbI/zen-gomoku/issues/107) | **fix: 软叉丛关键点（M）**         | ✅ 合入 PR [#108](https://github.com/IdEvEbI/zen-gomoku/pull/108)/[#109](https://github.com/IdEvEbI/zen-gomoku/pull/109)；`forkMultiOfCount` |
 | M1.2p | [#111](https://github.com/IdEvEbI/zen-gomoku/issues/111) | **fix: 双活四软挤抢先手（N）**     | ✅ 契约 [#113](https://github.com/IdEvEbI/zen-gomoku/pull/113)；实现 [#114](https://github.com/IdEvEbI/zen-gomoku/pull/114)（#6 `h10`/`f8`） |
 | M1.2q | [#115](https://github.com/IdEvEbI/zen-gomoku/issues/115) | **fix: 剩余 F + 门禁 A**           | ✅ [#116](https://github.com/IdEvEbI/zen-gomoku/pull/116)；048 `j4` / 058 `f6`\|`g6`                                                         |
-| M1.2r | [#117](https://github.com/IdEvEbI/zen-gomoku/issues/117) | **fix: 门禁 A（050/057/064/067）** | 锁 050 `i6` / 057 `g8`；修 064 `j7`、067 `j8`；入库 midgame 软挤谱                                                                           |
+| M1.2r | [#117](https://github.com/IdEvEbI/zen-gomoku/issues/117) | **fix: 门禁 A（050/057/064/067）** | 锁 050 `i6` / 057 `g8`；修 064 `j7`、067 `j8`；入库 midgame 软挤谱；PR [#118](https://github.com/IdEvEbI/zen-gomoku/pull/118) 可暂缓合入     |
+| M1.2s | [#119](https://github.com/IdEvEbI/zen-gomoku/issues/119) | **fix: 067 续着冲四/VCF 优先**     | `h10(k7)` 后冲四链 `f6` > `f8` 软双苗；叠在 #117 分支上                                                                                      |
 | M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71)   | **feat: 四级人设重做**             | 唐僧定型后：沙=噪声；猪守；悟攻；唐均衡最强                                                                                                  |
 | M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72)   | **feat: Agent 预留如来佛**         | `rulai` 占位；无模型不可选                                                                                                                   |
 | M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)   | **feat: 学堂闯关（题包）**         | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**                                                    |

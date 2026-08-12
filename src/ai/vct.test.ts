@@ -532,6 +532,34 @@ describe('vct', () => {
     }
   }, 120_000)
 
+  it('academy 067 continuation: after j8(k9)h10(k7) prefer f6 over f8 soft dual (#119)', () => {
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    const raw = JSON.parse(
+      readFileSync('fixtures/records/academy/beginner/067-solution.json', 'utf8')
+    ) as { moves: Array<{ r: number; c: number; player: 1 | 2 }> }
+    const board = Array.from({ length: 15 }, () => Array<number>(15).fill(0))
+    // 题解前 18 手：… j8 (k9) h10 (k7)，轮黑 #19
+    for (let i = 0; i < 18; i++) {
+      const m = raw.moves[i]!
+      board[m.r]![m.c] = m.player
+    }
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      1,
+      {
+        vcfMaxPly: 14,
+        vctMaxPly: 16,
+        vctMaxNodes: 80_000,
+      }
+    )
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      const s = site(phase.move.row, phase.move.col)
+      expect(s).toBe('f6')
+      expect(s).not.toBe('f8')
+    }
+  })
+
   it('academy mode J: attack order / multi-solution prefer first (071/080/074)', async () => {
     const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
       { id: '071', first: 'i9', forbidden: ['h10'] },

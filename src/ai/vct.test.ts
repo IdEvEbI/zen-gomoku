@@ -597,4 +597,72 @@ describe('vct', () => {
         phase.defenseFloor.some((m) => m.row === move!.row && m.col === move!.col)
     ).toBe(true)
   }, 60_000)
+
+  it('mode N: dual-OF seeds over soft fork — #6 h10 not i9 (#111)', async () => {
+    const raw = JSON.parse(
+      readFileSync(
+        'fixtures/records/playtests/tang-human-dual-of-squeeze-2026-08-11-10-05-04.json',
+        'utf8'
+      )
+    ) as { moves: Array<{ r: number; c: number; player: number }> }
+    const board = Array.from({ length: 15 }, () => Array(15).fill(0))
+    for (let i = 0; i < 5; i++) {
+      const m = raw.moves[i]!
+      board[m.r]![m.c] = m.player
+    }
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      2,
+      {
+        vcfMaxPly: 14,
+        vctMaxPly: 16,
+      }
+    )
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      const s = site(phase.move.row, phase.move.col)
+      expect(['h10', 'e7']).toContain(s)
+      expect(s).not.toBe('i9')
+    }
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    const ms = site(move!.row, move!.col)
+    expect(['h10', 'e7']).toContain(ms)
+    expect(ms).not.toBe('i9')
+  }, 20_000)
+
+  it('mode N: dual-OF seeds over soft fork — #6 f8 not g9 (#111)', async () => {
+    const raw = JSON.parse(
+      readFileSync(
+        'fixtures/records/playtests/tang-human-dual-of-squeeze-2026-08-11-10-10-23.json',
+        'utf8'
+      )
+    ) as { moves: Array<{ r: number; c: number; player: number }> }
+    const board = Array.from({ length: 15 }, () => Array(15).fill(0))
+    for (let i = 0; i < 5; i++) {
+      const m = raw.moves[i]!
+      board[m.r]![m.c] = m.player
+    }
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    const phase = planRootPhase(
+      board.map((r) => r.slice()),
+      2,
+      {
+        vcfMaxPly: 14,
+        vctMaxPly: 16,
+      }
+    )
+    expect(phase.type).toBe('terminal')
+    if (phase.type === 'terminal') {
+      const s = site(phase.move.row, phase.move.col)
+      expect(['f8', 'i5']).toContain(s)
+      expect(s).not.toBe('g9')
+    }
+    const move = await createAgentForDifficulty('tang').getNextMove(board.map((r) => r.slice()))
+    expect(move).not.toBeNull()
+    const ms = site(move!.row, move!.col)
+    expect(['f8', 'i5']).toContain(ms)
+    expect(ms).not.toBe('g9')
+  }, 20_000)
 })

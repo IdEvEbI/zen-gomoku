@@ -17,6 +17,7 @@
     "import:wuziqi123": "tsx scripts/import-wuziqi123.ts",
     "build:gaojiti-study": "tsx scripts/build-gaojiti-study-records.ts",
     "verify:vct": "tsx scripts/verify-vct-puzzles.ts",
+    "audit:academy-first": "tsx scripts/audit-academy-first-moves.ts",
     "prepare": "husky"
   },
   "lint-staged": {

@@ -560,6 +560,49 @@ describe('vct', () => {
     }
   })
 
+  it('academy gate A: lock previously unlocked hits (#121)', async () => {
+    // 其它测例已覆盖的 ID 不重复；此处补锁抽检确认命中、且原先无专用回归的题
+    const cases: Array<{ id: string; first: string }> = [
+      { id: '042', first: 'k7' },
+      { id: '043', first: 'f10' },
+      { id: '044', first: 'k6' },
+      { id: '049', first: 'c5' },
+      { id: '051', first: 'j8' },
+      { id: '052', first: 'e8' },
+      { id: '053', first: 'f12' },
+      { id: '054', first: 'i7' },
+      { id: '055', first: 'g9' },
+      { id: '062', first: 'j9' },
+      { id: '063', first: 'h10' },
+      { id: '065', first: 'j6' },
+      { id: '066', first: 'j11' },
+      { id: '073', first: 'm9' },
+      { id: '076', first: 'g11' },
+    ]
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    for (const { id, first } of cases) {
+      const raw = JSON.parse(
+        readFileSync(`fixtures/records/academy/beginner/${id}.json`, 'utf8')
+      ) as unknown
+      const parsed = parseGameRecord(raw)
+      expect(parsed.ok).toBe(true)
+      if (!parsed.ok) return
+      const rebuilt = rebuildFromRecord(parsed.record)
+      expect('error' in rebuilt).toBe(false)
+      if ('error' in rebuilt) return
+      const { board, currentPlayer } = rebuilt
+      const phase = planRootPhase(
+        board.map((r) => r.slice()),
+        currentPlayer as 1 | 2,
+        { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+      )
+      expect(phase.type).toBe('terminal')
+      if (phase.type === 'terminal') {
+        expect(site(phase.move.row, phase.move.col)).toBe(first)
+      }
+    }
+  }, 300_000)
+
   it('academy mode J: attack order / multi-solution prefer first (071/080/074)', async () => {
     const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
       { id: '071', first: 'i9', forbidden: ['h10'] },

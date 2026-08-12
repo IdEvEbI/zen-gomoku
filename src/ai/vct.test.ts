@@ -499,6 +499,42 @@ describe('vct', () => {
     }
   }, 400_000)
 
+  it('academy gate A rem-7: 041/045/047/056/059/069/079 (#123)', async () => {
+    const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
+      { id: '041', first: 'j10', forbidden: ['i9'] },
+      { id: '045', first: 'f9', forbidden: ['g10'] },
+      { id: '047', first: 'i6', forbidden: ['g9'] },
+      { id: '056', first: 'h9', forbidden: ['f8'] },
+      { id: '059', first: 'g11', forbidden: ['i5'] },
+      { id: '069', first: 'j12', forbidden: ['m9'] },
+      { id: '079', first: 'i7', forbidden: ['j9'] },
+    ]
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    for (const { id, first, forbidden } of cases) {
+      const raw = JSON.parse(
+        readFileSync(`fixtures/records/academy/beginner/${id}.json`, 'utf8')
+      ) as unknown
+      const parsed = parseGameRecord(raw)
+      expect(parsed.ok).toBe(true)
+      if (!parsed.ok) return
+      const rebuilt = rebuildFromRecord(parsed.record)
+      expect('error' in rebuilt).toBe(false)
+      if ('error' in rebuilt) return
+      const { board, currentPlayer } = rebuilt
+      const phase = planRootPhase(
+        board.map((r) => r.slice()),
+        currentPlayer as 1 | 2,
+        { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+      )
+      expect(phase.type).toBe('terminal')
+      if (phase.type === 'terminal') {
+        const s = site(phase.move.row, phase.move.col)
+        expect(s).toBe(first)
+        expect(forbidden).not.toContain(s)
+      }
+    }
+  }, 240_000)
+
   it('academy gate A: 050 i6 / 057 g8 / 064 j7 / 067 j8 (#117)', async () => {
     const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
       { id: '050', first: 'i6', forbidden: ['g9'] },

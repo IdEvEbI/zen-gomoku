@@ -358,9 +358,13 @@ function rankSoftAttackOrder(
   if (!ev.sustainedVct && !trueDual && !dualSeedClears) return Number.NEGATIVE_INFINITY
 
   const isRush = !!(rush && rush.row === move.row && rush.col === move.col)
+  // #123：079 `i7`——落在对方叉上且活四端贴叉（ofAdj≥2、ofOnOpp=0）压过仅消叉软双苗 `j9`
+  const forkHugDual =
+    ev.onOppFork && ofCount >= 2 && ofAdjOppFork >= 2 && ofOnOpp === 0 ? 45_000_000 : 0
   return (
     (trueDual ? 100_000_000 : 0) +
-    (dualSeedClears ? 40_000_000 : 0) -
+    (dualSeedClears ? 40_000_000 : 0) +
+    forkHugDual -
     ofOnOpp * 10_000_000 -
     (ev.onOppFork && ofCount >= 2 ? 3_000_000 : 0) +
     (ofOnOpp === 0 ? ofCount * 2_000_000 : (4 - ofCount) * 2_000_000) +
@@ -959,7 +963,11 @@ export function scoreForcingOutcome(o: ForcingOutcome): number {
   // 070 g9：四三落在对方叉上，可与「破 VCF」同档；060 j8 裸四三不豁免
   const breaksOppVcf = !o.oppVcf || (o.fourThree && o.onOppFork)
   // 046 j11 / 058 d10：旁路冲四应手后送给对方活四
-  const oppOfPenalty = !o.fourThree && o.oppOpenFours > 0 ? o.oppOpenFours * 2_000_000 : 0
+  // #123：selfVcf 且续攻双苗丰（residualDualSeedForks≥2）才免罚；裸旁路 VCF（058 d10 dual=0）仍罚
+  const oppOfPenalty =
+    !o.fourThree && o.oppOpenFours > 0 && !(o.selfVcf && o.residualDualSeedForks >= 2)
+      ? o.oppOpenFours * 2_000_000
+      : 0
   return (
     (o.oppVct ? 0 : 10_000_000) +
     (o.selfVct ? 1_000_000 : 0) +
@@ -1039,6 +1047,51 @@ function preferBetterForcing(
   if (!bestForce) return killMove
   const oKill = inspectForcingOutcome(board, toPlay, killMove, vctOpts, vcfOpts, rules, radius)
   const oForce = inspectForcingOutcome(board, toPlay, bestForce, vctOpts, vcfOpts, rules, radius)
+  // #123：VCF 择优
+  if (oKill?.selfVcf) {
+    if (!oForce?.selfVcf) return killMove
+    const oppHasOF = findOpenFourMoves(board, other(toPlay), rules, radius).length > 0
+    // 057/070：对方软活四时，显式找可抢的四三兼攻叉（勿依赖 pickBest 被干净冲四抢走）
+    if (oppHasOF) {
+      let race: AiMove | null = null
+      let raceScore = Number.NEGATIVE_INFINITY
+      for (const m of forcing) {
+        if (board[m.row]![m.col] !== 0) continue
+        const o = inspectForcingOutcome(board, toPlay, m, vctOpts, vcfOpts, rules, radius)
+        if (!o || !o.fourThree || !o.onOppFork || !canRaceSoftDefense(o)) continue
+        const sc = scoreForcingOutcome(o)
+        if (sc > raceScore) {
+          raceScore = sc
+          race = m
+        }
+      }
+      if (race) return race
+    }
+    // 干净冲四互比：优先更丰的 residual 双苗链（060 d10>f12）；否则丰双苗仍信 findVcfMove（056/059）
+    if (
+      !oKill.fourThree &&
+      !oForce.fourThree &&
+      oKill.forceWins === 1 &&
+      oForce.forceWins === 1 &&
+      !(oForce.immediateWin || oForce.trueDual || oForce.forceWins >= 2)
+    ) {
+      if (oForce.residualDualSeedForks > oKill.residualDualSeedForks) {
+        return bestForce
+      }
+      if (oKill.residualDualSeedForks >= 2) {
+        return killMove
+      }
+    }
+    // 丰双苗 VCF 才挡旁路四三；贫双苗旁路 VCF（070 h12）让位给可抢四三
+    if (
+      oForce.fourThree &&
+      !oKill.fourThree &&
+      oKill.residualDualSeedForks >= 2 &&
+      !(oForce.immediateWin || oForce.forceWins >= 2 || oForce.trueDual)
+    ) {
+      return killMove
+    }
+  }
   if (
     oKill &&
     oForce &&

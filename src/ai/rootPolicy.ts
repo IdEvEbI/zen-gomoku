@@ -320,6 +320,7 @@ function collectAttackOrderCandidates(
  * 模式 I 认序分（RESULTS 软起手短 VCT）：
  * 少把活四端搭在对方叉上；无搭叉时偏好双活四向；有搭叉时偏好单活四软起手；
  * 冲四留叉贪残留降权（072 g9）；兼攻对方叉的双苗降权。
+ * 门禁 A：消对方叉的双活四苗可认序（064 `j7`）；活四端贴对方叉加分（067 `j8`）。
  */
 function rankSoftAttackOrder(
   board: number[][],
@@ -332,22 +333,38 @@ function rankSoftAttackOrder(
 ): number {
   if (!ev.createsOpenFour) return Number.NEGATIVE_INFINITY
   const opp = other(toPlay)
-  const oppForkKeys = new Set(findForkThreeMoves(board, opp, rules, radius).map((f) => moveKey(f)))
+  const oppForks = findForkThreeMoves(board, opp, rules, radius)
+  const oppForkKeys = new Set(oppForks.map((f) => moveKey(f)))
+  const oppForksBefore = oppForks.length
+
   board[move.row]![move.col] = toPlay
   const openFours = findOpenFourMoves(board, toPlay, rules, radius)
   const ofOnOpp = openFours.filter((f) => oppForkKeys.has(moveKey(f))).length
   const ofCount = openFours.length
   const trueDual = ofCount >= 2 && isTrueOpenFourDual(board, toPlay, openFours, rules, radius)
+  const oppForksAfter = findForkThreeMoves(board, opp, rules, radius).length
+  // 与 continuity 一致：落在对方叉上「消叉」不算维持攻势清叉
+  const clearedOppForks = ev.onOppFork ? 0 : Math.max(0, oppForksBefore - oppForksAfter)
+  let ofAdjOppFork = 0
+  for (const f of openFours) {
+    if (oppForks.some((o) => Math.max(Math.abs(o.row - f.row), Math.abs(o.col - f.col)) === 1)) {
+      ofAdjOppFork++
+    }
+  }
   board[move.row]![move.col] = 0
-  // 真双活四可认序；其余须挡后仍有确认 VCT
-  if (!ev.sustainedVct && !trueDual) return Number.NEGATIVE_INFINITY
+
+  // 真双；或挡后仍有确认 VCT；或「消叉双活四苗」（064 j7，假双但压软叉）
+  const dualSeedClears = ofCount >= 2 && clearedOppForks > 0
+  if (!ev.sustainedVct && !trueDual && !dualSeedClears) return Number.NEGATIVE_INFINITY
 
   const isRush = !!(rush && rush.row === move.row && rush.col === move.col)
   return (
-    (trueDual ? 100_000_000 : 0) -
+    (trueDual ? 100_000_000 : 0) +
+    (dualSeedClears ? 40_000_000 : 0) -
     ofOnOpp * 10_000_000 -
     (ev.onOppFork && ofCount >= 2 ? 3_000_000 : 0) +
-    (ofOnOpp === 0 ? ofCount * 2_000_000 : (4 - ofCount) * 2_000_000) -
+    (ofOnOpp === 0 ? ofCount * 2_000_000 : (4 - ofCount) * 2_000_000) +
+    ofAdjOppFork * 1_500_000 -
     (isRush && ofCount === 1 ? 1_500_000 : 0) +
     Math.min(Number.isFinite(ev.score) ? ev.score : 0, 999_999)
   )

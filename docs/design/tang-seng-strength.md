@@ -94,7 +94,7 @@ openingBook.ts         → 开局定式
 8. **叉对杀**（`pickForkRaceMove`；假双空残留不得抢；杀伤同分按模式 J continuity 择优）
 9. 对方叉：**模式 I 软起手认序**（活三→活四续攻且挡后仍有确认 VCT；少把活四端搭在对方叉上）→ **确认 VCT** → 强迫着择优 → 冲四+四三（须硬残留）→ 软搜
 10. **冲四留叉** → **己方 VCT** → **对方 VCT 必防**
-11. 其余软威胁 / 全盘 αβ
+11. **模式 O**：可抢节奏冲四（无叉/无活四中盘造势）→ 其余软威胁 / 全盘 αβ
 
 > **模式 J（#97）**：多解下维持攻势顺序。只评估「造成可成活四」的续攻（不含裸冲四，以免回退 G）；用 `findVctMove` 确认挡后仍有杀，禁止把正解线中的后手点（如 071 `h10`、080 `i8`、074 `h9`）提前 terminal。
 >
@@ -131,6 +131,14 @@ openingBook.ts         → 开局定式
 >   - `tang-human-dual-of-squeeze-2026-08-11-10-05-04.json` 白 #6 → **`h10`**（或同等 `e7`；**不得**历史 `i9`）
 >   - `tang-human-dual-of-squeeze-2026-08-11-10-10-23.json` 白 #6 → **`f8`**（或同等 `i5`；**不得**历史 `g9`）
 > - **不回退**：K（`c7`）、L（勿 `j9`）、M（`j8`）、G/J/I/F、j11；等杀伤只挡（03-19-46）；枢纽叉更锋利时不抢（02-28-11）。
+>
+> **模式 O（#125 · midgame soft-squeeze）**：无 VCF/VCT、对方也无活四/叉时的中盘造势。
+>
+> - **洞**：对方仅有冲四威胁（`listSoftDefenseCandidates` 来自 opp fours）时，根上易直接 `softSearch` 去挡，放过己方同样可造成必应的节奏冲四 → 中盘偏慢、被对方拉开（参考谱白 #28 历史 `i3`，应抢 `j9`/`k9`）。
+> - **纪律**：落入软搜前，若 `pickBestForcingMove` + `canRaceSoftDefense` 找到可抢强迫着（冲四必应 / 合法四三等），**terminal 抢先**，高于「只挡对方冲四点」。
+> - **与 K/L**：K=软叉下冲四可压挡；L=互有短杀时勿假抢；**O=无叉/无活四时的节奏冲四造势**，仍走 `canRaceSoftDefense`（不回退 L/G）。
+> - **回归**：`tang-human-midgame-soft-squeeze-2026-08-12-02-43-22.json` 白 #28 → **`j9`**（或同等 `k9`；**不得**历史 `i3`）。
+> - **不回退**：门禁 A 55/55、K/L/M/N、G/F/J/I。
 
 ### 3.2 「真双」语义（下一刀必须收紧）
 
@@ -179,7 +187,8 @@ openingBook.ts         → 开局定式
 - [x] `threats` / `vcf` / `vct` / 棋谱回归（junction、gaojiti、academy 061/081–085）
 - [x] CI / `vitest` AI 套件
 - [x] **真双契约**：j11 对局回归（`tang-false-dual-j11-2026-08-11`）；根短路仅认胜点 ≥2（#91）
-- [ ] academy beginner **首着**全中（门禁 A；见 `fixtures/records/academy/beginner/RESULTS.md`）
+- [x] academy beginner **首着**全中（门禁 A 55/55；#121/#123）
+- [x] 模式 O 中盘节奏冲四（#125；`midgame-soft-squeeze` 白 #28 → `j9`）
 
 ### 5.2 产品体验（持续）
 
@@ -197,7 +206,8 @@ openingBook.ts         → 开局定式
 | 真双收紧            | §3.2；优先于 G/F/J 启发式                                                                                                       |
 | G/F/J/I             | academy RESULTS 失败模式；一类一 PR                                                                                             |
 | **双活四软挤（N）** | ✅ `pickDualOpenFourSeedMove`（#111）；#6 → `h10`/`f8`。参考中后盘反威胁被拆：`tang-human-of-counter-snuff-2026-08-11-10-46-01` |
-| 题库升级            | beginner 门禁 A → 中级 → 高级/VCT 手拣                                                                                          |
+| **中盘造势（O）**   | #125：无叉/无活四时节奏冲四可抢软挡；回归 midgame-soft-squeeze #28 `j9`                                                         |
+| 题库升级            | beginner 门禁 A ✅ → 中级 → 高级/VCT 手拣                                                                                       |
 | 禁手 / 抓禁手       | freestyle 战术稳定后再做                                                                                                        |
 | 人设重做 #71        | 唐僧定型后：共享骨架 + 深度/VCT/攻守权重旋钮                                                                                    |
 | `rootPolicy` 整理   | 可按相位拆文件；过 beginner 门禁前不重写搜索                                                                                    |
@@ -232,3 +242,4 @@ openingBook.ts         → 开局定式
 | 2026-08-11 | #111 模式 N 契约：软叉阶段双活四抢先；回归 #6 `h10` / `f8`            |
 | 2026-08-11 | #113 契约合入；§6 指向实现；参考谱 `of-counter-snuff`（反威胁被拆）   |
 | 2026-08-11 | #111 实现：`pickDualOpenFourSeedMove`；#6 → `h10` / `f8`              |
+| 2026-08-12 | #125 模式 O：无叉/无活四中盘节奏冲四；midgame-soft-squeeze #28 → `j9` |

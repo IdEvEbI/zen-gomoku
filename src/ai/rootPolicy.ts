@@ -1421,7 +1421,26 @@ export function planRootPhase(
     }
   }
 
+  // 模式 O（#125）：无叉/无活四中盘——可抢节奏冲四优先于 softSearch 挡对方冲四
+  // （midgame-soft-squeeze 白 #28：j9/k9 > 历史 i3）
   if (defense.length > 0) {
+    const forceCands = [
+      ...findFourThreatMoves(board, toPlay, rules, radius),
+      ...findForkThreeMoves(board, toPlay, rules, radius),
+    ]
+    const bestForce = pickBestForcingMove(
+      board,
+      toPlay,
+      forceCands,
+      vctOpts,
+      vcfOpts,
+      rules,
+      radius
+    )
+    if (bestForce) {
+      const o = inspectForcingOutcome(board, toPlay, bestForce, vctOpts, vcfOpts, rules, radius)
+      if (o && canRaceSoftDefense(o)) return terminal(bestForce)
+    }
     return softSearch(board, toPlay, defense, softRootLimit, rules, radius)
   }
 

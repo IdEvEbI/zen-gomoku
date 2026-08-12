@@ -17,9 +17,9 @@
   ~~剩余 F（#115 · 048/058）~~ →  
   ~~门禁 A（#117 · PR #118）~~ →  
   ~~067 续着 VCF（#119 · PR #120）~~ →  
-  ~~门禁 A 全表抽检（#121）~~ →  
-  **门禁 A rem-7（#123）** →  
-  **中盘无强迫造势**（`midgame-soft-squeeze`）→  
+  ~~门禁 A 全表抽检（#121 · PR #122）~~ →  
+  ~~门禁 A rem-7（#123 · PR #124）~~ →  
+  **中盘无强迫造势（#125 · M1.2v）** →  
   中级/高级题 → 禁手 → 人设 #71 →  
   学堂闯关（#74）→ 打谱+分析（#73）→ 小程序壳 → 人人与段位 → ML 如来。  
   （契约变更文档先行，见 tang-seng §0。）
@@ -87,9 +87,9 @@
 | M1.2q | [#115](https://github.com/IdEvEbI/zen-gomoku/issues/115) | **fix: 剩余 F + 门禁 A**           | ✅ [#116](https://github.com/IdEvEbI/zen-gomoku/pull/116)；048 `j4` / 058 `f6`\|`g6`                                                         |
 | M1.2r | [#117](https://github.com/IdEvEbI/zen-gomoku/issues/117) | **fix: 门禁 A（050/057/064/067）** | ✅ [#118](https://github.com/IdEvEbI/zen-gomoku/pull/118)；050 `i6` / 057 `g8` / 064 `j7` / 067 `j8`；midgame 软挤谱                         |
 | M1.2s | [#119](https://github.com/IdEvEbI/zen-gomoku/issues/119) | **fix: 067 续着冲四/VCF 优先**     | ✅ [#120](https://github.com/IdEvEbI/zen-gomoku/pull/120)→#118；`h10(k7)` 后 `f6` > `f8`                                                     |
-| M1.2t | [#121](https://github.com/IdEvEbI/zen-gomoku/issues/121) | **test: 门禁 A 全表抽检**          | 031–085；期望表+`audit:academy-first`；曾 48/55，#123 补齐                                                                                   |
-| M1.2u | [#123](https://github.com/IdEvEbI/zen-gomoku/issues/123) | **fix: 门禁 A 剩余 7 题首着**      | 041/045/047/056/059/069/079 → **55/55**；VCF 择优 / `oppOf` / `forkHugDual`                                                                  |
-| M1.2v | （待开）                                                 | **fix: 中盘无强迫造势**            | 参考谱 `tang-human-midgame-soft-squeeze-*`；无 VCF/VCT 时仍能软挤造势；契约先行                                                              |
+| M1.2t | [#121](https://github.com/IdEvEbI/zen-gomoku/issues/121) | **test: 门禁 A 全表抽检**          | ✅ [#122](https://github.com/IdEvEbI/zen-gomoku/pull/122)；期望表+`audit:academy-first`                                                      |
+| M1.2u | [#123](https://github.com/IdEvEbI/zen-gomoku/issues/123) | **fix: 门禁 A 剩余 7 题首着**      | ✅ [#124](https://github.com/IdEvEbI/zen-gomoku/pull/124)；**55/55**；含 059 `g11`>`i5`                                                      |
+| M1.2v | [#125](https://github.com/IdEvEbI/zen-gomoku/issues/125) | **fix: 中盘无强迫造势**            | **进行中**；模式 O：无叉/无活四时节奏冲四可抢软挡；#28 → `j9`/`k9`                                                                           |
 | M1.3  | [#71](https://github.com/IdEvEbI/zen-gomoku/issues/71)   | **feat: 四级人设重做**             | 唐僧定型后：沙=噪声；猪守；悟攻；唐均衡最强                                                                                                  |
 | M1.4  | [#72](https://github.com/IdEvEbI/zen-gomoku/issues/72)   | **feat: Agent 预留如来佛**         | `rulai` 占位；无模型不可选                                                                                                                   |
 | M1.5  | [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)   | **feat: 学堂闯关（题包）**         | 规则·死活 + 26 开局 + 分级 VCF/VCT；落子才过；步后一句；提示限次+激励视频；**可先于 #73**                                                    |
@@ -155,8 +155,8 @@
 1. 从本表复制标题与描述 → GitHub New Issue。
 2. Milestone 选 M1～M5（仓库已建）。
 3. 开发分支 `feature/...`，PR 写 `Closes #n`。
-4. **下一刀建议**：[\#123](https://github.com/IdEvEbI/zen-gomoku/issues/123) 门禁 A rem-7 →  
-   **中盘无强迫造势**（`tang-human-midgame-soft-squeeze-*`）；门禁 A 55/55 后再 [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)。
+4. **下一刀建议**：[\#125](https://github.com/IdEvEbI/zen-gomoku/issues/125) 中盘无强迫造势（M1.2v）；  
+   契约先行 → 锁参考谱关键手；门禁 A 已 55/55；其后中级/高级 → [#74](https://github.com/IdEvEbI/zen-gomoku/issues/74)。
 
 ---
 
@@ -185,3 +185,5 @@
 | 2026-08-12 | #115 合入 [#116](https://github.com/IdEvEbI/zen-gomoku/pull/116)；开 [#117](https://github.com/IdEvEbI/zen-gomoku/issues/117) 门禁 A；入库 midgame 软挤谱 |
 | 2026-08-12 | #117：认序加消叉双苗 / 贴叉双苗；050/057 锁；064 `j7`、067 `j8`                                                                                           |
 | 2026-08-12 | #121 抽检 48/55；开 [#123](https://github.com/IdEvEbI/zen-gomoku/issues/123) rem-7；下一刀中盘无强迫造势（M1.2v）                                         |
+| 2026-08-12 | #121/#123 合入 [#122](https://github.com/IdEvEbI/zen-gomoku/pull/122)/[#124](https://github.com/IdEvEbI/zen-gomoku/pull/124)；门禁 A 55/55；下一刀 M1.2v  |
+| 2026-08-12 | 开 [#125](https://github.com/IdEvEbI/zen-gomoku/issues/125) 中盘无强迫造势（M1.2v）；分支 `feature/midgame-soft-squeeze`                                  |

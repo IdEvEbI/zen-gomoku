@@ -6,7 +6,7 @@
  * 2. 己方 VCF
  * 3. 对方活四端：已强制真双 / 四三 → 否则软挡；对方 VCF 必防
  * 4. 已强制真双；对方叉时确认 VCT 先于叉对杀
- * 5. 对方叉：强迫着 → 模式 J/I 活四续攻认序 → 冲四留叉（模式 K）→ 否则软搜
+ * 5. 对方叉：强迫着 → 模式 J/I 活四续攻认序 → 冲四留叉（模式 K）→ 双活四苗抢先（模式 N）→ 否则软搜
  * 6. 冲四/单活四留叉 → 己方 VCT → 对方 VCT 必防
  * 7. 其余软威胁 / 全盘 αβ
  */
@@ -382,6 +382,80 @@ function pickTrueOpenFourDualMove(
     board[m.row]![m.col] = 0
     if (!ok) continue
     const extra = ofs.length * 10 + forks
+    if (extra > bestExtra) {
+      bestExtra = extra
+      best = m
+    }
+  }
+  return best
+}
+
+/**
+ * 模式 N：对方仅有软叉（无活四端）时，落下后 `findOpenFourMoves(self) ≥ 2` 的点
+ * 优先于「只挡一个软叉」。含假双活四苗（挡一则另一也消失）——对方若续攻自己的叉，
+ * 己方下一手即可走活四端（人机 #6 `h10`/`f8`）。
+ * 真双（`isTrueOpenFourDual`）已由 `pickTrueOpenFourDualMove` 更早接手。
+ *
+ * 门禁（控误伤 / 时延）：
+ * - 对方软叉**恰好 2 个**（人机双叉挤；多叉丛走 M/软挡）
+ * - 挡其中任一，另一手仍能成 ≥2 活四苗（挡一不够）
+ * - 己方该点杀伤 ≥ 对方叉（不得在对方枢纽更锋利时抢，回归 02-28-11）
+ */
+function pickDualOpenFourSeedMove(
+  board: number[][],
+  toPlay: AiPlayer,
+  rules: RuleSetId,
+  radius: number
+): AiMove | null {
+  const opp = other(toPlay)
+  const oppForks = findForkThreeMoves(board, opp, rules, radius)
+  if (oppForks.length !== 2) return null
+
+  // 挡 A 后 B 仍能双活四苗？或挡 B 后 A 仍能？
+  let blockInsufficient = false
+  for (let i = 0; i < 2; i++) {
+    const block = oppForks[i]!
+    const otherFork = oppForks[1 - i]!
+    if (board[block.row]![block.col] !== 0 || board[otherFork.row]![otherFork.col] !== 0) continue
+    board[block.row]![block.col] = toPlay
+    board[otherFork.row]![otherFork.col] = opp
+    const n = findOpenFourMoves(board, opp, rules, radius).length
+    board[otherFork.row]![otherFork.col] = 0
+    board[block.row]![block.col] = 0
+    if (n >= 2) {
+      blockInsufficient = true
+      break
+    }
+  }
+  if (!blockInsufficient) return null
+
+  let oppBestL = Number.NEGATIVE_INFINITY
+  for (const f of oppForks) {
+    const L = measureAttackLethality(board, opp, f, rules, radius)
+    if (L > oppBestL) oppBestL = L
+  }
+
+  // 候选：己方叉优先，少量活三；先筛双活四苗再比杀伤
+  const seeds = uniqueCandidateMoves([
+    ...findForkThreeMoves(board, toPlay, rules, radius),
+    ...findOpenThreeMoves(board, toPlay, rules, radius).slice(0, 12),
+  ])
+  let best: AiMove | null = null
+  let bestExtra = -1
+  for (const m of seeds) {
+    if (board[m.row]![m.col] !== 0) continue
+    board[m.row]![m.col] = toPlay
+    if (checkWinner(board, m.row, m.col, rules) === toPlay) {
+      board[m.row]![m.col] = 0
+      return m
+    }
+    const ofs = findOpenFourMoves(board, toPlay, rules, radius)
+    const forks = findForkThreeMoves(board, toPlay, rules, radius).length
+    board[m.row]![m.col] = 0
+    if (ofs.length < 2) continue
+    const myL = measureAttackLethality(board, toPlay, m, rules, radius)
+    if (myL < oppBestL) continue
+    const extra = ofs.length * 10 + forks + myL / 1000
     if (extra > bestExtra) {
       bestExtra = extra
       best = m
@@ -1095,6 +1169,11 @@ export function planRootPhase(
         board[rush.row]![rush.col] = 0
         if (myWins >= 2 || fourThree) return terminal(rush)
       }
+    }
+    // 模式 N：对方无活四端、仅软叉时，己方双活四苗抢先于软挡（#6 h10/f8）
+    if (oppOpenFour.length === 0) {
+      const seedDual = pickDualOpenFourSeedMove(board, toPlay, rules, radius)
+      if (seedDual) return terminal(seedDual)
     }
     return softSearch(board, toPlay, defense, softRootLimit, rules, radius)
   }

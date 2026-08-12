@@ -681,8 +681,20 @@ export interface ForcingOutcome {
   /**
    * 应手后：在「落下可成 ≥2 活四」的残留叉上，叉丰度最大值。
    * 用于同分冲四择优（060 d10 的 e10 续攻优于 f12/c9）。
+   * 叉落下后叉数归零时仍记 ≥1（048 `j4`→`k7` 假双苗）。
    */
   residualDualSeedForks: number
+  /**
+   * 应手后：残留冲四/叉中，下一手即可成四三的个数（058 `f6`/`g6`→`g9`）。
+   */
+  residualNextFourThree: number
+  /** 应手后对方残留叉数（048：`j4` 不增生、`g6` 增生 → 同分择优） */
+  residualOppForks: number
+  /**
+   * 冲四应手点与落点构成对称冲四对，且「先走应手点」不送给对方活四。
+   * 用于 058：偏好 `f6`/`g6`，降权 `f8`（对端 `d10` 送活四）。
+   */
+  symmetricCleanPair: boolean
   /** 应手后对方活四数：旁路冲四惩罚（046 j11 / 058 d10） */
   oppOpenFours: number
   oppVct: boolean
@@ -741,6 +753,9 @@ export function inspectForcingOutcome(
       residualForks: 0,
       residualOpenFours: 0,
       residualDualSeedForks: 0,
+      residualNextFourThree: 0,
+      residualOppForks: 0,
+      symmetricCleanPair: false,
       oppOpenFours: 0,
       oppVct: false,
       oppVcf: false,
@@ -769,6 +784,9 @@ export function inspectForcingOutcome(
       residualForks: 0,
       residualOpenFours: 0,
       residualDualSeedForks: 0,
+      residualNextFourThree: 0,
+      residualOppForks: 0,
+      symmetricCleanPair: false,
       oppOpenFours: 0,
       oppVct: false,
       oppVcf: false,
@@ -789,24 +807,59 @@ export function inspectForcingOutcome(
     board[block.row]![block.col] = opp
   }
 
-  const residualForks = findForkThreeMoves(board, toPlay, rules, radius).length
+  const residualForksList = findForkThreeMoves(board, toPlay, rules, radius)
+  const residualFoursList = findFourThreatMoves(board, toPlay, rules, radius)
+  const residualForks = residualForksList.length
   const residualOpenFours = findOpenFourMoves(board, toPlay, rules, radius).length
   let residualDualSeedForks = 0
-  for (const f of findForkThreeMoves(board, toPlay, rules, radius)) {
+  for (const f of residualForksList) {
     if (board[f.row]![f.col] !== 0) continue
     board[f.row]![f.col] = toPlay
     const ofCount = findOpenFourMoves(board, toPlay, rules, radius).length
     const forksAfter = findForkThreeMoves(board, toPlay, rules, radius).length
     board[f.row]![f.col] = 0
-    if (ofCount >= 2 && forksAfter > residualDualSeedForks) {
-      residualDualSeedForks = forksAfter
+    if (ofCount >= 2) {
+      // 叉落下后可能再无叉（048 k7）；仍记丰度，至少 1 以区分「有双活四苗」
+      residualDualSeedForks = Math.max(residualDualSeedForks, Math.max(forksAfter, 1))
     }
   }
+  let residualNextFourThree = 0
+  for (const n of uniqueCandidateMoves([...residualFoursList, ...residualForksList])) {
+    if (board[n.row]![n.col] !== 0) continue
+    board[n.row]![n.col] = toPlay
+    const w = findWinningMoves(board, toPlay, rules, radius).length
+    const of = findOpenFourMoves(board, toPlay, rules, radius).length
+    board[n.row]![n.col] = 0
+    if (w >= 1 && of >= 1) residualNextFourThree++
+  }
+  const residualOppForks = findForkThreeMoves(board, opp, rules, radius).length
   const oppOpenFours = findOpenFourMoves(board, opp, rules, radius).length
   const oppVcf = vcfExists(board, opp, opp, vcfO)
   const oppVct = oppVcf || vctExists(board, opp, opp, vctO)
   const selfVcf = vcfExists(board, toPlay, toPlay, vcfO)
   const selfVct = selfVcf || vctExists(board, toPlay, toPlay, vctO)
+
+  // 对称干净冲四对：对端作为首着不送对方活四（058 f6/g6 vs f8/d10）
+  let symmetricCleanPair = false
+  if (forceWins === 1 && block) {
+    board[block.row]![block.col] = 0
+    board[move.row]![move.col] = 0
+    board[block.row]![block.col] = toPlay
+    const revWins = findWinningMoves(board, toPlay, rules, radius)
+    if (
+      revWins.length === 1 &&
+      revWins[0]!.row === move.row &&
+      revWins[0]!.col === move.col &&
+      board[move.row]![move.col] === 0
+    ) {
+      board[move.row]![move.col] = opp
+      symmetricCleanPair = findOpenFourMoves(board, opp, rules, radius).length === 0
+      board[move.row]![move.col] = 0
+    }
+    board[block.row]![block.col] = 0
+    board[move.row]![move.col] = toPlay
+    board[block.row]![block.col] = opp
+  }
 
   if (block) board[block.row]![block.col] = 0
   board[move.row]![move.col] = 0
@@ -821,6 +874,9 @@ export function inspectForcingOutcome(
     residualForks,
     residualOpenFours,
     residualDualSeedForks,
+    residualNextFourThree,
+    residualOppForks,
+    symmetricCleanPair,
     oppOpenFours,
     oppVct,
     oppVcf,
@@ -832,7 +888,7 @@ export function inspectForcingOutcome(
 /**
  * 强迫着得分（越大越好）。
  * 主序：立刻胜 / 双胜点 → 应手后对方无 VCT → 己方仍有 VCT → 破对方 VCF /
- * 四三兼攻豁免 → 双活四向续攻丰度 → 硬残留；非四三却留对方活四则重罚。
+ * 四三兼攻豁免 → 延期四三 / 双活四向续攻丰度 → 硬残留；非四三却留对方活四则重罚。
  */
 export function scoreForcingOutcome(o: ForcingOutcome): number {
   if (o.immediateWin) return 1_000_000_000
@@ -851,9 +907,12 @@ export function scoreForcingOutcome(o: ForcingOutcome): number {
     (o.selfVcf ? 10_000 : 0) +
     emptyRushPenalty +
     (o.fourThree ? 5_000 : 0) +
+    (o.symmetricCleanPair ? 5_000 : 0) +
+    o.residualNextFourThree * 2_000 +
     o.residualDualSeedForks * 1_000 +
     residual * 300 +
     o.forceWins * 100 -
+    o.residualOppForks * 200 -
     oppOfPenalty
   )
 }
@@ -865,16 +924,34 @@ function isSuicidalForcing(o: ForcingOutcome): boolean {
 }
 
 /**
- * 可否压过对方软活四/软叉抢攻（契约 · RESULTS 模式 G / L）：
+ * 可否压过对方软活四/软叉抢攻（契约 · RESULTS 模式 G / L / F）：
  * - 立刻胜 / 已强制双威胁 / 四三且应后对方无 VCT
+ * - 四三兼攻对方叉（070 `g9`），即使应后对方仍有 VCT
+ * - 裸冲四挡后下一手可成四三 / 双活四苗，且未送对方活四（048 `j4`、058 `f6`/`g6`）
  * - 或纯节奏冲四（挡后无叉/活四残留；回归 10-17-10）
  * - **模式 L**：节奏冲四应手后**互有 VCT** 且未占对方叉 → 不抢，交软搜打断叉丛
  *   （`07-53-01` #12 禁 `j9`；软挡后冲四仍在，可下回合再抢）
- * 挡后仅「留叉」的裸冲四不得短路（048 g6 / 076 e9）。
+ * 挡后仅「留叉」的裸冲四不得短路（048 g6 / 076 e9）——除非有双活四苗/延期四三。
  */
 function canRaceSoftDefense(o: ForcingOutcome): boolean {
   if (o.immediateWin || o.trueDual || o.forceWins >= 2) return true
-  if (o.fourThree && !o.oppVct && !isSuicidalForcing(o)) return true
+  if (o.fourThree && !isSuicidalForcing(o)) {
+    if (!o.oppVct) return true
+    // 070：四三落在对方叉上，可抢过软叉
+    if (o.onOppFork) return true
+  }
+  if (
+    o.forceWins === 1 &&
+    o.openFourCount === 0 &&
+    o.oppOpenFours === 0 &&
+    o.selfVct &&
+    !isSuicidalForcing(o)
+  ) {
+    // 延期四三（058 f6；060 d10）
+    if (o.residualNextFourThree > 0) return true
+    // 单残留叉且为双活四苗（048 j4）；多叉丛裸冲四仍禁（076 e9）
+    if (o.residualDualSeedForks > 0 && o.residualForks === 1) return true
+  }
   const residual = o.residualForks + o.residualOpenFours
   if (o.forceWins === 1 && o.openFourCount === 0 && residual === 0) {
     // 模式 L：互有 VCT 的旁路节奏冲四让位于软挡（#81 软挡后仍可下回合 f9）
@@ -955,9 +1032,20 @@ export function pickBestForcingMove(
 
   const safe = scored.filter((s) => !isSuicidalForcing(s.outcome))
   const pool = safe.length > 0 ? safe : scored
+  // 模式 F：能合法抢软叉的强迫着优先于「分高但 canRace 失败」的假四三（058 g9）
+  const raceable = pool.filter((s) => canRaceSoftDefense(s.outcome))
+  const pickPool = raceable.length > 0 ? raceable : pool
+  // 冲四留叉快捷点加分（模式 K：soft-squeeze `c7` 压过同分旁路 `d7`）
+  const rush = findRushFourIntoForkMove(board, toPlay, { rules, radius })
   let best: Row | null = null
-  for (const row of pool) {
-    if (!best || row.score > best.score) best = row
+  let bestAdj = Number.NEGATIVE_INFINITY
+  for (const row of pickPool) {
+    const rushBonus = rush && row.move.row === rush.row && row.move.col === rush.col ? 1_000 : 0
+    const adj = row.score + rushBonus
+    if (!best || adj > bestAdj) {
+      best = row
+      bestAdj = adj
+    }
   }
   return best?.move ?? null
 }
@@ -1167,7 +1255,12 @@ export function planRootPhase(
         const myOF = findOpenFourMoves(board, toPlay, rules, radius)
         const fourThree = myWins >= 1 && myOF.length >= 1
         board[rush.row]![rush.col] = 0
-        if (myWins >= 2 || fourThree) return terminal(rush)
+        // 双胜点 / 可抢四三才短路；裸四三若 canRace 失败（058 g9）交给 pickBestForcing
+        if (myWins >= 2 || fourThree) {
+          const oRush =
+            inspectForcingOutcome(board, toPlay, rush, vctOpts, vcfOpts, rules, radius) ?? null
+          if (oRush && canRaceSoftDefense(oRush)) return terminal(rush)
+        }
       }
     }
     // 模式 N：对方无活四端、仅软叉时，己方双活四苗抢先于软挡（#6 h10/f8）

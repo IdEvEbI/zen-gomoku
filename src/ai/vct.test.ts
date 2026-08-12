@@ -467,6 +467,38 @@ describe('vct', () => {
     }
   }, 60_000)
 
+  it('academy mode F rem: 048 j4 / 058 f6|g6 (#115)', async () => {
+    const cases: Array<{ id: string; accept: string[]; forbidden: string[] }> = [
+      { id: '048', accept: ['j4'], forbidden: ['g6', 'k7', 'i10'] },
+      // f6/g6 为对称干净冲四对；禁旁路 d10、假抢四三 g9、对端带毒的 f8
+      { id: '058', accept: ['f6', 'g6'], forbidden: ['d10', 'g9', 'f8'] },
+    ]
+    const site = (r: number, c: number) => `${String.fromCharCode(97 + c)}${15 - r}`
+    for (const { id, accept, forbidden } of cases) {
+      const raw = JSON.parse(
+        readFileSync(`fixtures/records/academy/beginner/${id}.json`, 'utf8')
+      ) as unknown
+      const parsed = parseGameRecord(raw)
+      expect(parsed.ok).toBe(true)
+      if (!parsed.ok) return
+      const rebuilt = rebuildFromRecord(parsed.record)
+      expect('error' in rebuilt).toBe(false)
+      if ('error' in rebuilt) return
+      const { board, currentPlayer } = rebuilt
+      const phase = planRootPhase(
+        board.map((r) => r.slice()),
+        currentPlayer as 1 | 2,
+        { vcfMaxPly: 14, vctMaxPly: 16, vctMaxNodes: 80_000 }
+      )
+      expect(phase.type).toBe('terminal')
+      if (phase.type === 'terminal') {
+        const s = site(phase.move.row, phase.move.col)
+        expect(accept).toContain(s)
+        expect(forbidden).not.toContain(s)
+      }
+    }
+  }, 400_000)
+
   it('academy mode J: attack order / multi-solution prefer first (071/080/074)', async () => {
     const cases: Array<{ id: string; first: string; forbidden: string[] }> = [
       { id: '071', first: 'i9', forbidden: ['h10'] },

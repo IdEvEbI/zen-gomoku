@@ -5,7 +5,7 @@
  * 1. 一步胜 / 硬必防 / 己方活四 / 双胜点快路径
  * 2. 己方 VCF
  * 3. 对方活四端：已强制真双 / 四三 → 否则软挡；对方 VCF 必防
- * 4. 已强制真双；对方叉时确认 VCT 先于叉对杀
+ * 4. 已强制真双；可成活四真双（冲四链优先于软双苗 · #119）；对方叉时确认 VCT 先于叉对杀
  * 5. 对方叉：强迫着 → 模式 J/I 活四续攻认序 → 冲四留叉（模式 K）→ 双活四苗抢先（模式 N）→ 否则软搜
  * 6. 冲四/单活四留叉 → 己方 VCT → 对方 VCT 必防
  * 7. 其余软威胁 / 全盘 αβ
@@ -320,6 +320,7 @@ function collectAttackOrderCandidates(
  * 模式 I 认序分（RESULTS 软起手短 VCT）：
  * 少把活四端搭在对方叉上；无搭叉时偏好双活四向；有搭叉时偏好单活四软起手；
  * 冲四留叉贪残留降权（072 g9）；兼攻对方叉的双苗降权。
+ * 门禁 A：消对方叉的双活四苗可认序（064 `j7`）；活四端贴对方叉加分（067 `j8`）。
  */
 function rankSoftAttackOrder(
   board: number[][],
@@ -332,22 +333,38 @@ function rankSoftAttackOrder(
 ): number {
   if (!ev.createsOpenFour) return Number.NEGATIVE_INFINITY
   const opp = other(toPlay)
-  const oppForkKeys = new Set(findForkThreeMoves(board, opp, rules, radius).map((f) => moveKey(f)))
+  const oppForks = findForkThreeMoves(board, opp, rules, radius)
+  const oppForkKeys = new Set(oppForks.map((f) => moveKey(f)))
+  const oppForksBefore = oppForks.length
+
   board[move.row]![move.col] = toPlay
   const openFours = findOpenFourMoves(board, toPlay, rules, radius)
   const ofOnOpp = openFours.filter((f) => oppForkKeys.has(moveKey(f))).length
   const ofCount = openFours.length
   const trueDual = ofCount >= 2 && isTrueOpenFourDual(board, toPlay, openFours, rules, radius)
+  const oppForksAfter = findForkThreeMoves(board, opp, rules, radius).length
+  // 与 continuity 一致：落在对方叉上「消叉」不算维持攻势清叉
+  const clearedOppForks = ev.onOppFork ? 0 : Math.max(0, oppForksBefore - oppForksAfter)
+  let ofAdjOppFork = 0
+  for (const f of openFours) {
+    if (oppForks.some((o) => Math.max(Math.abs(o.row - f.row), Math.abs(o.col - f.col)) === 1)) {
+      ofAdjOppFork++
+    }
+  }
   board[move.row]![move.col] = 0
-  // 真双活四可认序；其余须挡后仍有确认 VCT
-  if (!ev.sustainedVct && !trueDual) return Number.NEGATIVE_INFINITY
+
+  // 真双；或挡后仍有确认 VCT；或「消叉双活四苗」（064 j7，假双但压软叉）
+  const dualSeedClears = ofCount >= 2 && clearedOppForks > 0
+  if (!ev.sustainedVct && !trueDual && !dualSeedClears) return Number.NEGATIVE_INFINITY
 
   const isRush = !!(rush && rush.row === move.row && rush.col === move.col)
   return (
-    (trueDual ? 100_000_000 : 0) -
+    (trueDual ? 100_000_000 : 0) +
+    (dualSeedClears ? 40_000_000 : 0) -
     ofOnOpp * 10_000_000 -
     (ev.onOppFork && ofCount >= 2 ? 3_000_000 : 0) +
-    (ofOnOpp === 0 ? ofCount * 2_000_000 : (4 - ofCount) * 2_000_000) -
+    (ofOnOpp === 0 ? ofCount * 2_000_000 : (4 - ofCount) * 2_000_000) +
+    ofAdjOppFork * 1_500_000 -
     (isRush && ofCount === 1 ? 1_500_000 : 0) +
     Math.min(Number.isFinite(ev.score) ? ev.score : 0, 999_999)
   )
@@ -384,6 +401,49 @@ function pickTrueOpenFourDualMove(
     const extra = ofs.length * 10 + forks
     if (extra > bestExtra) {
       bestExtra = extra
+      best = m
+    }
+  }
+  return best
+}
+
+/**
+ * #119：已有可成活四真双苗时，若仍存在「冲四 → 挡后仍 ≥3 冲四」的链，优先冲四。
+ * 067 `h10(k7)` 后 `f6` 冲四链压过 `f8` 软双苗；082 旁路冲四挡后仅 ≤2 冲四，仍走 `k7` 双苗。
+ */
+function pickRushFourChainOverSoftDual(
+  board: number[][],
+  toPlay: AiPlayer,
+  rules: RuleSetId,
+  radius: number
+): AiMove | null {
+  const opp = other(toPlay)
+  let best: AiMove | null = null
+  let bestResidual = 0
+  for (const m of findFourThreatMoves(board, toPlay, rules, radius)) {
+    if (board[m.row]![m.col] !== 0) continue
+    board[m.row]![m.col] = toPlay
+    if (checkWinner(board, m.row, m.col, rules) === toPlay) {
+      board[m.row]![m.col] = 0
+      return m
+    }
+    const wins = findWinningMoves(board, toPlay, rules, radius)
+    if (wins.length !== 1) {
+      board[m.row]![m.col] = 0
+      continue
+    }
+    const block = wins[0]!
+    if (board[block.row]![block.col] !== 0) {
+      board[m.row]![m.col] = 0
+      continue
+    }
+    board[block.row]![block.col] = opp
+    const residualFours = findFourThreatMoves(board, toPlay, rules, radius).length
+    board[block.row]![block.col] = 0
+    board[m.row]![m.col] = 0
+    if (residualFours < 3) continue
+    if (residualFours > bestResidual) {
+      bestResidual = residualFours
       best = m
     }
   }
@@ -1186,7 +1246,12 @@ export function planRootPhase(
   {
     // 081–085：可成活四真双不依赖 VCT 时限，避免超时掉成假软续攻
     const ofDual = pickTrueOpenFourDualMove(board, toPlay, rules, radius)
-    if (ofDual) return terminal(ofDual)
+    if (ofDual) {
+      // #119：冲四链（067 f6）优先于软双苗（f8）；082 旁路冲四不够链则仍双苗
+      const fourChain = pickRushFourChainOverSoftDual(board, toPlay, rules, radius)
+      if (fourChain) return terminal(fourChain)
+      return terminal(ofDual)
+    }
   }
   if (oppForks.length > 0 && vctMaxPly > 0) {
     const orderCands = collectAttackOrderCandidates(board, toPlay, rules, radius)

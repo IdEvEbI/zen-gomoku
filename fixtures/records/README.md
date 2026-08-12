@@ -57,7 +57,9 @@
 `tang-human-dual-of-squeeze-2026-08-11-10-05-04.json`（白 #6 应 **`h10`**，非历史 `i9`；#13 起双活四链）、  
 `tang-human-dual-of-squeeze-2026-08-11-10-10-23.json`（白 #6 应 **`f8`**，非历史 `g9`）；  
 中后盘反威胁被拆（黑胜 · 参考）：  
-`tang-human-of-counter-snuff-2026-08-11-10-46-01.json`（白 #22 挡后已有双活四苗，黑 `#23 i4` 顺手占点续攻 → `#29` 双杀）。
+`tang-human-of-counter-snuff-2026-08-11-10-46-01.json`（白 #22 挡后已有双活四苗，黑 `#23 i4` 顺手占点续攻 → `#29` 双杀）；  
+中盘软挤终盘真双（黑胜 · 参考）：  
+`tang-human-midgame-soft-squeeze-2026-08-12-02-43-22.json`（白硬应多正确，中盘造势偏慢 → 黑 k 路双杀 `k10`/`k5`）。
 
 生成：`npx tsx scripts/build-gaojiti-study-records.ts`。非站点官方唯一解；`meta.complete=false` 表示尚未收到成五。
 
